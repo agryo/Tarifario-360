@@ -392,7 +392,7 @@
             <div class="flex align-items-center gap-3 mb-3">
               <i
                 [class]="
-                  config.senhaMaster
+                  config.senhaHash
                     ? 'pi pi-check-circle text-success'
                     : 'pi pi-exclamation-circle text-warning'
                 "
@@ -400,11 +400,11 @@
               ></i>
               <div>
                 <h3 class="text-lg font-bold mb-1">
-                  {{ config.senhaMaster ? 'Senha Ativa' : 'Sem Senha' }}
+                  {{ config.senhaHash ? 'Senha Ativa' : 'Sem Senha' }}
                 </h3>
                 <p class="text-secondary">
                   Acesso ao painel
-                  {{ config.senhaMaster ? 'protegido por senha' : 'livre (sem proteção)' }}
+                  {{ config.senhaHash ? 'protegido por senha' : 'livre (sem proteção)' }}
                 </p>
               </div>
             </div>

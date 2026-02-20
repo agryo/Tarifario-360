@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { StorageService } from './storage';
+import { CriptografiaService } from './criptografia';
 
 // Interfaces baseadas no Sistema-HP original, agora com campos estendidos
 export interface CategoriaQuarto {
@@ -60,8 +61,9 @@ export interface ConfiguracaoGeral {
   promocaoSomenteAlta: boolean;
   promocaoMsgBaixa: boolean;
 
-  // Segurança
-  senhaMaster: string;
+  // Segurança - AGORA USANDO HASH
+  senhaHash: string; // hash da senha (NÃO armazena senha em texto puro)
+  senhaSalt?: string; // salt (opcional, para mais segurança)
 }
 
 @Injectable({
@@ -69,10 +71,13 @@ export interface ConfiguracaoGeral {
 })
 export class TarifaService {
   private readonly STORAGE_CATEGORIAS = 'categorias';
-  private readonly STORAGE_PROMOCOES = 'promocoes'; // se for usar múltiplas promoções
+  private readonly STORAGE_PROMOCOES = 'promocoes';
   private readonly STORAGE_CONFIG = 'config';
 
+  private criptografia: CriptografiaService;
+
   constructor(private storage: StorageService) {
+    this.criptografia = new CriptografiaService();
     this.inicializarDadosPadrao();
   }
 
@@ -105,7 +110,7 @@ export class TarifaService {
     this.storage.set(this.STORAGE_CATEGORIAS, categorias);
   }
 
-  // ===== PROMOÇÕES (se quiser múltiplas, mas por enquanto usamos a config geral) =====
+  // ===== PROMOÇÕES =====
   getPromocoes(): Promocao[] {
     return this.storage.get<Promocao[]>(this.STORAGE_PROMOCOES) || [];
   }
@@ -131,7 +136,17 @@ export class TarifaService {
 
   // ===== CONFIGURAÇÃO GERAL =====
   getConfiguracao(): ConfiguracaoGeral {
-    const defaultConfig: ConfiguracaoGeral = {
+    const config = this.storage.get<ConfiguracaoGeral>(this.STORAGE_CONFIG);
+    if (config) {
+      return config;
+    }
+
+    // Se não existir configuração, retorna a padrão
+    return this.getConfiguracaoPadrao();
+  }
+
+  private getConfiguracaoPadrao(): ConfiguracaoGeral {
+    return {
       festividade: '🎊 Evento Especial',
       valorAlmocoExtra: 45,
       valorKwh: 0.89,
@@ -154,18 +169,28 @@ export class TarifaService {
       promocaoTexto: 'Pagamento integral via Pix ou Dinheiro',
       promocaoSomenteAlta: true,
       promocaoMsgBaixa: false,
-      senhaMaster: '1234',
+      senhaHash: this.criptografia.hashSenha('1234'), // HASH da senha padrão
     };
-    return this.storage.get<ConfiguracaoGeral>(this.STORAGE_CONFIG) || defaultConfig;
-  }
-
-  // Mantido para compatibilidade, mas não usado no momento
-  getComodidades(): any[] {
-    return this.storage.get<any[]>('comodidades') || [];
   }
 
   salvarConfiguracao(config: ConfiguracaoGeral): void {
     this.storage.set(this.STORAGE_CONFIG, config);
+  }
+
+  // ===== LIMPAR CACHE (RESET PARA PADRÃO) =====
+  limparCache(): void {
+    // Remove todas as chaves do storage relacionadas ao sistema
+    this.storage.remove(this.STORAGE_CATEGORIAS);
+    this.storage.remove(this.STORAGE_PROMOCOES);
+    this.storage.remove(this.STORAGE_CONFIG);
+
+    // Reinicializa com dados padrão (já vai usar hash)
+    this.inicializarDadosPadrao();
+  }
+
+  // Mantido para compatibilidade
+  getComodidades(): any[] {
+    return this.storage.get<any[]>('comodidades') || [];
   }
 
   // ===== DADOS INICIAIS =====
@@ -209,31 +234,10 @@ export class TarifaService {
       this.storage.set(this.STORAGE_CATEGORIAS, categoriasPadrao);
     }
 
-    // ===== COMENTADO PARA EVITAR PROMOÇÕES PADRÃO =====
-    // Se desejar manter promoções de exemplo, descomente o bloco abaixo.
-    /*
-    if (this.getPromocoes().length === 0) {
-      const promocoesPadrao: Promocao[] = [
-        {
-          id: this.storage.generateId(),
-          nome: 'Early Bird',
-          desconto: 15,
-          diasMinimos: 3,
-          aplicaAlta: true,
-          mensagemBaixa: 'Consulte condições',
-        },
-        {
-          id: this.storage.generateId(),
-          nome: 'Long Stay',
-          desconto: 20,
-          diasMinimos: 7,
-          aplicaAlta: true,
-          mensagemBaixa: 'Válido',
-        },
-      ];
-      this.storage.set(this.STORAGE_PROMOCOES, promocoesPadrao);
+    // Inicializa configuração se vazio
+    if (!this.storage.get(this.STORAGE_CONFIG)) {
+      this.storage.set(this.STORAGE_CONFIG, this.getConfiguracaoPadrao());
     }
-    */
   }
 
   // ===== BACKUP NOVO FORMATO =====
@@ -270,8 +274,8 @@ export class TarifaService {
         return { sucesso: false, mensagem: 'Arquivo não é um backup antigo válido.' };
       }
 
-      // Extrair configurações gerais
-      const config = this.getConfiguracao(); // pega configurações atuais (para preservar senha, etc.)
+      // Pegar configuração atual (para preservar senha)
+      const config = this.getConfiguracao();
 
       // Mapear campos do backup antigo para a nova config
       if (dados.f !== undefined) config.festividade = dados.f;
@@ -315,7 +319,7 @@ export class TarifaService {
         config.promocaoMsgBaixa = dados.p.msgBaixa === true;
       }
 
-      // Salvar configurações
+      // Salvar configurações (mantém a senha atual)
       this.salvarConfiguracao(config);
 
       // Importar categorias (UHs)

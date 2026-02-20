@@ -1,0 +1,91 @@
+{
+  "versao": "2.0",
+  "dataExportacao": "2026-02-20T22:18:34.543Z",
+  "categorias": [
+    {
+      "id": "mlvfklzj32xv92hr8xr",
+      "nome": "Standard Promocional",
+      "capacidadeMaxima": 1,
+      "precoAltaCafe": 154,
+      "precoAltaSemCafe": 121,
+      "precoBaixaCafe": 130,
+      "precoBaixaSemCafe": 89.9,
+      "ativo": true,
+      "descricao": "Com uma mesa e cadeira para usar ou trabalhar em seu notebook.",
+      "camasCasal": 0,
+      "camasSolteiro": 1,
+      "tipoOcupacaoPadrao": "",
+      "numeros": [
+        "15",
+        "16",
+        "17"
+      ],
+      "comodidadesSelecionadas": [
+        "Wi-Fi Gratuito",
+        "TV a Cabo",
+        "Ar-Condicionado",
+        "Banheiro Privativo",
+        "Estacionamento Amplo e Monitorado",
+        "Mesa",
+        "Cadeira"
+      ]
+    },
+    {
+      "id": "mlvfw38wg7gckbcq5ap",
+      "nome": "Standard Plus",
+      "capacidadeMaxima": 2,
+      "precoAltaCafe": 242,
+      "precoAltaSemCafe": 198,
+      "precoBaixaCafe": 198,
+      "precoBaixaSemCafe": 154,
+      "ativo": true,
+      "descricao": "Ideal para até 2 pessoas solteiras com camas individuais.",
+      "camasCasal": 0,
+      "camasSolteiro": 2,
+      "tipoOcupacaoPadrao": "",
+      "numeros": [
+        "11",
+        "13",
+        "14"
+      ],
+      "comodidadesSelecionadas": [
+        "Wi-Fi Gratuito",
+        "TV a Cabo",
+        "Banheiro Privativo",
+        "Ar-Condicionado",
+        "Frigobar",
+        "Armário",
+        "Estacionamento Amplo e Monitorado"
+      ]
+    }
+  ],
+  "promocoes": [],
+  "config": {
+    "horarioCafe": "07:00 - 10:00",
+    "horarioAlmoco": "12:00 - 14:00",
+    "horarioJantar": "19:00 - 21:00",
+    "senhaMaster": "",
+    "moeda": "BRL",
+    "valorAlmocoExtra": 30,
+    "valorKwh": 2,
+    "festividade": "Carnaval 2026",
+    "totalUhs": 17,
+    "comodidadesGlobais": "Wi-Fi Gratuito, TV a Cabo, Ar-Condicionado, Armário, Banheiro Privativo, Banheira de Hidromassagem, Armadores de Rede, Frigobar, Poltrona, Mesa, Cadeira, 2 Cadeiras, Mesas de Cabeceira na Cama, 2 Mesas de Cabeceira na Cama, Espelho, Roupa de Banho, Iluminação Ambiente, Arara para Roupas, Carpete, Chuveiro Elétrico, Estacionamento Amplo e Monitorado",
+    "altaInicio": "2026-02-10",
+    "altaFim": "2026-02-20",
+    "promocaoAtiva": true,
+    "promocaoDesconto": 15,
+    "promocaoMinDiarias": 3,
+    "promocaoTexto": "o período do *Carnaval 2026* no pagamento *total via PIX*",
+    "promocaoSomenteAlta": true,
+    "promocaoMsgBaixa": true,
+    "cafeInicio": "07:00",
+    "cafeFim": "09:00",
+    "cafeAtivo": true,
+    "almocoInicio": "11:00",
+    "almocoFim": "13:00",
+    "jantarInicio": "18:00",
+    "jantarAtivo": true,
+    "jantarFim": "20:00"
+  }
+}

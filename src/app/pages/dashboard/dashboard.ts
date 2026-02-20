@@ -15,6 +15,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageService } from 'primeng/api';
 import { ConfirmationService } from 'primeng/api';
 import { TarifaService } from '../../services/tarifa';
+import { CriptografiaService } from '../../services/criptografia';
 
 // Componentes
 import { ThemeToggleComponent } from '../../components/theme-toggle/theme-toggle';
@@ -57,6 +58,7 @@ export class Dashboard implements OnInit {
     private tarifaService: TarifaService,
     private messageService: MessageService,
     private confirmationService: ConfirmationService,
+    private criptografia: CriptografiaService,
   ) {}
 
   ngOnInit() {
@@ -72,7 +74,7 @@ export class Dashboard implements OnInit {
 
   // ===== CONTROLE DE ACESSO =====
   abrirConfiguracoes() {
-    if (this.config.senhaMaster) {
+    if (this.config.senhaHash) {
       this.senhaInput = '';
       this.senhaDialogVisible = true;
     } else {
@@ -81,7 +83,7 @@ export class Dashboard implements OnInit {
   }
 
   verificarSenha() {
-    if (this.senhaInput === this.config.senhaMaster) {
+    if (this.criptografia.verificarSenha(this.senhaInput, this.config.senhaHash)) {
       this.senhaDialogVisible = false;
       this.abrirModalConfiguracoes();
     } else {

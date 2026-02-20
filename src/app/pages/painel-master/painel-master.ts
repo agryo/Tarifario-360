@@ -18,6 +18,7 @@ import { TooltipModule } from 'primeng/tooltip';
 // Services
 import { ConfirmationService } from 'primeng/api';
 import { TarifaService } from '../../services/tarifa';
+import { CriptografiaService } from '../../services/criptografia';
 
 @Component({
   selector: 'app-painel-master',
@@ -71,7 +72,6 @@ export class PainelMasterComponent implements OnInit {
     promocaoTexto: 'Pagamento integral via Pix ou Dinheiro',
     promocaoSomenteAlta: true,
     promocaoMsgBaixa: false,
-    senhaMaster: '1234',
   };
 
   // Categorias
@@ -95,6 +95,7 @@ export class PainelMasterComponent implements OnInit {
   constructor(
     private tarifaService: TarifaService,
     private confirmationService: ConfirmationService,
+    private criptografia: CriptografiaService,
   ) {}
 
   ngOnInit() {
@@ -261,16 +262,31 @@ export class PainelMasterComponent implements OnInit {
       return;
     }
 
-    if (this.config.senhaMaster && this.senhaAtualInput !== this.config.senhaMaster) {
-      this.onMensagem.emit({
-        severity: 'error',
-        summary: 'Erro',
-        detail: 'Senha atual incorreta',
-      });
-      return;
+    // Verificar senha atual usando hash
+    if (this.config.senhaHash) {
+      const senhaAtualCorreta = this.criptografia.verificarSenha(
+        this.senhaAtualInput,
+        this.config.senhaHash,
+      );
+
+      if (!senhaAtualCorreta) {
+        this.onMensagem.emit({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Senha atual incorreta',
+        });
+        return;
+      }
     }
 
-    this.config.senhaMaster = this.novaSenhaInput;
+    // Gerar hash da nova senha
+    if (this.novaSenhaInput) {
+      this.config.senhaHash = this.criptografia.hashSenha(this.novaSenhaInput);
+    } else {
+      // Se nova senha for vazia, remove o hash (senha removida)
+      delete this.config.senhaHash;
+    }
+
     this.tarifaService.salvarConfiguracao(this.config);
 
     this.onMensagem.emit({
@@ -285,7 +301,7 @@ export class PainelMasterComponent implements OnInit {
   }
 
   removerSenha() {
-    if (this.config.senhaMaster) {
+    if (this.config.senhaHash) {
       this.confirmationService.confirm({
         message: 'Tem certeza que deseja remover a senha de acesso? O painel ficará sem proteção!',
         header: 'Confirmar Remoção',
@@ -294,7 +310,8 @@ export class PainelMasterComponent implements OnInit {
         rejectLabel: 'Cancelar',
         acceptButtonStyleClass: 'p-button-danger',
         accept: () => {
-          this.config.senhaMaster = '';
+          delete this.config.senhaHash;
+          delete this.config.senhaSalt;
           this.tarifaService.salvarConfiguracao(this.config);
           this.onMensagem.emit({
             severity: 'success',
@@ -403,11 +420,27 @@ export class PainelMasterComponent implements OnInit {
   }
 
   limparCache() {
-    // Implementar se desejar
-    this.onMensagem.emit({
-      severity: 'warn',
-      summary: 'Cache limpo',
-      detail: 'Dados restaurados para configuração padrão',
+    this.confirmationService.confirm({
+      message:
+        'Tem certeza que deseja limpar todo o cache do sistema? Esta ação irá restaurar todas as configurações para os valores padrão e não pode ser desfeita!',
+      header: 'Confirmar Limpeza Total',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Sim, Limpar Tudo',
+      rejectLabel: 'Cancelar',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => {
+        // Chama o serviço para limpar o cache
+        this.tarifaService.limparCache();
+
+        // Recarrega os dados
+        this.carregarDados();
+
+        this.onMensagem.emit({
+          severity: 'success',
+          summary: 'Cache Limpo',
+          detail: 'Todos os dados foram restaurados para as configurações padrão.',
+        });
+      },
     });
   }
 
