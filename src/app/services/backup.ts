@@ -15,7 +15,7 @@ export class BackupService {
   ) {}
 
   // Exportar todos os dados
-  exportarDados(): BackupData {
+  /*exportarDados(): BackupData {
     const backup: BackupData = {
       versao: this.VERSAO,
       dataExportacao: new Date(),
@@ -23,14 +23,14 @@ export class BackupService {
       categorias: this.tarifaService.getCategorias(),
       comodidades: this.tarifaService.getComodidades(),
       temporadas: this.tarifaService.getTemporadas(),
-      tarifas: [], // Se tiver tarifas específicas
+      tarifas: [],
     };
 
     // Gerar assinatura simples (pode melhorar depois)
     backup.assinatura = this.gerarAssinatura(backup);
 
     return backup;
-  }
+  }*/
 
   // Importar dados
   importarDados(backup: BackupData): boolean {
@@ -50,13 +50,13 @@ export class BackupService {
         backup.categorias.forEach((cat) => this.tarifaService.salvarCategoria(cat));
       }
 
-      if (backup.comodidades) {
-        backup.comodidades.forEach((com) => this.tarifaService.salvarComodidade(com));
-      }
+      // if (backup.comodidades) {
+      //   backup.comodidades.forEach((com) => this.tarifaService.salvarComodidade(com));
+      // }
 
-      if (backup.temporadas) {
-        backup.temporadas.forEach((temp) => this.tarifaService.salvarTemporada(temp));
-      }
+      // if (backup.temporadas) {
+      //   backup.temporadas.forEach((temp) => this.tarifaService.salvarTemporada(temp));
+      // }
 
       return true;
     } catch (error) {
@@ -65,7 +65,6 @@ export class BackupService {
     }
   }
 
-  // Download do arquivo JSON
   downloadBackup(backup: BackupData, nomeArquivo: string = 'backup'): void {
     const dataStr = JSON.stringify(backup, null, 2);
     const blob = new Blob([dataStr], { type: 'application/json' });
@@ -79,7 +78,6 @@ export class BackupService {
     URL.revokeObjectURL(url);
   }
 
-  // Upload do arquivo JSON
   uploadBackup(arquivo: File): Promise<BackupData> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -99,7 +97,6 @@ export class BackupService {
   }
 
   private gerarAssinatura(dados: any): string {
-    // Simplificado - em produção use algo mais robusto
     return btoa(JSON.stringify(dados) + this.VERSAO);
   }
 

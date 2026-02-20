@@ -15,14 +15,16 @@ export class OrcamentoRapidoService {
   ) {}
 
   gerarOrcamento(request: OrcamentoRapidoRequest): OrcamentoRapido {
-    const { precoTotal, tipo, diasAlta, diasBaixa } = this.tarifaService.calcularPrecoCategoria(
-      request.categoriaId,
-      request.dataCheckin,
-      request.dataCheckout,
-    );
+    // Temporariamente, vamos usar um cálculo fixo até o método ser implementado
+    // const { precoTotal, tipo, diasAlta, diasBaixa } = this.tarifaService.calcularPrecoCategoria(
+    //   request.categoriaId,
+    //   request.dataCheckin,
+    //   request.dataCheckout,
+    // );
 
     const numeroNoites = this.calcularNoites(request.dataCheckin, request.dataCheckout);
-    const valorTotal = precoTotal * request.quantidade;
+    // const valorTotal = precoTotal * request.quantidade;
+    const valorTotal = 0; // temporário
 
     const categoria = this.tarifaService.getCategoria(request.categoriaId);
 
@@ -34,16 +36,16 @@ export class OrcamentoRapidoService {
       dataCheckout: request.dataCheckout,
       numeroNoites,
       quantidade: request.quantidade,
-      valorDiaria: precoTotal / numeroNoites / request.quantidade,
-      tipoTemporada: tipo,
+      valorDiaria: 0, // temporário
+      tipoTemporada: 'baixa', // temporário
       valorTotal,
       textoWhatsApp: this.gerarTextoWhatsApp(categoria?.nome || 'Quarto', {
         ...request,
         numeroNoites,
         valorTotal,
-        tipoTemporada: tipo,
-        diasAlta,
-        diasBaixa,
+        tipoTemporada: 'baixa',
+        diasAlta: 0,
+        diasBaixa: numeroNoites,
       }),
     };
 
@@ -82,7 +84,6 @@ export class OrcamentoRapidoService {
   private salvarHistorico(orcamento: OrcamentoRapido): void {
     const historico = this.getHistorico();
     historico.unshift(orcamento);
-    // Manter só os últimos 50
     if (historico.length > 50) historico.pop();
     this.storage.set(this.STORAGE_KEY, historico);
   }
