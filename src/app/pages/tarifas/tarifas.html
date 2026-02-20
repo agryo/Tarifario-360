@@ -1,0 +1,47 @@
+<p-toast></p-toast>
+<p-confirmpopup></p-confirmpopup>
+
+<div class="container">
+  <div class="flex justify-content-between align-items-center mb-4">
+    <h1 class="text-3xl font-bold">⚙️ Painel Master</h1>
+    <p-button
+      label="Configurações"
+      icon="pi pi-cog"
+      styleClass="p-button-outlined"
+      (click)="abrirConfig()"
+    >
+    </p-button>
+  </div>
+
+  <!-- TABS - Versão correta para PrimeNG 21 -->
+  <p-tabs value="categorias">
+    <p-tablist>
+      <p-tab value="categorias">Categorias</p-tab>
+      <p-tab value="temporadas">Temporadas</p-tab>
+      <p-tab value="comodidades">Comodidades</p-tab>
+      <p-tab value="configuracoes">Configurações</p-tab>
+    </p-tablist>
+
+    <p-tabpanels>
+      <!-- Categorias -->
+      <p-tabpanel value="categorias">
+        <!-- seu conteúdo de categorias -->
+      </p-tabpanel>
+
+      <!-- Temporadas -->
+      <p-tabpanel value="temporadas">
+        <!-- seu conteúdo de temporadas -->
+      </p-tabpanel>
+
+      <!-- Comodidades -->
+      <p-tabpanel value="comodidades">
+        <!-- seu conteúdo de comodidades -->
+      </p-tabpanel>
+
+      <!-- Configurações -->
+      <p-tabpanel value="configuracoes">
+        <!-- seu conteúdo de configurações -->
+      </p-tabpanel>
+    </p-tabpanels>
+  </p-tabs>
+</div>

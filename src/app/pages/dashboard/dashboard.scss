@@ -1,0 +1,215 @@
+.dashboard {
+  padding: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+// ===== CARDS DE RESUMO =====
+.dashboard-card {
+  border-radius: 10px;
+  transition: all 0.3s ease;
+
+  // Sombra mais forte no modo claro
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.12),
+    0 2px 4px rgba(0, 0, 0, 0.05) !important;
+
+  .p-card-body {
+    padding: 0.5rem 0.75rem !important;
+  }
+
+  .p-card-content {
+    padding: 0 !important;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    // Sombra ainda mais forte no hover
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.15),
+      0 4px 8px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .flex {
+    gap: 0.5rem !important;
+    align-items: center !important;
+  }
+
+  .card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    i {
+      font-size: 1rem;
+      color: white;
+    }
+
+    &.bg-primary {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+    }
+    &.bg-success {
+      background: linear-gradient(135deg, #10b981, #059669);
+    }
+    &.bg-warning {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+    &.bg-info {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+    }
+  }
+
+  .text-3xl {
+    font-size: 1.2rem !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    margin: 0 !important;
+  }
+
+  .text-secondary {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    line-height: 1.2 !important;
+    margin: 0 !important;
+  }
+
+  .flex > div {
+    line-height: 1.2 !important;
+  }
+}
+
+// ===== CARDS DOS MÓDULOS =====
+.module-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+
+  // Sombra mais forte no modo claro
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.08),
+    0 2px 6px rgba(0, 0, 0, 0.02) !important;
+
+  &:hover {
+    transform: translateY(-3px);
+    // Sombra ainda mais forte no hover
+    box-shadow:
+      0 12px 28px rgba(0, 0, 0, 0.15),
+      0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .p-card-body {
+    padding: 0.6rem !important;
+  }
+
+  .p-card-content {
+    padding: 0 !important;
+  }
+
+  .p-card-title {
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.15rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .p-card-subtitle {
+    font-size: 0.65rem !important;
+    margin-bottom: 0.35rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .module-description {
+    color: var(--text-secondary);
+    margin-bottom: 0.35rem;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    min-height: 1.8rem;
+  }
+
+  .module-features {
+    margin: 0.35rem 0 !important;
+    gap: 0.15rem !important;
+
+    span {
+      font-size: 0.65rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+
+      i {
+        font-size: 0.65rem;
+      }
+    }
+  }
+
+  .p-button {
+    padding: 0.2rem 0.5rem !important;
+    font-size: 0.7rem !important;
+
+    .p-button-icon {
+      font-size: 0.65rem !important;
+      margin-right: 0.2rem !important;
+    }
+  }
+
+  .flex.justify-content-end {
+    margin-top: 0.35rem !important;
+  }
+}
+
+// Grid compacto
+.grid {
+  margin: -0.35rem !important;
+
+  .col-12,
+  .md\:col-6,
+  .lg\:col-3,
+  .lg\:col-4 {
+    padding: 0.35rem !important;
+  }
+}
+
+h2.text-2xl {
+  font-size: 1.3rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+// ===== MODO ESCURO - SOMBRAS SUAVIZADAS =====
+.my-app-dark {
+  .dashboard-card {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+
+    &:hover {
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+    }
+  }
+
+  .module-card {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4) !important;
+
+    &:hover {
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5) !important;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 0.75rem;
+  }
+
+  .dashboard-card .text-3xl {
+    font-size: 1rem !important;
+  }
+
+  .module-card .p-card-title {
+    font-size: 0.85rem !important;
+  }
+}
