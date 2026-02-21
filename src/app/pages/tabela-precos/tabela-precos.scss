@@ -140,51 +140,37 @@
   font-weight: 900;
 }
 
-// ===== ESTILOS PARA IMPRESSÃO =====
+// Estilos para impressão - VERSÃO COM FONTES MAIORES
 @media print {
   @page {
     size: A4;
     margin: 1cm;
   }
 
-  // Esconde todos os elementos da página, exceto a tabela
-  html,
   body {
     margin: 0;
     padding: 0;
     background: white;
-    height: auto;
+    font-family:
+      'Inter',
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      Roboto,
+      sans-serif;
   }
 
-  body * {
-    display: none !important;
-  }
-
-  // Torna a tabela visível novamente
-  .page,
-  .page * {
-    display: block !important;
-  }
-
-  .page {
-    position: relative;
-    top: 0;
-    left: 0;
-    width: 100%;
-    margin: 0;
-    padding: 5mm 10mm;
-    box-sizing: border-box;
-    background: white;
-    box-shadow: none;
-    min-height: auto;
-  }
-
-  // Mantém os estilos específicos da tabela (você já tinha, mas vou garantir)
   .no-print {
     display: none !important;
   }
 
   .page {
+    margin: 0;
+    box-shadow: none;
+    width: 100%;
+    padding: 0;
+    min-height: auto;
+
     .header h1 {
       font-size: 20px;
       margin-top: 0;
@@ -198,7 +184,6 @@
     .bloco-categoria {
       border: 1px solid #000;
       margin-bottom: 2px;
-      page-break-inside: avoid;
 
       .numero-uh-topo {
         font-size: 15px;
