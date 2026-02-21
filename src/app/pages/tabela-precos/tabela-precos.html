@@ -1,0 +1,79 @@
+<p-toast position="top-center"></p-toast>
+
+<!-- Botões de ação (não imprimíveis) -->
+<div class="no-print">
+  <div class="flex flex-wrap gap-2 justify-content-center">
+    <p-button
+      label="❄️ Baixa Temporada"
+      styleClass="p-button-success p-button-raised"
+      (click)="gerarTabela('baixa')"
+    >
+    </p-button>
+    <p-button
+      label="🔥 Alta Temporada"
+      styleClass="p-button-danger p-button-raised"
+      (click)="gerarTabela('alta')"
+    >
+    </p-button>
+    <p-button
+      label="🖨️ Imprimir PDF"
+      styleClass="p-button-secondary p-button-raised"
+      (click)="imprimir()"
+    >
+    </p-button>
+    <p-button label="🏠 Voltar ao Painel" styleClass="p-button-help p-button-raised" routerLink="/">
+    </p-button>
+  </div>
+</div>
+
+<!-- Conteúdo da tabela (imprimível) -->
+<div class="page" id="folha-a4">
+  <div class="header">
+    <h1 [ngClass]="temporadaAtual === 'alta' ? 'titulo-alta' : 'titulo-baixa'">
+      TABELA DE PREÇOS {{ getTituloTemporada() }} TEMPORADA
+    </h1>
+  </div>
+
+  <div class="tabela-container" *ngIf="grupos.length > 0; else semDados">
+    <div *ngFor="let grupo of grupos" class="bloco-categoria">
+      <!-- Números das UHs -->
+      <div class="numero-uh-topo">{{ grupo.uhs }}</div>
+
+      <!-- Conteúdo do grupo -->
+      <div class="conteudo-detalhes">
+        <div class="titulo-uh">{{ getTituloCategoria(grupo.itens[0].nome) }}</div>
+
+        <!-- Comodidades globais (da configuração) -->
+        <div class="comodidades-gerais" *ngIf="config.comodidadesGlobais">
+          {{ config.comodidadesGlobais }}
+        </div>
+
+        <!-- Itens do grupo -->
+        <div *ngFor="let item of grupo.itens" class="item-preco-linha">
+          <div class="desc-especifica">
+            {{ getCamasText(item) }} - {{ item.descricao || 'Sem descrição' }}
+          </div>
+          <div class="preco-texto">
+            R$ {{ getPreco(item)[0] | number: '1.2-2' }} -
+            <span class="sem-cafe">R$ {{ getPreco(item)[1] | number: '1.2-2' }} Sem Café.</span>
+            <span class="sufixo-label">{{ getLabelSufixo(item, grupo) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #semDados>
+    <div class="text-center p-5">
+      <p-message severity="info" text="Nenhuma categoria com UHs cadastradas."></p-message>
+      <p class="mt-3">
+        Configure as categorias no Painel Master antes de gerar a tabela de preços.
+      </p>
+      <p-button
+        label="Ir para Painel Master"
+        icon="pi pi-cog"
+        routerLink="/painel-master"
+      ></p-button>
+    </div>
+  </ng-template>
+</div>

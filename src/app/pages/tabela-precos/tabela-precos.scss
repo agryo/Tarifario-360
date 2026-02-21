@@ -1,0 +1,232 @@
+// Botões não imprimíveis
+.no-print {
+  background: white;
+  padding: 12px;
+  border-radius: 8px;
+  margin: 20px auto 10px auto;
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  border-top: 4px solid #075e54;
+}
+
+.btn {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 13px;
+  color: white;
+  transition: 0.2s;
+  text-transform: uppercase;
+}
+
+.btn-baixa {
+  background: #218838;
+}
+
+.btn-alta {
+  background: #c82333;
+}
+
+.btn-print {
+  background: #343a40;
+}
+
+.btn-voltar {
+  background: #6c757d;
+}
+
+.page {
+  background: white;
+  width: 100%;
+  max-width: 1100px;
+  min-height: 297mm;
+  padding: 5mm 10mm;
+  margin: 0 auto;
+  box-sizing: border-box;
+  color: #000;
+  display: block;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 900;
+  text-transform: uppercase;
+  padding-bottom: 2px;
+  display: inline-block;
+}
+
+.titulo-baixa {
+  color: #218838;
+  border-bottom: 3px solid #218838;
+}
+
+.titulo-alta {
+  color: #c82333;
+  border-bottom: 3px solid #c82333;
+}
+
+.tabela-container {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.bloco-categoria {
+  border: 1.5px solid #000;
+  width: 100%;
+  page-break-inside: avoid;
+  margin-bottom: 2px;
+}
+
+.numero-uh-topo {
+  background: #eee;
+  border-bottom: 1.5px solid #000;
+  padding: 2px 8px;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.conteudo-detalhes {
+  padding: 4px 8px;
+}
+
+.titulo-uh {
+  font-size: 14px;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.comodidades-gerais {
+  font-size: 14px;
+  line-height: 1.1;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.item-preco-linha {
+  font-size: 14px;
+  margin-top: 2px;
+  padding-top: 2px;
+  border-top: 1px dashed #ccc;
+}
+
+.desc-especifica {
+  font-weight: bold;
+  color: #000;
+  font-size: 14px;
+}
+
+.preco-texto {
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.sem-cafe {
+  font-size: 14px;
+  color: #dc3545;
+  font-weight: 900;
+}
+
+// Estilos para impressão - VERSÃO COM FONTES MAIORES
+@media print {
+  @page {
+    size: A4;
+    margin: 1cm;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background: white;
+    font-family:
+      'Inter',
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      Roboto,
+      sans-serif;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .page {
+    margin: 0;
+    box-shadow: none;
+    width: 100%;
+    padding: 0;
+    min-height: auto;
+
+    .header h1 {
+      font-size: 20px; // Aumentado de 18px
+      margin-top: 0;
+      margin-bottom: 2px;
+    }
+
+    .tabela-container {
+      gap: 3px;
+    }
+
+    .bloco-categoria {
+      border: 1px solid #000;
+      margin-bottom: 2px;
+
+      .numero-uh-topo {
+        font-size: 16px; // Aumentado de 14px
+        padding: 2px 5px;
+      }
+
+      .conteudo-detalhes {
+        padding: 3px 5px;
+      }
+
+      .titulo-uh {
+        font-size: 14px; // Aumentado de 12px
+        margin-bottom: 1px;
+      }
+
+      .comodidades-gerais {
+        font-size: 12px; // Aumentado de 10px
+        line-height: 1.2;
+        margin-bottom: 2px;
+      }
+
+      .item-preco-linha {
+        font-size: 12px; // Aumentado de 10px
+        margin-top: 1px;
+        padding-top: 1px;
+        border-top: 0.5px dashed #ccc;
+
+        .desc-especifica {
+          font-size: 13px; // Aumentado de 10px
+        }
+
+        .preco-texto {
+          font-size: 14px; // Aumentado de 10px
+
+          .sem-cafe {
+            font-size: 14px; // Aumentado de 10px
+          }
+
+          .sufixo-label {
+            font-size: 9px; // Aumentado de 8px
+          }
+        }
+      }
+    }
+  }
+}

@@ -149,12 +149,15 @@ export class PainelMasterComponent implements OnInit {
       return;
     }
 
+    // Garantir que os campos necessários existam
     this.categoriaEdit.precoAltaCafe = this.categoriaEdit.precoAltaCafe || 0;
     this.categoriaEdit.precoAltaSemCafe = this.categoriaEdit.precoAltaSemCafe || 0;
     this.categoriaEdit.precoBaixaCafe = this.categoriaEdit.precoBaixaCafe || 0;
     this.categoriaEdit.precoBaixaSemCafe = this.categoriaEdit.precoBaixaSemCafe || 0;
     this.categoriaEdit.camasCasal = this.categoriaEdit.camasCasal ?? 1;
     this.categoriaEdit.camasSolteiro = this.categoriaEdit.camasSolteiro ?? 0;
+    this.categoriaEdit.numeros = this.categoriaEdit.numeros || [];
+    this.categoriaEdit.comodidadesSelecionadas = this.categoriaEdit.comodidadesSelecionadas || [];
 
     this.tarifaService.salvarCategoria(this.categoriaEdit);
     this.carregarDados();

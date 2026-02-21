@@ -1,9 +1,9 @@
 {
   "versao": "2.0",
-  "dataExportacao": "2026-02-20T22:18:34.543Z",
+  "dataExportacao": "2026-02-20T23:15:06.554Z",
   "categorias": [
     {
-      "id": "mlvfklzj32xv92hr8xr",
+      "id": "mlvic9om2c90ozuzlro",
       "nome": "Standard Promocional",
       "capacidadeMaxima": 1,
       "precoAltaCafe": 154,
@@ -14,7 +14,7 @@
       "descricao": "Com uma mesa e cadeira para usar ou trabalhar em seu notebook.",
       "camasCasal": 0,
       "camasSolteiro": 1,
-      "tipoOcupacaoPadrao": "",
+      "tipoOcupacaoPadrao": "solteiro",
       "numeros": [
         "15",
         "16",
@@ -23,15 +23,15 @@
       "comodidadesSelecionadas": [
         "Wi-Fi Gratuito",
         "TV a Cabo",
-        "Ar-Condicionado",
         "Banheiro Privativo",
+        "Ar-Condicionado",
         "Estacionamento Amplo e Monitorado",
         "Mesa",
         "Cadeira"
       ]
     },
     {
-      "id": "mlvfw38wg7gckbcq5ap",
+      "id": "mlvic9omgblf41cxpps",
       "nome": "Standard Plus",
       "capacidadeMaxima": 2,
       "precoAltaCafe": 242,
@@ -50,12 +50,198 @@
       ],
       "comodidadesSelecionadas": [
         "Wi-Fi Gratuito",
-        "TV a Cabo",
         "Banheiro Privativo",
+        "TV a Cabo",
         "Ar-Condicionado",
         "Frigobar",
         "Armário",
         "Estacionamento Amplo e Monitorado"
+      ]
+    },
+    {
+      "id": "mlvic9omh1t16o9ph4a",
+      "nome": "Standard Triplo",
+      "capacidadeMaxima": 3,
+      "precoAltaCafe": 352,
+      "precoAltaSemCafe": 264,
+      "precoBaixaCafe": 275,
+      "precoBaixaSemCafe": 198,
+      "ativo": true,
+      "descricao": "Ideal para até 3 pessoas solteiras com camas individuais para cada um.",
+      "camasCasal": 0,
+      "camasSolteiro": 3,
+      "tipoOcupacaoPadrao": "solteiro",
+      "numeros": [
+        "02",
+        "05"
+      ],
+      "comodidadesSelecionadas": [
+        "Wi-Fi Gratuito",
+        "Banheiro Privativo",
+        "TV a Cabo",
+        "Ar-Condicionado",
+        "Armário",
+        "Frigobar",
+        "Estacionamento Amplo e Monitorado",
+        "Cadeira"
+      ]
+    },
+    {
+      "id": "mlvic9omymz6qb6qic",
+      "nome": "Suíte Superior (Single)",
+      "capacidadeMaxima": 2,
+      "precoAltaCafe": 264,
+      "precoAltaSemCafe": 220,
+      "precoBaixaCafe": 165,
+      "precoBaixaSemCafe": 132,
+      "ativo": true,
+      "descricao": "Conforto extra com uma cama de casal exclusivamente para 1 pessoa.",
+      "camasCasal": 1,
+      "camasSolteiro": 0,
+      "tipoOcupacaoPadrao": "solteiro",
+      "numeros": [
+        "04",
+        "06",
+        "10",
+        "12"
+      ],
+      "comodidadesSelecionadas": [
+        "Wi-Fi Gratuito",
+        "Banheiro Privativo",
+        "TV a Cabo",
+        "Ar-Condicionado",
+        "Frigobar",
+        "Armário",
+        "Chuveiro Elétrico",
+        "Estacionamento Amplo e Monitorado"
+      ]
+    },
+    {
+      "id": "mlvic9omzf1k9kx7dn",
+      "nome": "Suíte Superior (Duplo)",
+      "capacidadeMaxima": 2,
+      "precoAltaCafe": 297,
+      "precoAltaSemCafe": 242,
+      "precoBaixaCafe": 209,
+      "precoBaixaSemCafe": 154,
+      "ativo": true,
+      "descricao": "Quarto amplo com armário e conforto extra para um casal.",
+      "camasCasal": 1,
+      "camasSolteiro": 0,
+      "tipoOcupacaoPadrao": "",
+      "numeros": [
+        "04",
+        "06",
+        "12",
+        "10"
+      ],
+      "comodidadesSelecionadas": [
+        "Wi-Fi Gratuito",
+        "TV a Cabo",
+        "Ar-Condicionado",
+        "Armário",
+        "Banheiro Privativo",
+        "Frigobar",
+        "Chuveiro Elétrico",
+        "Estacionamento Amplo e Monitorado"
+      ]
+    },
+    {
+      "id": "mlvic9om8dkzsomn1y3",
+      "nome": "Suíte Master",
+      "capacidadeMaxima": 2,
+      "precoAltaCafe": 330,
+      "precoAltaSemCafe": 275,
+      "precoBaixaCafe": 231,
+      "precoBaixaSemCafe": 165,
+      "ativo": true,
+      "descricao": "Apartamento com iluminação ambiente romântica para casais.",
+      "camasCasal": 1,
+      "camasSolteiro": 0,
+      "tipoOcupacaoPadrao": "casal",
+      "numeros": [
+        "07",
+        "08"
+      ],
+      "comodidadesSelecionadas": [
+        "Wi-Fi Gratuito",
+        "Banheiro Privativo",
+        "TV a Cabo",
+        "Frigobar",
+        "Ar-Condicionado",
+        "Chuveiro Elétrico",
+        "Iluminação Ambiente",
+        "Mesa",
+        "Mesas de Cabeceira na Cama",
+        "2 Cadeiras",
+        "Carpete",
+        "Estacionamento Amplo e Monitorado",
+        "Arara para Roupas",
+        "Espelho"
+      ]
+    },
+    {
+      "id": "mlvic9omeksys0ka5mf",
+      "nome": "Suíte Triplo",
+      "capacidadeMaxima": 3,
+      "precoAltaCafe": 352,
+      "precoAltaSemCafe": 286,
+      "precoBaixaCafe": 253,
+      "precoBaixaSemCafe": 176,
+      "ativo": true,
+      "descricao": "Ideal para uma família pequena com até um filho(a).",
+      "camasCasal": 1,
+      "camasSolteiro": 1,
+      "tipoOcupacaoPadrao": "casal",
+      "numeros": [
+        "03"
+      ],
+      "comodidadesSelecionadas": [
+        "Wi-Fi Gratuito",
+        "Banheiro Privativo",
+        "TV a Cabo",
+        "Frigobar",
+        "Ar-Condicionado",
+        "Armário",
+        "Chuveiro Elétrico",
+        "Estacionamento Amplo e Monitorado",
+        "Cadeira"
+      ]
+    },
+    {
+      "id": "mlvic9ombah34lajfpj",
+      "nome": "Suíte Deluxe",
+      "capacidadeMaxima": 2,
+      "precoAltaCafe": 385,
+      "precoAltaSemCafe": 355,
+      "precoBaixaCafe": 330,
+      "precoBaixaSemCafe": 275,
+      "ativo": true,
+      "descricao": "Ideal para comemorações românticas e com banheira de hidromassagem.\nCom opção de escolha de um espumante ou vinho.",
+      "camasCasal": 1,
+      "camasSolteiro": 0,
+      "tipoOcupacaoPadrao": "casal",
+      "numeros": [
+        "09"
+      ],
+      "comodidadesSelecionadas": [
+        "Wi-Fi Gratuito",
+        "Banheiro Privativo",
+        "TV a Cabo",
+        "Estacionamento Amplo e Monitorado",
+        "Frigobar",
+        "Ar-Condicionado",
+        "Poltrona",
+        "Mesa",
+        "2 Cadeiras",
+        "2 Mesas de Cabeceira na Cama",
+        "Espelho",
+        "Roupa de Banho",
+        "Iluminação Ambiente",
+        "Chuveiro Elétrico",
+        "Arara para Roupas",
+        "Carpete",
+        "Banheira de Hidromassagem"
       ]
     }
   ],
@@ -86,6 +272,7 @@
     "almocoFim": "13:00",
     "jantarInicio": "18:00",
     "jantarAtivo": true,
-    "jantarFim": "20:00"
+    "jantarFim": "20:00",
+    "almocoAtivo": false
   }
 }
