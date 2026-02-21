@@ -8,4 +8,8 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/tabela-precos/tabela-precos').then((m) => m.TabelaPrecosComponent),
   },
+  {
+    path: 'wallbox',
+    loadComponent: () => import('./pages/wallbox/wallbox').then((m) => m.WallboxComponent),
+  },
 ];

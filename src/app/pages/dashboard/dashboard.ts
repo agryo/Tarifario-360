@@ -20,6 +20,8 @@ import { CriptografiaService } from '../../services/criptografia';
 // Componentes
 import { ThemeToggleComponent } from '../../components/theme-toggle/theme-toggle';
 import { PainelMasterComponent } from '../painel-master/painel-master';
+import { TabelaPrecosComponent } from '../tabela-precos/tabela-precos';
+import { WallboxComponent } from '../wallbox/wallbox';
 
 @Component({
   selector: 'app-dashboard',
@@ -38,6 +40,8 @@ import { PainelMasterComponent } from '../painel-master/painel-master';
     // Meus componentes
     ThemeToggleComponent,
     PainelMasterComponent,
+    TabelaPrecosComponent,
+    WallboxComponent,
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './dashboard.html',
@@ -48,10 +52,12 @@ export class Dashboard implements OnInit {
   configDialogVisible: boolean = false;
   senhaDialogVisible: boolean = false;
   senhaInput: string = '';
+  tabelaPrecosVisible: boolean = false;
+  wallboxVisible: boolean = false;
 
   // Dados para os cards de resumo
   totalCategorias: number = 0;
-  totalPromocoes: number = 0; // Agora reflete a promoção global ativa/inativa
+  totalPromocoes: number = 0;
   config: any = {};
 
   constructor(
@@ -68,7 +74,6 @@ export class Dashboard implements OnInit {
   carregarResumos() {
     this.totalCategorias = this.tarifaService.getCategorias().length;
     this.config = this.tarifaService.getConfiguracao();
-    // A promoção é global: se estiver ativa, mostramos 1, senão 0
     this.totalPromocoes = this.config.promocaoAtiva ? 1 : 0;
   }
 
@@ -103,7 +108,7 @@ export class Dashboard implements OnInit {
 
   fecharConfiguracoes() {
     this.configDialogVisible = false;
-    this.carregarResumos(); // Atualiza os cards após fechar
+    this.carregarResumos();
   }
 
   get promocaoStatus(): string {

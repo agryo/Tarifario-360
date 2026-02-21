@@ -1,0 +1,40 @@
+// Estilos para visualização normal (com modo escuro)
+:host {
+  display: block;
+}
+
+// No wallbox.scss
+.input-label-wrapper {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+// Modo escuro para visualização normal
+:host-context(.my-app-dark) {
+  .info-tarifa {
+    background: #1e293b !important; // Fundo escuro
+    color: var(--primary-color) !important; // Texto azul
+
+    .text-secondary {
+      color: #94a3b8 !important; // Texto secundário mais claro
+    }
+
+    .text-primary {
+      color: #60a5fa !important; // Azul mais vibrante
+    }
+  }
+
+  .bg-yellow-50 {
+    background: #1e293b !important;
+  }
+
+  .bg-gray-50 {
+    background: #1e293b !important;
+  }
+
+  .text-green-600 {
+    color: #4ade80 !important;
+  }
+}
