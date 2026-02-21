@@ -207,7 +207,10 @@
   <ng-template #moduloTemplate>
     <div class="modulo-container">
       <ng-container [ngSwitch]="moduloAtivo">
-        <app-tabela-precos *ngSwitchCase="'tabela-precos'"></app-tabela-precos>
+        <app-tabela-precos
+          *ngSwitchCase="'tabela-precos'"
+          (onVoltar)="fecharModulo()"
+        ></app-tabela-precos>
         <app-wallbox
           *ngSwitchCase="'wallbox'"
           (onMensagem)="mostrarMensagem($event)"

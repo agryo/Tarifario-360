@@ -140,39 +140,53 @@
   font-weight: 900;
 }
 
-// Estilos para impressão - VERSÃO COM FONTES MAIORES
+// ===== ESTILOS PARA IMPRESSÃO =====
 @media print {
   @page {
     size: A4;
     margin: 1cm;
   }
 
+  // Esconde todos os elementos da página, exceto a tabela
+  html,
   body {
     margin: 0;
     padding: 0;
     background: white;
-    font-family:
-      'Inter',
-      -apple-system,
-      BlinkMacSystemFont,
-      'Segoe UI',
-      Roboto,
-      sans-serif;
+    height: auto;
   }
 
+  body * {
+    display: none !important;
+  }
+
+  // Torna a tabela visível novamente
+  .page,
+  .page * {
+    display: block !important;
+  }
+
+  .page {
+    position: relative;
+    top: 0;
+    left: 0;
+    width: 100%;
+    margin: 0;
+    padding: 5mm 10mm;
+    box-sizing: border-box;
+    background: white;
+    box-shadow: none;
+    min-height: auto;
+  }
+
+  // Mantém os estilos específicos da tabela (você já tinha, mas vou garantir)
   .no-print {
     display: none !important;
   }
 
   .page {
-    margin: 0;
-    box-shadow: none;
-    width: 100%;
-    padding: 0;
-    min-height: auto;
-
     .header h1 {
-      font-size: 20px; // Aumentado de 18px
+      font-size: 20px;
       margin-top: 0;
       margin-bottom: 2px;
     }
@@ -184,9 +198,10 @@
     .bloco-categoria {
       border: 1px solid #000;
       margin-bottom: 2px;
+      page-break-inside: avoid;
 
       .numero-uh-topo {
-        font-size: 15px; // Aumentado de 14px
+        font-size: 15px;
         padding: 2px 5px;
       }
 
@@ -195,35 +210,35 @@
       }
 
       .titulo-uh {
-        font-size: 13px; // Aumentado de 12px
+        font-size: 13px;
         margin-bottom: 1px;
       }
 
       .comodidades-gerais {
-        font-size: 12px; // Aumentado de 10px
+        font-size: 12px;
         line-height: 1.2;
         margin-bottom: 2px;
       }
 
       .item-preco-linha {
-        font-size: 12px; // Aumentado de 10px
+        font-size: 12px;
         margin-top: 1px;
         padding-top: 1px;
         border-top: 0.5px dashed #ccc;
 
         .desc-especifica {
-          font-size: 12px; // Aumentado de 10px
+          font-size: 12px;
         }
 
         .preco-texto {
-          font-size: 13px; // Aumentado de 10px
+          font-size: 13px;
 
           .sem-cafe {
-            font-size: 13px; // Aumentado de 10px
+            font-size: 13px;
           }
 
           .sufixo-label {
-            font-size: 9px; // Aumentado de 8px
+            font-size: 9px;
           }
         }
       }
