@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -36,6 +36,8 @@ interface GrupoUHs {
   styleUrls: ['./tabela-precos.scss'],
 })
 export class TabelaPrecosComponent implements OnInit {
+  @Input() visible: boolean = false;
+  @Output() visibleChange = new EventEmitter<boolean>();
   temporadaAtual: 'alta' | 'baixa' = 'baixa';
   categorias: CategoriaQuarto[] = [];
   grupos: GrupoUHs[] = [];
