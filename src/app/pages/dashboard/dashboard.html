@@ -206,12 +206,14 @@
 
   <ng-template #moduloTemplate>
     <div class="modulo-container">
-      <div class="flex justify-content-end mb-3">
-        <p-button icon="pi pi-arrow-left" label="Voltar" (click)="fecharModulo()"></p-button>
-      </div>
       <ng-container [ngSwitch]="moduloAtivo">
         <app-tabela-precos *ngSwitchCase="'tabela-precos'"></app-tabela-precos>
-        <app-wallbox *ngSwitchCase="'wallbox'" (onVoltar)="fecharModulo()"></app-wallbox>
+        <app-wallbox
+          *ngSwitchCase="'wallbox'"
+          (onMensagem)="mostrarMensagem($event)"
+          (onVoltar)="fecharModulo()"
+        >
+        </app-wallbox>
         <!-- Outros módulos serão adicionados futuramente -->
       </ng-container>
     </div>
