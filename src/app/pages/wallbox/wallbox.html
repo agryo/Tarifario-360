@@ -1,113 +1,96 @@
-<p-dialog
-  [(visible)]="visible"
-  [style]="{ width: '800px', height: '800px' }"
-  header="🔌 Calculadora Wallbox"
-  [modal]="true"
-  [draggable]="false"
-  [resizable]="false"
-  (onHide)="fechar()"
->
-  <ng-template pTemplate="content">
-    <!-- Tarifa atual -->
-    <div class="info-tarifa bg-blue-50 p-3 border-round text-center mb-4">
-      <span class="text-secondary block text-sm">Tarifa Atual Configurada:</span>
-      <span class="text-2xl font-bold text-primary">{{ tarifaKwh | currency: 'BRL' }} / kWh</span>
-    </div>
+<!-- Conteúdo inline (sem diálogo) -->
+<!-- Tarifa atual -->
+<div class="info-tarifa bg-blue-50 p-3 border-round text-center mb-4">
+  <span class="text-secondary block text-sm">Tarifa Atual Configurada:</span>
+  <span class="text-2xl font-bold text-primary">{{ tarifaKwh | currency: 'BRL' }} / kWh</span>
+</div>
 
-    <!-- Linha com dois campos lado a lado -->
-    <div class="grid mb-4">
-      <!-- Campo Consumo -->
-      <div class="col-12 md:col-6">
-        <div class="flex flex-column">
-          <div
-            class="flex justify-content-between align-items-center mb-2"
-            style="min-height: 32px"
-          >
-            <label class="font-bold">Consumo Total (kWh)</label>
-            <p-button
-              label="Onde ver?"
-              icon="pi pi-question-circle"
-              styleClass="p-button-text p-button-sm p-button-info"
-              (click)="mostrarAjuda = true"
-            >
-            </p-button>
-          </div>
-          <p-inputNumber
-            [(ngModel)]="consumo"
-            [min]="0"
-            [step]="0.1"
-            placeholder="Ex: 15.5"
-            styleClass="w-full text-center"
-            mode="decimal"
-            [maxFractionDigits]="2"
-            (onInput)="calcular()"
-          >
-          </p-inputNumber>
-          <small class="text-secondary block mt-1"
-            >Insira o valor exibido no visor do carregador.</small
-          >
-        </div>
+<!-- Linha com dois campos lado a lado -->
+<div class="grid mb-4">
+  <!-- Campo Consumo -->
+  <div class="col-12 md:col-6">
+    <div class="flex flex-column">
+      <div class="flex justify-content-between align-items-center mb-2" style="min-height: 32px">
+        <label class="font-bold">Consumo Total (kWh)</label>
+        <p-button
+          label="Onde ver?"
+          icon="pi pi-question-circle"
+          styleClass="p-button-text p-button-sm p-button-info"
+          (click)="mostrarAjuda = true"
+        >
+        </p-button>
       </div>
-
-      <!-- Campo Tempo (opcional) -->
-      <div class="col-12 md:col-6">
-        <div class="flex flex-column">
-          <div
-            class="flex justify-content-between align-items-center mb-2"
-            style="min-height: 32px"
-          >
-            <label class="font-bold">Tempo de Carga (Opcional)</label>
-          </div>
-          <input
-            type="text"
-            pInputText
-            [(ngModel)]="tempo"
-            placeholder="Ex: 02:45 (HH:MM)"
-            maxlength="5"
-            class="w-full text-center"
-          />
-          <small class="text-secondary block mt-1">Informe a duração para calcular o início.</small>
-        </div>
-      </div>
-    </div>
-
-    <!-- Detalhes do cálculo -->
-    <div *ngIf="consumo && consumo > 0" class="detalhes-calculo bg-gray-50 p-3 border-round mb-4">
-      <div class="flex justify-content-between py-1">
-        <span>Energia:</span>
-        <strong>{{ consumo * tarifaKwh | currency: 'BRL' }}</strong>
-      </div>
-    </div>
-
-    <!-- Resultado -->
-    <div class="resultado-area bg-yellow-50 p-4 border-round text-center mb-4">
-      <span class="text-secondary block mb-2">Valor a Cobrar</span>
-      <div [class.text-green-600]="consumo && consumo > 0" class="text-5xl font-bold">
-        {{ (consumo || 0) * tarifaKwh | currency: 'BRL' }}
-      </div>
-    </div>
-
-    <!-- Botões -->
-    <div class="acoes flex gap-2">
-      <p-button
-        label="Copiar para WhatsApp"
-        icon="pi pi-whatsapp"
-        styleClass="p-button-success flex-2"
-        (click)="copiarWhatsApp()"
+      <p-inputNumber
+        [(ngModel)]="consumo"
+        [min]="0"
+        [step]="0.1"
+        placeholder="Ex: 15.5"
+        styleClass="w-full text-center"
+        mode="decimal"
+        [maxFractionDigits]="2"
+        (onInput)="calcular()"
       >
-      </p-button>
-      <p-button
-        label="Limpar"
-        icon="pi pi-trash"
-        styleClass="p-button-secondary flex-1"
-        (click)="limpar()"
+      </p-inputNumber>
+      <small class="text-secondary block mt-1"
+        >Insira o valor exibido no visor do carregador.</small
       >
-      </p-button>
     </div>
-  </ng-template>
-</p-dialog>
+  </div>
 
-<!-- Modal de Ajuda -->
+  <!-- Campo Tempo (opcional) -->
+  <div class="col-12 md:col-6">
+    <div class="flex flex-column">
+      <div class="flex justify-content-between align-items-center mb-2" style="min-height: 32px">
+        <label class="font-bold">Tempo de Carga (Opcional)</label>
+      </div>
+      <input
+        type="text"
+        pInputText
+        [(ngModel)]="tempo"
+        placeholder="Ex: 02:45 (HH:MM)"
+        maxlength="5"
+        class="w-full text-center"
+      />
+      <small class="text-secondary block mt-1">Informe a duração para calcular o início.</small>
+    </div>
+  </div>
+</div>
+
+<!-- Detalhes do cálculo -->
+<div *ngIf="consumo && consumo > 0" class="detalhes-calculo bg-gray-50 p-3 border-round mb-4">
+  <div class="flex justify-content-between py-1">
+    <span>Energia:</span>
+    <strong>{{ consumo * tarifaKwh | currency: 'BRL' }}</strong>
+  </div>
+</div>
+
+<!-- Resultado -->
+<div class="resultado-area bg-yellow-50 p-4 border-round text-center mb-4">
+  <span class="text-secondary block mb-2">Valor a Cobrar</span>
+  <div [class.text-green-600]="consumo && consumo > 0" class="text-5xl font-bold">
+    {{ (consumo || 0) * tarifaKwh | currency: 'BRL' }}
+  </div>
+</div>
+
+<!-- Botões -->
+<div class="acoes flex gap-2">
+  <p-button
+    label="Copiar para WhatsApp"
+    icon="pi pi-whatsapp"
+    styleClass="p-button-success flex-2"
+    (click)="copiarWhatsApp()"
+  >
+  </p-button>
+  <p-button
+    label="Limpar"
+    icon="pi pi-trash"
+    styleClass="p-button-secondary flex-1"
+    (click)="limpar()"
+  >
+  </p-button>
+</div>
+
+<!-- Modal de Ajuda (permanece como diálogo) -->
 <p-dialog
   [(visible)]="mostrarAjuda"
   [style]="{ width: '450px' }"

@@ -1,6 +1,5 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
 // PrimeNG
@@ -11,7 +10,7 @@ import { MessageModule } from 'primeng/message';
 import { MessageService } from 'primeng/api';
 
 // Services
-import { TarifaService, CategoriaQuarto } from '../../services/tarifa'; // <-- IMPORTE DO SERVICE
+import { TarifaService, CategoriaQuarto } from '../../services/tarifa';
 
 interface GrupoUHs {
   prioridade: number;
@@ -22,22 +21,14 @@ interface GrupoUHs {
 @Component({
   selector: 'app-tabela-precos',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    FormsModule,
-    ButtonModule,
-    CardModule,
-    ToastModule,
-    MessageModule,
-  ],
+  imports: [CommonModule, FormsModule, ButtonModule, CardModule, ToastModule, MessageModule],
   providers: [MessageService],
   templateUrl: './tabela-precos.html',
   styleUrls: ['./tabela-precos.scss'],
 })
 export class TabelaPrecosComponent implements OnInit {
-  @Input() visible: boolean = false;
-  @Output() visibleChange = new EventEmitter<boolean>();
+  @Output() onVoltar = new EventEmitter<void>();
+
   temporadaAtual: 'alta' | 'baixa' = 'baixa';
   categorias: CategoriaQuarto[] = [];
   grupos: GrupoUHs[] = [];
@@ -82,7 +73,6 @@ export class TabelaPrecosComponent implements OnInit {
       return;
     }
 
-    // Filtrar categorias que têm números de UH
     const categoriasComUHs = this.categorias.filter((c) => c.numeros && c.numeros.length > 0);
 
     if (categoriasComUHs.length === 0) {
@@ -102,7 +92,6 @@ export class TabelaPrecosComponent implements OnInit {
 
       const catNumeros = cat.numeros ? [...cat.numeros].sort() : [];
 
-      // Encontrar categorias com os mesmos números de UH
       const mesmoGrupo = categorias.filter((c) => {
         const cNumeros = c.numeros ? [...c.numeros].sort() : [];
         return JSON.stringify(cNumeros) === JSON.stringify(catNumeros);
@@ -110,7 +99,6 @@ export class TabelaPrecosComponent implements OnInit {
 
       mesmoGrupo.forEach((c) => processados.add(c.id));
 
-      // Calcular prioridade para ordenação
       let prioridade = 3;
       const nomeLower = (cat.nome || '').toLowerCase();
       const temCasal = (cat.camasCasal || 0) > 0;
@@ -185,6 +173,6 @@ export class TabelaPrecosComponent implements OnInit {
   }
 
   voltar() {
-    window.history.back();
+    this.onVoltar.emit();
   }
 }

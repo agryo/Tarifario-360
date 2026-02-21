@@ -52,8 +52,9 @@ export class Dashboard implements OnInit {
   configDialogVisible: boolean = false;
   senhaDialogVisible: boolean = false;
   senhaInput: string = '';
-  tabelaPrecosVisible: boolean = false;
-  wallboxVisible: boolean = false;
+
+  // Controle do módulo ativo (quando não for null, mostra o módulo no lugar da grid)
+  moduloAtivo: string | null = null;
 
   // Dados para os cards de resumo
   totalCategorias: number = 0;
@@ -113,6 +114,15 @@ export class Dashboard implements OnInit {
 
   get promocaoStatus(): string {
     return this.config.promocaoAtiva ? 'Ativa' : 'Inativa';
+  }
+
+  // ===== CONTROLE DOS MÓDULOS =====
+  abrirModulo(modulo: string) {
+    this.moduloAtivo = modulo;
+  }
+
+  fecharModulo() {
+    this.moduloAtivo = null;
   }
 
   // ===== MENSAGENS VINDAS DO PAINEL MASTER =====

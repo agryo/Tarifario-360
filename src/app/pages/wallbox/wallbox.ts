@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -32,9 +32,6 @@ import { TarifaService } from '../../services/tarifa';
   styleUrls: ['./wallbox.scss'],
 })
 export class WallboxComponent implements OnInit {
-  @Input() visible: boolean = false;
-  @Output() visibleChange = new EventEmitter<boolean>();
-
   consumo: number | null = null;
   tempo: string = '';
   tarifaKwh: number = 1.8;
@@ -83,10 +80,5 @@ export class WallboxComponent implements OnInit {
         detail: 'Resumo copiado para a área de transferência.',
       });
     });
-  }
-
-  fechar() {
-    this.visible = false;
-    this.visibleChange.emit(false);
   }
 }
