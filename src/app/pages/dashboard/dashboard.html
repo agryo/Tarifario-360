@@ -110,30 +110,6 @@
         </p-card>
       </div>
 
-      <!-- Orçamento Oficial -->
-      <div class="col-12 md:col-6 lg:col-4">
-        <p-card
-          styleClass="module-card"
-          header="📄 Orçamento Oficial"
-          subheader="Propostas detalhadas"
-        >
-          <p class="module-description">Crie propostas formais para grupos, empresas e eventos</p>
-          <div class="module-features">
-            <span><i class="pi pi-check-circle text-success mr-2"></i>Múltiplos itens</span>
-            <span><i class="pi pi-check-circle text-success mr-2"></i>Alimentação inclusa</span>
-            <span><i class="pi pi-check-circle text-success mr-2"></i>Exportar PDF</span>
-          </div>
-          <div class="flex justify-content-end mt-3">
-            <p-button
-              label="Acessar"
-              icon="pi pi-file-pdf"
-              styleClass="p-button-help"
-              (click)="abrirModulo('orcamento-oficial')"
-            ></p-button>
-          </div>
-        </p-card>
-      </div>
-
       <!-- Tabela de Opções -->
       <div class="col-12 md:col-6 lg:col-4">
         <p-card styleClass="module-card" header="📋 Tabela de Opções" subheader="Comparativo">
@@ -153,6 +129,30 @@
               icon="pi pi-table"
               styleClass="p-button-info"
               (click)="abrirModulo('tabela-opcoes')"
+            ></p-button>
+          </div>
+        </p-card>
+      </div>
+
+      <!-- Orçamento Oficial -->
+      <div class="col-12 md:col-6 lg:col-4">
+        <p-card
+          styleClass="module-card"
+          header="📄 Orçamento Oficial"
+          subheader="Propostas detalhadas"
+        >
+          <p class="module-description">Crie propostas formais para grupos, empresas e eventos</p>
+          <div class="module-features">
+            <span><i class="pi pi-check-circle text-success mr-2"></i>Múltiplos itens</span>
+            <span><i class="pi pi-check-circle text-success mr-2"></i>Alimentação inclusa</span>
+            <span><i class="pi pi-check-circle text-success mr-2"></i>Exportar PDF</span>
+          </div>
+          <div class="flex justify-content-end mt-3">
+            <p-button
+              label="Acessar"
+              icon="pi pi-file-pdf"
+              styleClass="p-button-help"
+              (click)="abrirModulo('orcamento-oficial')"
             ></p-button>
           </div>
         </p-card>
