@@ -22,6 +22,7 @@ import { ThemeToggleComponent } from '../../components/theme-toggle/theme-toggle
 import { PainelMasterComponent } from '../painel-master/painel-master';
 import { TabelaPrecosComponent } from '../tabela-precos/tabela-precos';
 import { WallboxComponent } from '../wallbox/wallbox';
+import { OrcamentoRapidoComponent } from '../orcamento-rapido/orcamento-rapido';
 
 @Component({
   selector: 'app-dashboard',
@@ -42,6 +43,7 @@ import { WallboxComponent } from '../wallbox/wallbox';
     PainelMasterComponent,
     TabelaPrecosComponent,
     WallboxComponent,
+    OrcamentoRapidoComponent,
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './dashboard.html',

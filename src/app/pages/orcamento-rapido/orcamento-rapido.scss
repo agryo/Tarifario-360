@@ -1,0 +1,62 @@
+:host {
+  display: block;
+}
+
+.orcamento-rapido-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1px;
+}
+
+.orcamento-rapido-titulo {
+  display: flex;
+  gap: 1px;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.previa {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  white-space: pre-wrap; /* quebra linhas */
+  word-wrap: break-word; /* quebra palavras longas */
+  overflow-wrap: break-word; /* mesmo efeito */
+  font-family: 'Courier New', monospace;
+  border: 1px solid #dee2e6;
+  padding: 1rem;
+  /* Removido max-height e overflow */
+}
+
+.previa pre {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  white-space: pre-wrap; /* herda a quebra */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  width: 100%;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+:host-context(.my-app-dark) {
+  .orcamento-rapido-titulo {
+    background: #1e293b !important;
+    color: var(--primary-color) !important;
+  }
+
+  .previa {
+    background: #1e293b !important;
+    color: var(--primary-color) !important;
+    border-color: #334155;
+  }
+
+  .previa pre {
+    background: transparent;
+    color: inherit;
+  }
+}

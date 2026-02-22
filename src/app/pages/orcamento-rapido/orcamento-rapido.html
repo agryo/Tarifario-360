@@ -1,0 +1,77 @@
+<div class="orcamento-rapido-container p-1 border-round align-items-center mb-1">
+  <!-- Título -->
+  <div class="orcamento-rapido-titulo bg-blue-50 p-1 border-round text-center mb-3">
+    <h1 class="text-2xl font-bold">⚡ Orçamento Rápido {{ config.festividade }}</h1>
+  </div>
+
+  <!-- Formulário -->
+  <div class="grid mb-1">
+    <div class="col-2 md:col-12">
+      <div class="field">
+        <label for="categoria" class="font-bold">Tipo de Acomodação:</label>
+        <p-select
+          id="categoria"
+          [(ngModel)]="categoriaId"
+          [options]="categorias"
+          optionLabel="nome"
+          optionValue="id"
+          placeholder="Selecione"
+          styleClass="w-full"
+          (onChange)="gerarOrcamento()"
+        ></p-select>
+      </div>
+    </div>
+  </div>
+  <div class="grid mb-1">
+    <div class="md:col-6">
+      <div class="field">
+        <label for="checkin" class="font-bold">Check-in</label>
+        <p-datepicker
+          id="checkin"
+          [(ngModel)]="dataCheckin"
+          [showIcon]="true"
+          dateFormat="dd/mm/yy"
+          [minDate]="hoje"
+          (onSelect)="gerarOrcamento()"
+          styleClass="w-full"
+        ></p-datepicker>
+      </div>
+    </div>
+    <div class="md:col-6">
+      <div class="field">
+        <label for="checkout" class="font-bold">Check-out</label>
+        <p-datepicker
+          id="checkout"
+          [(ngModel)]="dataCheckout"
+          [showIcon]="true"
+          dateFormat="dd/mm/yy"
+          [minDate]="dataCheckin || hoje"
+          (onSelect)="gerarOrcamento()"
+          styleClass="w-full"
+        ></p-datepicker>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prévia do orçamento -->
+  <div class="previa bg-gray-50 p-3 border-round mt-3" *ngIf="textoOrcamento">
+    <pre class="whitespace-pre-wrap font-normal text-sm">{{ textoOrcamento }}</pre>
+  </div>
+
+  <!-- Botões -->
+  <div class="acoes flex gap-2 justify-content-center mt-4">
+    <p-button
+      label="Copiar para WhatsApp"
+      icon="pi pi-whatsapp"
+      styleClass="p-button-success"
+      (click)="copiarWhatsApp()"
+      [disabled]="!textoOrcamento"
+    ></p-button>
+    <p-button
+      label="Voltar"
+      icon="pi pi-arrow-left"
+      styleClass="p-button-help"
+      (click)="voltar()"
+    ></p-button>
+  </div>
+</div>

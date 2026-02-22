@@ -217,6 +217,11 @@
           (onVoltar)="fecharModulo()"
         >
         </app-wallbox>
+        <app-orcamento-rapido
+          *ngSwitchCase="'orcamento-rapido'"
+          (onMensagem)="mostrarMensagem($event)"
+          (onVoltar)="fecharModulo()"
+        ></app-orcamento-rapido>
         <!-- Outros módulos serão adicionados futuramente -->
       </ng-container>
     </div>
