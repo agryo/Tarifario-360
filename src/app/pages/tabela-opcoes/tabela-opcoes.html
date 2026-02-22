@@ -1,1 +1,121 @@
-<p>tabela-opcoes works!</p>
+<div class="tabela-opcoes-container">
+  <!-- Cabeçalho -->
+  <div class="header-area bg-blue-50 p-2 border-round text-center mb-3">
+    <h1 class="text-2xl font-bold">🏢 Tabela de Opções</h1>
+  </div>
+
+  <!-- Configurações -->
+  <div class="config-area p-3 border-round mb-3">
+    <div class="grid">
+      <div class="col-12 md:col-4">
+        <div class="field">
+          <label for="checkin" class="font-bold">Check-in</label>
+          <p-datepicker
+            id="checkin"
+            [(ngModel)]="dataCheckin"
+            [showIcon]="true"
+            dateFormat="dd/mm/yy"
+            [minDate]="hoje"
+            (onSelect)="gerar()"
+            styleClass="w-full"
+          ></p-datepicker>
+        </div>
+      </div>
+      <div class="col-12 md:col-4">
+        <div class="field">
+          <label for="checkout" class="font-bold">Check-out</label>
+          <p-datepicker
+            id="checkout"
+            [(ngModel)]="dataCheckout"
+            [showIcon]="true"
+            dateFormat="dd/mm/yy"
+            [minDate]="dataCheckin || hoje"
+            (onSelect)="gerar()"
+            styleClass="w-full"
+          ></p-datepicker>
+        </div>
+      </div>
+      <div class="col-12 md:col-4">
+        <div class="field">
+          <label for="temporada" class="font-bold">Temporada</label>
+          <p-select
+            id="temporada"
+            [(ngModel)]="temporada"
+            [options]="[
+              { label: 'Automático (Pela Data)', value: 'auto' },
+              { label: 'Baixa Temporada', value: 'baixa' },
+              { label: 'Alta Temporada', value: 'alta' },
+            ]"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="w-full"
+            (onChange)="gerar()"
+          ></p-select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Colunas de seleção -->
+  <div class="grid">
+    <!-- Solteiros -->
+    <div class="col-12 md:col-6">
+      <div class="coluna-uh p-3 border-round">
+        <div class="titulo-coluna text-center font-bold mb-2">👤 SOLTEIROS</div>
+        <p-button
+          label="☑️ Marcar Todos"
+          styleClass="p-button-sm p-button-outlined mb-2"
+          (click)="toggleGrupo('solteiro')"
+        ></p-button>
+        <div *ngFor="let cat of categoriasSolteiro" class="item-quarto mb-1">
+          <p-checkbox
+            [(ngModel)]="cat.selecionado"
+            [binary]="true"
+            (onChange)="gerar()"
+          ></p-checkbox>
+          <label>{{ cat.nome }}</label>
+        </div>
+      </div>
+    </div>
+    <!-- Casais/Família -->
+    <div class="col-12 md:col-6">
+      <div class="coluna-uh p-3 border-round">
+        <div class="titulo-coluna text-center font-bold mb-2">👥 CASAL / FAMÍLIA</div>
+        <p-button
+          label="☑️ Marcar Todos"
+          styleClass="p-button-sm p-button-outlined mb-2"
+          (click)="toggleGrupo('casal')"
+        ></p-button>
+        <div *ngFor="let cat of categoriasCasal" class="item-quarto mb-1">
+          <p-checkbox
+            [(ngModel)]="cat.selecionado"
+            [binary]="true"
+            (onChange)="gerar()"
+          ></p-checkbox>
+          <label>{{ cat.nome }}</label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prévia -->
+  <div class="previa-area bg-gray-50 p-3 border-round mt-3" *ngIf="textoPrevia">
+    <pre class="previa-texto">{{ textoPrevia }}</pre>
+  </div>
+
+  <!-- Botões -->
+  <div class="acoes flex gap-2 justify-content-center mt-4">
+    <p-button
+      label="📋 COPIAR PARA WHATSAPP"
+      icon="pi pi-whatsapp"
+      styleClass="p-button-success"
+      (click)="copiarTexto()"
+    ></p-button>
+    <p-button
+      label="Voltar"
+      icon="pi pi-arrow-left"
+      styleClass="p-button-help"
+      (click)="voltar()"
+    ></p-button>
+  </div>
+</div>

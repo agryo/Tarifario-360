@@ -207,26 +207,31 @@
   <ng-template #moduloTemplate>
     <div class="modulo-container">
       <ng-container [ngSwitch]="moduloAtivo">
+        <app-orcamento-rapido
+          *ngSwitchCase="'orcamento-rapido'"
+          (onMensagem)="mostrarMensagem($event)"
+          (onVoltar)="fecharModulo()"
+        ></app-orcamento-rapido>
         <app-tabela-precos
           *ngSwitchCase="'tabela-precos'"
           (onVoltar)="fecharModulo()"
         ></app-tabela-precos>
+        <app-tabela-opcoes
+          *ngSwitchCase="'tabela-opcoes'"
+          (onMensagem)="mostrarMensagem($event)"
+          (onVoltar)="fecharModulo()"
+        ></app-tabela-opcoes>
+        <app-orcamento-oficial
+          *ngSwitchCase="'orcamento-oficial'"
+          (onMensagem)="mostrarMensagem($event)"
+          (onVoltar)="fecharModulo()"
+        ></app-orcamento-oficial>
         <app-wallbox
           *ngSwitchCase="'wallbox'"
           (onMensagem)="mostrarMensagem($event)"
           (onVoltar)="fecharModulo()"
         >
         </app-wallbox>
-        <app-orcamento-rapido
-          *ngSwitchCase="'orcamento-rapido'"
-          (onMensagem)="mostrarMensagem($event)"
-          (onVoltar)="fecharModulo()"
-        ></app-orcamento-rapido>
-        <app-orcamento-oficial
-          *ngSwitchCase="'orcamento-oficial'"
-          (onMensagem)="mostrarMensagem($event)"
-          (onVoltar)="fecharModulo()"
-        ></app-orcamento-oficial>
         <!-- Outros módulos serão adicionados futuramente -->
       </ng-container>
     </div>

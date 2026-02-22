@@ -1,0 +1,77 @@
+:host {
+  display: block;
+}
+
+.tabela-opcoes-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.header-area {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.config-area {
+  background: #fff;
+  border: 2px solid #075e54;
+}
+
+.coluna-uh {
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+.titulo-coluna {
+  color: #075e54;
+  border-bottom: 2px solid #25d366;
+  font-size: 14px;
+}
+
+.item-quarto {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  &:hover {
+    background: #e9ecef;
+  }
+}
+
+.previa-area {
+  white-space: pre-wrap;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  border: 1px solid #075e54;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.previa-texto {
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+// Modo escuro
+:host-context(.my-app-dark) {
+  .config-area {
+    background: #1e293b;
+    border-color: #4b5563;
+  }
+  .coluna-uh {
+    background: #1e293b;
+    border-color: #4b5563;
+  }
+  .previa-area {
+    background: #1e293b;
+    border-color: #4b5563;
+    color: #e2e8f0;
+  }
+  .item-quarto:hover {
+    background: #2d3748;
+  }
+}

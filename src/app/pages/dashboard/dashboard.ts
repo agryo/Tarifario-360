@@ -24,6 +24,7 @@ import { TabelaPrecosComponent } from '../tabela-precos/tabela-precos';
 import { WallboxComponent } from '../wallbox/wallbox';
 import { OrcamentoRapidoComponent } from '../orcamento-rapido/orcamento-rapido';
 import { OrcamentoOficialComponent } from '../orcamento-oficial/orcamento-oficial';
+import { TabelaOpcoesComponent } from '../tabela-opcoes/tabela-opcoes';
 
 @Component({
   selector: 'app-dashboard',
@@ -46,6 +47,7 @@ import { OrcamentoOficialComponent } from '../orcamento-oficial/orcamento-oficia
     WallboxComponent,
     OrcamentoRapidoComponent,
     OrcamentoOficialComponent,
+    TabelaOpcoesComponent,
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './dashboard.html',
