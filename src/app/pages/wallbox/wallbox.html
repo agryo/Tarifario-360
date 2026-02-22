@@ -1,4 +1,11 @@
 <div class="wallbox-container">
+  <!-- Título da página -->
+  <div>
+    <div class="info-tarifa bg-blue-50 p-1 border-round text-center mb-3">
+      <h1 class="text-3xl font-bold text-center">⚡ Calculadora Wallbox</h1>
+    </div>
+  </div>
+
   <!-- Tarifa atual -->
   <div class="info-tarifa bg-blue-50 p-2 border-round text-center mb-3">
     <span class="text-secondary block text-xs">Tarifa Atual Configurada:</span>
@@ -65,7 +72,7 @@
   </div>
 
   <!-- Resultado -->
-  <div class="resultado-area bg-yellow-50 p-3 border-round text-center mb-4">
+  <div class="resultado-area bg-yellow-50 p-1 border-round text-center mb-4">
     <span class="text-secondary block mb-2">Valor a Cobrar</span>
     <div [class.text-green-600]="consumo && consumo > 0" class="text-4xl font-bold">
       {{ (consumo || 0) * tarifaKwh | currency: 'BRL' }}
