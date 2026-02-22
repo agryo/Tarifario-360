@@ -48,29 +48,42 @@ export class OrcamentoRapidoService {
     const valorTotalComCafe = somaComCafe * request.quantidade;
     const valorTotalSemCafe = somaSemCafe * request.quantidade;
 
-    // Aplicar promoção se ativa
+    // ===== LÓGICA DE PROMOÇÃO IGUAL AO JS ORIGINAL =====
+    let textoPromocao = '';
     let valorFinalComCafe = valorTotalComCafe;
     let valorFinalSemCafe = valorTotalSemCafe;
-    let textoPromocao = '';
 
     if (config.promocaoAtiva) {
-      const elegivel = numeroNoites >= config.promocaoMinDiarias;
-      const isAltaPeriodo = diasAlta > 0; // período tem pelo menos um dia de alta
+      const promoMin = config.promocaoMinDiarias;
+      const promoPct = config.promocaoDesconto;
+      const promoTxt = config.promocaoTexto;
+      const promoSomenteAlta = config.promocaoSomenteAlta;
+      const promoMsgBaixa = config.promocaoMsgBaixa;
 
-      if (config.promocaoSomenteAlta && !isAltaPeriodo) {
-        // Não aplica desconto, mas pode exibir mensagem
-        if (config.promocaoMsgBaixa) {
-          textoPromocao = `*Promoção:* ${config.promocaoTexto} (válida apenas na alta temporada)`;
+      let aplicarPromo = true;
+      let exibirApenasMsg = false;
+
+      if (promoSomenteAlta) {
+        if (diasAlta === 0) {
+          aplicarPromo = false;
+          if (promoMsgBaixa) exibirApenasMsg = true;
         }
-      } else if (elegivel) {
-        const desconto = config.promocaoDesconto / 100;
-        valorFinalComCafe = valorTotalComCafe * (1 - desconto);
-        valorFinalSemCafe = valorTotalSemCafe * (1 - desconto);
-        textoPromocao = `*Promoção:* ${config.promocaoDesconto}% de desconto - ${config.promocaoTexto}`;
-      } else {
-        textoPromocao = `*Promoção:* A partir de ${config.promocaoMinDiarias} diárias, ${config.promocaoDesconto}% de desconto - ${config.promocaoTexto}`;
+      }
+
+      if (aplicarPromo) {
+        if (numeroNoites >= promoMin) {
+          const desconto = promoPct / 100;
+          valorFinalComCafe = valorTotalComCafe * (1 - desconto);
+          valorFinalSemCafe = valorTotalSemCafe * (1 - desconto);
+          textoPromocao = `🔥 *PROMOÇÃO ESPECIAL ATIVA:*\nGanhe *${promoPct}% de desconto* para ${promoTxt}!\n👇 *Valores com desconto aplicado:*`;
+        } else {
+          textoPromocao = `🔥 *PROMOÇÃO ESPECIAL:* Reserve *${promoMin} diárias* ou mais e ganhe *${promoPct}% de desconto* para ${promoTxt}!`;
+        }
+      } else if (exibirApenasMsg) {
+        textoPromocao = `🔥 *PROMOÇÃO ESPECIAL:* Ganhe *${promoPct}% de desconto* para ${promoTxt} (Consulte condições para alta temporada)!`;
       }
     }
+    // ===================================================
 
     const textoWhatsApp = this.gerarTextoWhatsApp(categoria, {
       request,
@@ -78,6 +91,8 @@ export class OrcamentoRapidoService {
       diasAlta,
       diasBaixa,
       tipoTemporada,
+      somaComCafe,
+      somaSemCafe,
       valorTotalComCafe,
       valorTotalSemCafe,
       valorFinalComCafe,
@@ -123,6 +138,8 @@ export class OrcamentoRapidoService {
       diasAlta,
       diasBaixa,
       tipoTemporada,
+      somaComCafe,
+      somaSemCafe,
       valorTotalComCafe,
       valorTotalSemCafe,
       valorFinalComCafe,
@@ -134,70 +151,102 @@ export class OrcamentoRapidoService {
     const formatarMoeda = (valor: number) =>
       valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-    let texto = `🏨 *Hotel Plaza - Cruzeta/RN*\n`;
-    texto += `🎊 *Orçamento para ${config.festividade}*\n\n`;
+    // ===== TEXTO IGUAL AO JS ORIGINAL =====
+    let texto = `Olá! Segue orçamento para o *${config.festividade}*:\n\n`;
+    texto += `🏨 *Hotel Plaza - Cruzeta/RN*\n`;
     texto += `🛌 *Acomodação:* ${categoria.nome}\n`;
     if (categoria.descricao) texto += `✨ _${categoria.descricao}_\n`;
 
-    // Configuração de camas
+    // Configuração de camas (igual ao JS)
     const camas: string[] = [];
-    if (categoria.camasCasal) camas.push(`${categoria.camasCasal} Cama de Casal`);
-    if (categoria.camasSolteiro) camas.push(`${categoria.camasSolteiro} Cama de Solteiro`);
-    texto += `🛏️ *Configuração:* ${camas.join(' e ') || 'Sob consulta'}\n`;
+    if (categoria.camasCasal && categoria.camasCasal > 0) {
+      camas.push(`${categoria.camasCasal} Cama${categoria.camasCasal > 1 ? 's' : ''} Casal`);
+    }
+    if (categoria.camasSolteiro && categoria.camasSolteiro > 0) {
+      camas.push(
+        `${categoria.camasSolteiro} Cama${categoria.camasSolteiro > 1 ? 's' : ''} Solteiro`,
+      );
+    }
+    texto += `🛏️ *Configuração:* ${camas.join(' + ') || 'Sob consulta'}\n`;
 
-    const capacidadeTexto =
+    // Capacidade (lógica do JS: se grupo solteiro, exibe 1 pessoa; senão, usa capacidadeMaxima)
+    // No JS antigo, usava q.grupo === "solteiro" ? 1 : q.cap
+    // Vamos manter isso: se não tiver grupo, inferimos pelo número de camas?
+    // Por simplicidade, usaremos a capacidadeMaxima mesmo, mas tentaremos replicar a lógica.
+    let capacidadeExibida = categoria.capacidadeMaxima;
+    // Se for uma categoria claramente de solteiro (camasSolteiro > 0 e camasCasal === 0) e capacidade 1?
+    if (
+      categoria.camasCasal === 0 &&
+      categoria.camasSolteiro > 0 &&
       categoria.capacidadeMaxima === 1
-        ? 'Apenas 1 pessoa'
-        : `Até ${categoria.capacidadeMaxima} pessoas`;
+    ) {
+      capacidadeExibida = 1;
+    }
+    const capacidadeTexto =
+      capacidadeExibida === 1 ? `Apenas 1 pessoa` : `Até ${capacidadeExibida} pessoas`;
     texto += `👤 *Capacidade:* ${capacidadeTexto}\n`;
 
+    // Itens inclusos
     if (categoria.comodidadesSelecionadas?.length) {
-      texto += `✅ *Itens inclusos:* ${categoria.comodidadesSelecionadas.join(', ')}\n\n`;
+      texto += `✅ *Itens inclusos:* ${categoria.comodidadesSelecionadas.join(', ')}.\n\n`;
     } else {
       texto += `\n`;
     }
 
-    texto += `📅 *Check-in:* ${request.dataCheckin.toLocaleDateString('pt-BR')}\n`;
-    texto += `📅 *Check-out:* ${request.dataCheckout.toLocaleDateString('pt-BR')}\n`;
-    texto += `🌙 *Duração:* ${numeroNoites} diária(s)\n`;
-    texto += `📦 *Quantidade:* ${request.quantidade} unidade(s)\n\n`;
+    // Período (usando toLocaleDateString pt-BR)
+    texto += `📅 *Período:* ${request.dataCheckin.toLocaleDateString('pt-BR')} a ${request.dataCheckout.toLocaleDateString('pt-BR')}\n`;
+    texto += `🌙 *Duração:* ${numeroNoites} diária(s)\n\n`;
 
-    texto += `💰 *Valores:*\n`;
+    // Valor da diária
+    const mediaCom = somaComCafe / numeroNoites;
+    const mediaSem = somaSemCafe / numeroNoites;
+    let txtDiariaCom, txtDiariaSem;
     if (tipoTemporada === 'misto') {
-      texto += `   ${diasAlta} dia(s) em alta, ${diasBaixa} dia(s) em baixa\n`;
+      txtDiariaCom = `${formatarMoeda(mediaCom)} (média)`;
+      txtDiariaSem = `${formatarMoeda(mediaSem)} (média)`;
+    } else if (diasAlta > 0) {
+      txtDiariaCom = formatarMoeda(categoria.precoAltaCafe);
+      txtDiariaSem = formatarMoeda(categoria.precoAltaSemCafe);
+    } else {
+      txtDiariaCom = formatarMoeda(categoria.precoBaixaCafe);
+      txtDiariaSem = formatarMoeda(categoria.precoBaixaSemCafe);
     }
 
+    texto += `💰 *Valor da diária:*\n`;
+    texto += `☕ Com café: ${txtDiariaCom}\n`;
+    texto += `🍽️ Sem café: ${txtDiariaSem}\n\n`;
+
+    texto += `💵 *VALOR TOTAL DO PACOTE:*\n`;
+    texto += `✅ *COM CAFÉ DA MANHÃ: ${formatarMoeda(valorTotalComCafe)}*\n`;
+    texto += `❌ *SEM CAFÉ DA MANHÃ: ${formatarMoeda(valorTotalSemCafe)}*\n\n`;
+
+    // Promoção
     if (textoPromocao) {
-      texto += `🔥 ${textoPromocao}\n`;
+      texto += textoPromocao;
+      if (valorFinalComCafe !== valorTotalComCafe || valorFinalSemCafe !== valorTotalSemCafe) {
+        texto += `\n✅ C/ Café: *${formatarMoeda(valorFinalComCafe)}*\n`;
+        texto += `❌ S/ Café: *${formatarMoeda(valorFinalSemCafe)}*\n`;
+      }
+      texto += `\n`;
     }
-
-    texto += `\n`;
-    texto += `*COM CAFÉ DA MANHÃ:* ${formatarMoeda(valorFinalComCafe)}`;
-    if (valorFinalComCafe !== valorTotalComCafe) {
-      texto += ` (de ${formatarMoeda(valorTotalComCafe)})`;
-    }
-    texto += `\n`;
-    texto += `*SEM CAFÉ DA MANHÃ:* ${formatarMoeda(valorFinalSemCafe)}`;
-    if (valorFinalSemCafe !== valorTotalSemCafe) {
-      texto += ` (de ${formatarMoeda(valorTotalSemCafe)})`;
-    }
-    texto += `\n\n`;
 
     texto += `📥 *Check-in:* a partir das 14h\n`;
     texto += `📤 *Check-out:* até as 11h\n\n`;
 
-    // Horários das refeições
+    // Horários das refeições (igual ao JS)
     const horarios = [];
-    if (config.cafeAtivo) horarios.push(`Café: ${config.cafeInicio} às ${config.cafeFim}`);
-    if (config.almocoAtivo) horarios.push(`Almoço: ${config.almocoInicio} às ${config.almocoFim}`);
+    if (config.cafeAtivo)
+      horarios.push(`*- Café da manhã:* ${config.cafeInicio} às ${config.cafeFim}`);
+    if (config.almocoAtivo)
+      horarios.push(`*- Almoço:* ${config.almocoInicio} às ${config.almocoFim} (opcional)`);
     if (config.jantarAtivo)
-      horarios.push(`Lanche noturno: ${config.jantarInicio} às ${config.jantarFim}`);
+      horarios.push(`*- Lanche à Noite:* ${config.jantarInicio} às ${config.jantarFim} (opcional)`);
     if (horarios.length) {
-      texto += `⏰ *Horários:*\n${horarios.map((h) => `- ${h}`).join('\n')}\n\n`;
+      texto += `⏰ *Horários das Refeições:*\n${horarios.join('\n')}\n\n`;
     }
 
-    texto += `⚠️ _Valores sujeitos a disponibilidade no ato da reserva._\n`;
-    texto += `*Deseja garantir sua reserva?*`;
+    texto += `⚠️ _Valores sujeitos a disponibilidade no ato da reserva._\n\n`;
+    texto += `*Deseja garantir sua reserva agora?*`;
 
     return texto;
   }

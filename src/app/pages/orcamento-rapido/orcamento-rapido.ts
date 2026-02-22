@@ -6,7 +6,6 @@ import { FormsModule } from '@angular/forms';
 import { Button } from 'primeng/button';
 import { Select } from 'primeng/select'; // Antigo Dropdown
 import { DatePicker } from 'primeng/datepicker'; // Antigo Calendar
-import { InputNumber } from 'primeng/inputnumber';
 
 // Services
 import { TarifaService } from '../../services/tarifa';
