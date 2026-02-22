@@ -1,0 +1,284 @@
+<div class="orcamento-oficial-container">
+  <!-- Área de Configuração -->
+  <div class="config-area p-3 border-round mb-3">
+    <div class="flex justify-content-between align-items-center mb-3">
+      <h2 class="text-xl font-bold m-0">📄 Orçamento Oficial</h2>
+      <div class="flex gap-2">
+        <p-button
+          label="Salvar"
+          icon="pi pi-save"
+          styleClass="p-button-success"
+          (click)="exportarOrcamento()"
+        ></p-button>
+        <p-button
+          label="Abrir"
+          icon="pi pi-folder-open"
+          styleClass="p-button-secondary"
+          (click)="fileInput.click()"
+        ></p-button>
+        <input
+          #fileInput
+          type="file"
+          accept=".json"
+          style="display: none"
+          (change)="importarOrcamento($event)"
+        />
+        <p-button
+          label="Voltar"
+          icon="pi pi-arrow-left"
+          styleClass="p-button-help"
+          (click)="voltar()"
+        ></p-button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="col-12 md:col-4">
+        <div class="field">
+          <label for="cliente">Empresa / Cliente</label>
+          <input
+            id="cliente"
+            type="text"
+            pInputText
+            [(ngModel)]="cliente"
+            (input)="calcularTotais()"
+            class="w-full"
+          />
+        </div>
+      </div>
+      <div class="col-12 md:col-2">
+        <div class="field">
+          <label for="temporada">Temporada</label>
+          <p-select
+            id="temporada"
+            [(ngModel)]="temporada"
+            [options]="[
+              { label: 'Automático (pela data)', value: 'auto' },
+              { label: 'Baixa', value: 'baixa' },
+              { label: 'Alta', value: 'alta' },
+            ]"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="w-full"
+            (onChange)="onTemporadaChange()"
+          ></p-select>
+        </div>
+      </div>
+      <div class="col-12 md:col-3">
+        <div class="field">
+          <label for="checkin">Check-in</label>
+          <p-datepicker
+            id="checkin"
+            [(ngModel)]="dataCheckin"
+            [showIcon]="true"
+            dateFormat="dd/mm/yy"
+            [minDate]="hoje"
+            (onSelect)="onDataChange()"
+            styleClass="w-full"
+          ></p-datepicker>
+        </div>
+      </div>
+      <div class="col-12 md:col-3">
+        <div class="field">
+          <label for="checkout">Check-out</label>
+          <p-datepicker
+            id="checkout"
+            [(ngModel)]="dataCheckout"
+            [showIcon]="true"
+            dateFormat="dd/mm/yy"
+            [minDate]="dataCheckin || hoje"
+            (onSelect)="onDataChange()"
+            styleClass="w-full"
+          ></p-datepicker>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabela de Itens -->
+    <p-table [value]="itens" styleClass="p-datatable-sm mt-3">
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 60px">Qtd</th>
+          <th>Acomodação</th>
+          <th style="width: 80px">Café</th>
+          <th style="width: 80px">Almoço</th>
+          <th>Valor Diária</th>
+          <th>Total</th>
+          <th style="width: 50px"></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-item let-i="rowIndex">
+        <tr>
+          <td>
+            <p-inputNumber
+              [(ngModel)]="item.quantidade"
+              [min]="1"
+              (onInput)="calcularItem(item)"
+              styleClass="w-full"
+            ></p-inputNumber>
+          </td>
+          <td>
+            <p-select
+              [(ngModel)]="item.categoriaId"
+              [options]="categorias"
+              optionLabel="nome"
+              optionValue="id"
+              styleClass="w-full"
+              (onChange)="onCategoriaChange(item)"
+            ></p-select>
+          </td>
+          <td class="text-center">
+            <p-checkbox
+              [(ngModel)]="item.comCafe"
+              [binary]="true"
+              (onChange)="calcularItem(item)"
+            ></p-checkbox>
+          </td>
+          <td class="text-center">
+            <p-checkbox
+              [(ngModel)]="item.comAlmoco"
+              [binary]="true"
+              (onChange)="calcularItem(item)"
+            ></p-checkbox>
+          </td>
+          <td>{{ item.precoDiaria | currency: 'BRL' }}</td>
+          <td>{{ item.total | currency: 'BRL' }}</td>
+          <td>
+            <p-button
+              icon="pi pi-trash"
+              styleClass="p-button-text p-button-danger p-button-sm"
+              (click)="removerItem(i)"
+            ></p-button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    <div class="flex justify-content-between align-items-center mt-2">
+      <p-button
+        label="+ ADICIONAR UH"
+        icon="pi pi-plus"
+        styleClass="p-button-success p-button-sm"
+        (click)="adicionarItem()"
+      ></p-button>
+      <div class="flex gap-2">
+        <p-button
+          label="☕ Todos com Café"
+          styleClass="p-button-secondary p-button-sm"
+          (click)="marcarTodos('cafe', true)"
+        ></p-button>
+        <p-button
+          label="☕ Todos sem Café"
+          styleClass="p-button-secondary p-button-sm"
+          (click)="marcarTodos('cafe', false)"
+        ></p-button>
+        <p-button
+          label="🍽️ Todos com Almoço"
+          styleClass="p-button-secondary p-button-sm"
+          (click)="marcarTodos('almoco', true)"
+        ></p-button>
+        <p-button
+          label="🍽️ Todos sem Almoço"
+          styleClass="p-button-secondary p-button-sm"
+          (click)="marcarTodos('almoco', false)"
+        ></p-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Documento para Impressão -->
+  <div class="documento p-3 border-round" id="documento-impressao">
+    <div class="header-doc flex align-items-center gap-3 border-bottom-1 pb-2 mb-3">
+      <div class="logo-container">
+        <img src="assets/img/logo_plaza.png" alt="Logo" style="max-width: 80px" />
+      </div>
+      <div class="hotel-info-doc">
+        <h1 class="text-lg m-0">A. M. da Silva Hotel Plaza</h1>
+        <p class="text-sm m-0">CNPJ: 62.546.482/0001-3 | (84) 99180-1306</p>
+        <p class="text-sm m-0">Rodovia RN 288, 91, Cruzeta - RN</p>
+      </div>
+    </div>
+
+    <div class="doc-title text-center font-bold text-primary mb-2">Orçamento de Hospedagem</div>
+
+    <p class="text-sm">
+      À <strong>{{ cliente || 'Nome do Cliente' }}</strong
+      >,
+    </p>
+    <p class="text-sm">
+      Proposta para o período de {{ dataCheckin | date: 'dd/MM/yyyy' }} a
+      {{ dataCheckout | date: 'dd/MM/yyyy' }} ({{
+        calcularNoites(dataCheckin, dataCheckout)
+      }}
+      diária(s)):
+    </p>
+
+    <p-table [value]="itens" styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Qtd</th>
+          <th>Acomodação</th>
+          <th>Serviços</th>
+          <th>Vlr. Diária</th>
+          <th>Total</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td>{{ item.quantidade }}</td>
+          <td>{{ item.categoriaNome }}</td>
+          <td>
+            {{ item.comCafe ? 'Café' : '' }}
+            {{ item.comCafe && item.comAlmoco ? ' + ' : '' }}
+            {{ item.comAlmoco ? 'Almoço' : '' }}
+          </td>
+          <td>{{ item.precoDiaria | currency: 'BRL' }}</td>
+          <td>{{ item.total | currency: 'BRL' }}</td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="footer">
+        <tr class="font-bold">
+          <td colspan="4" class="text-right">VALOR TOTAL:</td>
+          <td>{{ totalGeral | currency: 'BRL' }}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    <div class="check-info-box flex justify-content-around bg-gray-50 p-2 mt-3">
+      <span>📥 <strong>Check-in:</strong> {{ dataCheckin | date: 'dd/MM/yyyy' }} (14h)</span>
+      <span>📤 <strong>Check-out:</strong> {{ dataCheckout | date: 'dd/MM/yyyy' }} (11h)</span>
+    </div>
+
+    <div class="obs-doc mt-3 text-sm">
+      <strong>Observações:</strong>
+      <ul class="m-0 pl-3">
+        <li>Incluso Wi-Fi e Estacionamento monitorado.</li>
+        <li>Café da manhã: {{ config.cafeInicio }} às {{ config.cafeFim }}.</li>
+        <li>
+          Almoço opcional: {{ config.valorAlmocoExtra | currency: 'BRL' }} por pessoa (Buffet
+          Livre).
+        </li>
+        <li>Proposta válida por 48 horas, sujeita a disponibilidade.</li>
+      </ul>
+    </div>
+
+    <div class="footer-assinaturas flex justify-content-between mt-4">
+      <div class="assinatura-box text-center border-top-1 pt-2 w-5">
+        Setor de Reservas - Hotel Plaza
+      </div>
+      <div class="assinatura-box text-center border-top-1 pt-2 w-5">
+        Aceite do Cliente (Carimbo e Assinatura)
+      </div>
+    </div>
+  </div>
+
+  <!-- Botão Imprimir -->
+  <div class="flex justify-content-center mt-3 no-print">
+    <p-button
+      label="🖨️ IMPRIMIR / GERAR PDF"
+      icon="pi pi-print"
+      styleClass="p-button-success p-button-raised"
+      (click)="imprimir()"
+    ></p-button>
+  </div>
+</div>
