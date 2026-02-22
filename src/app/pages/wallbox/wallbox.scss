@@ -5,7 +5,14 @@
 .wallbox-container {
   max-width: 800px;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 1px;
+}
+
+.titulo-wallbox {
+  display: flex;
+  gap: 1px;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .input-label-wrapper {
@@ -17,6 +24,15 @@
 
 // Modo escuro
 :host-context(.my-app-dark) {
+  .titulo-wallbox {
+    background: #1e293b !important;
+    color: var(--primary-color) !important;
+  }
+
+  .titulo-tabela {
+    background: #1e293b !important;
+    color: var(--primary-color) !important;
+  }
   .info-tarifa {
     background: #1e293b !important;
     color: var(--primary-color) !important;
