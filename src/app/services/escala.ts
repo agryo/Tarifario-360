@@ -30,4 +30,8 @@ export class EscalaService {
   salvarConfiguracao(config: EscalaConfig): void {
     this.storage.set(this.STORAGE_KEY, config);
   }
+
+  importarDados(config: EscalaConfig): void {
+    this.storage.set(this.STORAGE_KEY, config);
+  }
 }

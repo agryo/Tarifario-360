@@ -1,9 +1,9 @@
 {
   "versao": "2.0",
-  "dataExportacao": "2026-02-20T23:15:06.554Z",
+  "dataExportacao": "2026-02-23T05:02:39.457Z",
   "categorias": [
     {
-      "id": "mlvic9om2c90ozuzlro",
+      "id": "mlvclyzd2t71edgb5eh",
       "nome": "Standard Promocional",
       "capacidadeMaxima": 1,
       "precoAltaCafe": 154,
@@ -31,7 +31,7 @@
       ]
     },
     {
-      "id": "mlvic9omgblf41cxpps",
+      "id": "mlvclyzdzxelnckxb1q",
       "nome": "Standard Plus",
       "capacidadeMaxima": 2,
       "precoAltaCafe": 242,
@@ -59,7 +59,7 @@
       ]
     },
     {
-      "id": "mlvic9omh1t16o9ph4a",
+      "id": "mlvclyzdgi6htn73gm",
       "nome": "Standard Triplo",
       "capacidadeMaxima": 3,
       "precoAltaCafe": 352,
@@ -87,9 +87,9 @@
       ]
     },
     {
-      "id": "mlvic9omymz6qb6qic",
+      "id": "mlvclyzdnbetdnjg27q",
       "nome": "Suíte Superior (Single)",
-      "capacidadeMaxima": 2,
+      "capacidadeMaxima": 1,
       "precoAltaCafe": 264,
       "precoAltaSemCafe": 220,
       "precoBaixaCafe": 165,
@@ -98,7 +98,7 @@
       "descricao": "Conforto extra com uma cama de casal exclusivamente para 1 pessoa.",
       "camasCasal": 1,
       "camasSolteiro": 0,
-      "tipoOcupacaoPadrao": "solteiro",
+      "tipoOcupacaoPadrao": "",
       "numeros": [
         "04",
         "06",
@@ -117,7 +117,7 @@
       ]
     },
     {
-      "id": "mlvic9omzf1k9kx7dn",
+      "id": "mlvclyzd64w0h9e638j",
       "nome": "Suíte Superior (Duplo)",
       "capacidadeMaxima": 2,
       "precoAltaCafe": 297,
@@ -147,7 +147,7 @@
       ]
     },
     {
-      "id": "mlvic9om8dkzsomn1y3",
+      "id": "mlvclyzehlwo6ilqy2a",
       "nome": "Suíte Master",
       "capacidadeMaxima": 2,
       "precoAltaCafe": 330,
@@ -181,7 +181,7 @@
       ]
     },
     {
-      "id": "mlvic9omeksys0ka5mf",
+      "id": "mlvclyzeem5phesmc4b",
       "nome": "Suíte Triplo",
       "capacidadeMaxima": 3,
       "precoAltaCafe": 352,
@@ -209,7 +209,7 @@
       ]
     },
     {
-      "id": "mlvic9ombah34lajfpj",
+      "id": "mlvclyzeq7my6hybplc",
       "nome": "Suíte Deluxe",
       "capacidadeMaxima": 2,
       "precoAltaCafe": 385,
@@ -245,33 +245,50 @@
       ]
     }
   ],
-  "promocoes": [],
+  "promocoes": [
+    {
+      "id": "mlv6i4nti3m7k8lktij",
+      "nome": "Early Bird",
+      "desconto": 15,
+      "diasMinimos": 3,
+      "aplicaAlta": true,
+      "mensagemBaixa": "Consulte condições"
+    },
+    {
+      "id": "mlv6i4nts4m4zdevse",
+      "nome": "Long Stay",
+      "desconto": 20,
+      "diasMinimos": 7,
+      "aplicaAlta": true,
+      "mensagemBaixa": "Válido"
+    }
+  ],
   "config": {
     "horarioCafe": "07:00 - 10:00",
     "horarioAlmoco": "12:00 - 14:00",
     "horarioJantar": "19:00 - 21:00",
     "senhaMaster": "",
     "moeda": "BRL",
-    "valorAlmocoExtra": 30,
-    "valorKwh": 2,
-    "festividade": "Carnaval 2026",
-    "totalUhs": 17,
-    "comodidadesGlobais": "Wi-Fi Gratuito, TV a Cabo, Ar-Condicionado, Armário, Banheiro Privativo, Banheira de Hidromassagem, Armadores de Rede, Frigobar, Poltrona, Mesa, Cadeira, 2 Cadeiras, Mesas de Cabeceira na Cama, 2 Mesas de Cabeceira na Cama, Espelho, Roupa de Banho, Iluminação Ambiente, Arara para Roupas, Carpete, Chuveiro Elétrico, Estacionamento Amplo e Monitorado",
-    "altaInicio": "2026-02-10",
-    "altaFim": "2026-02-20",
-    "promocaoAtiva": true,
+    "promocaoTexto": "o período do *Carnaval 2026* no pagamento *total via PIX*",
     "promocaoDesconto": 15,
     "promocaoMinDiarias": 3,
-    "promocaoTexto": "o período do *Carnaval 2026* no pagamento *total via PIX*",
+    "promocaoAtiva": true,
     "promocaoSomenteAlta": true,
     "promocaoMsgBaixa": true,
+    "festividade": "Carnaval 2026",
+    "valorAlmocoExtra": 30,
+    "valorKwh": 2,
+    "totalUhs": 17,
+    "comodidadesGlobais": "Wi-Fi Gratuito, TV a Cabo, Ar-Condicionado, Armário, Banheiro Privativo, Banheira de Hidromassagem, Armadores de Rede, Frigobar, Poltrona, Mesa, Cadeira, 2 Cadeiras, Mesas de Cabeceira na Cama, 2 Mesas de Cabeceira na Cama, Espelho, Roupa de Banho, Iluminação Ambiente, Arara para Roupas, Carpete, Chuveiro Elétrico, Estacionamento Amplo e Monitorado",
+    "altaInicio": "2026-02-22",
+    "altaFim": "2026-02-26",
+    "cafeAtivo": true,
+    "jantarAtivo": true,
     "cafeInicio": "07:00",
     "cafeFim": "09:00",
-    "cafeAtivo": true,
     "almocoInicio": "11:00",
     "almocoFim": "13:00",
     "jantarInicio": "18:00",
-    "jantarAtivo": true,
     "jantarFim": "20:00",
     "almocoAtivo": false
   }

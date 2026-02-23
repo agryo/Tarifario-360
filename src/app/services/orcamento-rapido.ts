@@ -261,4 +261,8 @@ export class OrcamentoRapidoService {
   getHistorico(): OrcamentoRapido[] {
     return this.storage.get<OrcamentoRapido[]>(this.STORAGE_KEY) || [];
   }
+
+  importarDados(historico: OrcamentoRapido[]): void {
+    this.storage.set(this.STORAGE_KEY, historico || []);
+  }
 }

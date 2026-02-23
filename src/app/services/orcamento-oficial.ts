@@ -106,4 +106,8 @@ export class OrcamentoOficialService {
       return null;
     }
   }
+
+  importarDados(orcamentos: OrcamentoOficial[]): void {
+    this.storage.set(this.STORAGE_KEY, orcamentos || []);
+  }
 }
