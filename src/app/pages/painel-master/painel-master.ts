@@ -19,6 +19,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService } from 'primeng/api';
 import { TarifaService } from '../../services/tarifa';
 import { CriptografiaService } from '../../services/criptografia';
+import { EscalaService, EscalaConfig } from '../../services/escala';
 
 @Component({
   selector: 'app-painel-master',
@@ -74,6 +75,20 @@ export class PainelMasterComponent implements OnInit {
     promocaoMsgBaixa: false,
   };
 
+  // Dias da semana (para a aba de escala)
+  diasSemana = [
+    { nome: 'DOM', valor: 0 },
+    { nome: 'SEG', valor: 1 },
+    { nome: 'TER', valor: 2 },
+    { nome: 'QUA', valor: 3 },
+    { nome: 'QUI', valor: 4 },
+    { nome: 'SEX', valor: 5 },
+    { nome: 'SÁB', valor: 6 },
+  ];
+
+  // Configuração da escala (com asserção de atribuição definitiva)
+  escalaConfig!: EscalaConfig;
+
   // Categorias
   categorias: any[] = [];
   categoriaDialog: boolean = false;
@@ -96,10 +111,12 @@ export class PainelMasterComponent implements OnInit {
     private tarifaService: TarifaService,
     private confirmationService: ConfirmationService,
     private criptografia: CriptografiaService,
+    private escalaService: EscalaService,
   ) {}
 
   ngOnInit() {
     this.carregarDados();
+    this.escalaConfig = this.escalaService.getConfiguracao();
   }
 
   carregarDados() {
@@ -149,7 +166,6 @@ export class PainelMasterComponent implements OnInit {
       return;
     }
 
-    // Garantir que os campos necessários existam
     this.categoriaEdit.precoAltaCafe = this.categoriaEdit.precoAltaCafe || 0;
     this.categoriaEdit.precoAltaSemCafe = this.categoriaEdit.precoAltaSemCafe || 0;
     this.categoriaEdit.precoBaixaCafe = this.categoriaEdit.precoBaixaCafe || 0;
@@ -198,7 +214,6 @@ export class PainelMasterComponent implements OnInit {
     return numeros;
   }
 
-  // Retorna array de comodidades a partir da string global
   getComodidadesGlobaisArray(): string[] {
     if (!this.config.comodidadesGlobais) return [];
     return this.config.comodidadesGlobais
@@ -265,13 +280,11 @@ export class PainelMasterComponent implements OnInit {
       return;
     }
 
-    // Verificar senha atual usando hash
     if (this.config.senhaHash) {
       const senhaAtualCorreta = this.criptografia.verificarSenha(
         this.senhaAtualInput,
         this.config.senhaHash,
       );
-
       if (!senhaAtualCorreta) {
         this.onMensagem.emit({
           severity: 'error',
@@ -282,11 +295,9 @@ export class PainelMasterComponent implements OnInit {
       }
     }
 
-    // Gerar hash da nova senha
     if (this.novaSenhaInput) {
       this.config.senhaHash = this.criptografia.hashSenha(this.novaSenhaInput);
     } else {
-      // Se nova senha for vazia, remove o hash (senha removida)
       delete this.config.senhaHash;
     }
 
@@ -332,20 +343,17 @@ export class PainelMasterComponent implements OnInit {
     }
   }
 
-  // ===== BACKUP NOVO FORMATO =====
+  // ===== BACKUP =====
   exportarBackup() {
     const backup = this.tarifaService.exportarDados();
     const dataStr = JSON.stringify(backup, null, 2);
     const blob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-
     const link = document.createElement('a');
     link.href = url;
     link.download = `backup_${new Date().toISOString().split('T')[0]}.json`;
     link.click();
-
     URL.revokeObjectURL(url);
-
     this.onMensagem.emit({
       severity: 'success',
       summary: 'Backup exportado',
@@ -356,7 +364,6 @@ export class PainelMasterComponent implements OnInit {
   importarBackup(event: any) {
     const file = event.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
@@ -368,7 +375,7 @@ export class PainelMasterComponent implements OnInit {
             summary: 'Sucesso',
             detail: resultado.mensagem,
           });
-          this.carregarDados(); // recarrega após importação
+          this.carregarDados();
         } else {
           this.onMensagem.emit({
             severity: 'error',
@@ -387,11 +394,9 @@ export class PainelMasterComponent implements OnInit {
     reader.readAsText(file);
   }
 
-  // ===== IMPORTAÇÃO DO BACKUP ANTIGO =====
   importarBackupAntigo(event: any) {
     const file = event.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
@@ -403,7 +408,7 @@ export class PainelMasterComponent implements OnInit {
             summary: 'Sucesso',
             detail: resultado.mensagem,
           });
-          this.carregarDados(); // recarrega após importação
+          this.carregarDados();
         } else {
           this.onMensagem.emit({
             severity: 'error',
@@ -432,12 +437,8 @@ export class PainelMasterComponent implements OnInit {
       rejectLabel: 'Cancelar',
       acceptButtonStyleClass: 'p-button-danger',
       accept: () => {
-        // Chama o serviço para limpar o cache
         this.tarifaService.limparCache();
-
-        // Recarrega os dados
         this.carregarDados();
-
         this.onMensagem.emit({
           severity: 'success',
           summary: 'Cache Limpo',
@@ -450,6 +451,7 @@ export class PainelMasterComponent implements OnInit {
   // ===== AÇÕES GLOBAIS =====
   salvarConfiguracoes() {
     this.tarifaService.salvarConfiguracao(this.config);
+    this.escalaService.salvarConfiguracao(this.escalaConfig);
     this.onMensagem.emit({
       severity: 'success',
       summary: 'Sucesso',

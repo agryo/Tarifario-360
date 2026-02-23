@@ -8,7 +8,8 @@
     <p-tab value="1">🎁 Promoções</p-tab>
     <p-tab value="2">⏰ Horários</p-tab>
     <p-tab value="3">🔐 Segurança</p-tab>
-    <p-tab value="4">💾 Backup</p-tab>
+    <p-tab value="4">🌙 Escala</p-tab>
+    <p-tab value="5">💾 Backup</p-tab>
   </p-tablist>
 
   <p-tabpanels>
@@ -423,8 +424,70 @@
       </div>
     </p-tabpanel>
 
-    <!-- ===== TAB 5: BACKUP ===== -->
+    <!-- ===== TAB 5: ESCALA ===== -->
     <p-tabpanel value="4">
+      <div class="grid">
+        <div class="col-12 md:col-6">
+          <div class="field">
+            <label>Funcionário P1 (Noite)</label>
+            <input
+              type="text"
+              pInputText
+              [(ngModel)]="escalaConfig.p1"
+              class="w-full"
+              placeholder="Ex: Agryo"
+            />
+          </div>
+        </div>
+        <div class="col-12 md:col-6">
+          <div class="field">
+            <label>Funcionário P2 (Madruga)</label>
+            <input
+              type="text"
+              pInputText
+              [(ngModel)]="escalaConfig.p2"
+              class="w-full"
+              placeholder="Ex: Alex"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Dias de Folga Fixa</label>
+        <div class="flex flex-wrap gap-2">
+          <div *ngFor="let dia of diasSemana; let i = index" class="field-checkbox">
+            <p-checkbox
+              [(ngModel)]="escalaConfig.folgas"
+              [value]="i"
+              [inputId]="'folga_' + i"
+              [binary]="false"
+            ></p-checkbox>
+            <label [for]="'folga_' + i" class="ml-1">{{ dia.nome }}</label>
+          </div>
+        </div>
+        <small class="text-secondary"
+          >Selecione os dias que são folga fixa (ex: sábado e domingo).</small
+        >
+      </div>
+
+      <div class="field">
+        <label>Início do Revezamento (Quem começa folgando?)</label>
+        <p-select
+          [(ngModel)]="escalaConfig.quemFolgaPrimeiro"
+          [options]="[
+            { label: 'P1 Inicia Folgando', value: 'p1' },
+            { label: 'P2 Inicia Folgando', value: 'p2' },
+          ]"
+          optionLabel="label"
+          optionValue="value"
+          styleClass="w-full"
+        ></p-select>
+      </div>
+    </p-tabpanel>
+
+    <!-- ===== TAB 6: BACKUP ===== -->
+    <p-tabpanel value="5">
       <div class="grid">
         <!-- Exportar backup novo formato -->
         <div class="col-12 md:col-6">

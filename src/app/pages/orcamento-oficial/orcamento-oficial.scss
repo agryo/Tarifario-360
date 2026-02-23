@@ -5,7 +5,14 @@
 .orcamento-oficial-container {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 1px;
+}
+
+.orcamento-oficial-titulo {
+  display: flex;
+  gap: 1px;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .config-area {
@@ -74,6 +81,11 @@
 
 // Modo escuro
 :host-context(.my-app-dark) {
+  .orcamento-oficial-titulo {
+    background: #1e293b !important;
+    color: var(--primary-color) !important;
+  }
+
   .config-area {
     background: #1e293b;
     border-color: #4b5563;

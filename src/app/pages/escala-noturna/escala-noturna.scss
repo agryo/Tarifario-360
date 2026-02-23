@@ -1,0 +1,251 @@
+:host {
+  display: block;
+}
+
+.escala-container {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 1px;
+}
+
+.escala-titulo {
+  display: flex;
+  gap: 1px;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.main-bar {
+  background: #fff;
+  border: 2px solid #075e54;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  padding: 1rem;
+
+  > div {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .p-button {
+    margin: 0 0.25rem;
+  }
+}
+
+.tabela-escala {
+  overflow-x: auto;
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 12px;
+
+    th,
+    td {
+      border: 1px solid #ccc;
+      padding: 4px;
+      text-align: center;
+      vertical-align: top;
+    }
+
+    th {
+      background-color: #f4f4f4;
+      font-weight: bold;
+    }
+
+    .color-folga {
+      background-color: #f8d7da;
+    }
+    .color-0 {
+      background-color: #ffeeba;
+    }
+    .color-1 {
+      background-color: #c3e6cb;
+    }
+    .color-2 {
+      background-color: #b8daff;
+    }
+    .color-3 {
+      background-color: #d6d8d9;
+    }
+    .color-4 {
+      background-color: #f5c6cb;
+    }
+    .color-5 {
+      background-color: #bee5eb;
+    }
+    .color-6 {
+      background-color: #f1b0b0;
+    }
+
+    .cell-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .data-label {
+      font-weight: bold;
+      padding: 2px;
+      border-bottom: 1px solid #ccc;
+      margin-bottom: 4px;
+    }
+
+    .dia-container {
+      display: flex;
+      justify-content: space-between;
+      gap: 2px;
+    }
+
+    .coluna {
+      flex: 1;
+      padding: 2px;
+      border-radius: 4px;
+      background-color: #f9f9f9;
+      min-width: 50px;
+    }
+
+    .turno-madruga {
+      background-color: #e3f2fd;
+    }
+    .equipe-dia {
+      background-color: #f1f8e9;
+    }
+    .turno-noite {
+      background-color: #fff3e0;
+    }
+
+    .seta-fluxo,
+    .seta-saida {
+      font-size: 1.2rem;
+      color: #075e54;
+      display: inline-block;
+      margin-right: 2px;
+    }
+
+    .folga-aviso {
+      display: block;
+      font-size: 0.7rem;
+      color: #dc3545;
+      font-weight: bold;
+      margin-top: 2px;
+    }
+  }
+}
+
+/* ========== MODO ESCURO ========== */
+:host-context(.my-app-dark) {
+  .escala-titulo {
+    background: #1e293b !important;
+    color: var(--primary-color) !important;
+  }
+
+  .main-bar {
+    background: #1e293b !important;
+    border-color: #4b5563 !important;
+    color: #e2e8f0;
+
+    .p-button {
+      background-color: #2d3748 !important;
+      border-color: #4b5563 !important;
+      color: #e2e8f0 !important;
+
+      &:hover {
+        background-color: #3d4a5f !important;
+      }
+    }
+
+    .p-datepicker {
+      background-color: #2d3748;
+      border-color: #4b5563;
+      color: #e2e8f0;
+    }
+  }
+
+  .tabela-escala {
+    background: #1e293b;
+    border-color: #4b5563;
+    color: #e2e8f0;
+
+    table {
+      th,
+      td {
+        border-color: #4b5563;
+      }
+
+      th {
+        background-color: #334155;
+        color: #e2e8f0;
+      }
+
+      td {
+        background-color: #1e293b;
+      }
+
+      .color-folga {
+        background-color: #4a2e2e;
+      }
+      .color-0 {
+        background-color: #4a4a2e;
+      }
+      .color-1 {
+        background-color: #2e4a2e;
+      }
+      .color-2 {
+        background-color: #2e3d4a;
+      }
+      .color-3 {
+        background-color: #3d3d3d;
+      }
+      .color-4 {
+        background-color: #4a2e2e;
+      }
+      .color-5 {
+        background-color: #2e4a4a;
+      }
+      .color-6 {
+        background-color: #4a2e3d;
+      }
+
+      .coluna {
+        background-color: #2d3748;
+      }
+
+      .turno-madruga {
+        background-color: #1e3a5f;
+      }
+      .equipe-dia {
+        background-color: #2e4a2e;
+      }
+      .turno-noite {
+        background-color: #5f3a1e;
+      }
+
+      .data-label {
+        border-bottom-color: #4b5563;
+      }
+
+      .seta-fluxo,
+      .seta-saida {
+        color: #60a5fa;
+      }
+
+      .folga-aviso {
+        color: #f87171;
+      }
+    }
+  }
+
+  .bg-yellow-50 {
+    background: #1e293b !important;
+  }
+
+  .bg-gray-50 {
+    background: #1e293b !important;
+  }
+}

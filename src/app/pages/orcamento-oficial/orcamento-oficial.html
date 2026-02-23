@@ -1,4 +1,9 @@
 <div class="orcamento-oficial-container">
+  <!-- Título da página -->
+  <div class="orcamento-oficial-titulo bg-blue-50 p-1 border-round text-center mb-0">
+    <h1 class="text-3xl font-bold text-center">📊 Tabela de Preços</h1>
+  </div>
+
   <!-- Área de Configuração -->
   <div class="config-area p-3 border-round mb-3">
     <div class="flex justify-content-between align-items-center mb-3">
@@ -207,9 +212,7 @@
     </p>
     <p class="text-sm">
       Proposta para o período de {{ dataCheckin | date: 'dd/MM/yyyy' }} a
-      {{ dataCheckout | date: 'dd/MM/yyyy' }} ({{
-        calcularNoites(dataCheckin, dataCheckout)
-      }}
+      {{ dataCheckout | date: 'dd/MM/yyyy' }} ({{ calcularNoites(dataCheckin, dataCheckout) }}
       diária(s)):
     </p>
 

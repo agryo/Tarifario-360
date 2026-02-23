@@ -1,0 +1,45 @@
+<div class="escala-container p-1 border-round align-items-center mb-1">
+  <!-- Título -->
+  <div class="escala-titulo bg-blue-50 p-1 border-round text-center mb-3">
+    <h1 class="text-2xl font-bold">🌙 Escala Noturna</h1>
+  </div>
+
+  <!-- Barra de controles -->
+  <div class="main-bar p-3 border-round mb-3 flex flex-wrap gap-2 align-items-center">
+    <div>
+      <label class="text-xs font-bold text-secondary">DATA INÍCIO</label>
+      <p-datepicker
+        [(ngModel)]="dataInicio"
+        [showIcon]="true"
+        dateFormat="dd/mm/yy"
+        styleClass="w-full"
+        (onSelect)="gerarEscala()"
+      ></p-datepicker>
+    </div>
+    <div>
+      <label class="text-xs font-bold text-secondary">DATA FIM</label>
+      <p-datepicker
+        [(ngModel)]="dataFim"
+        [showIcon]="true"
+        dateFormat="dd/mm/yy"
+        [minDate]="dataInicio"
+        styleClass="w-full"
+        (onSelect)="gerarEscala()"
+      ></p-datepicker>
+    </div>
+    <p-button label="GERAR ESCALA" (click)="gerarEscala()"></p-button>
+    <p-button label="🖨️ IMPRIMIR" (click)="imprimir()"></p-button>
+    <p-button label="🖼️ IMAGEM WEBP" (click)="exportarImagem()"></p-button>
+    <p-button
+      label="Voltar"
+      icon="pi pi-arrow-left"
+      styleClass="p-button-help"
+      (click)="voltar()"
+    ></p-button>
+  </div>
+
+  <!-- Tabela gerada -->
+  <div class="tabela-area p-3 border-round" *ngIf="tabelaHTML">
+    <div [innerHTML]="tabelaHTML" class="tabela-escala"></div>
+  </div>
+</div>

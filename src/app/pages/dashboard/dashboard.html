@@ -201,6 +201,28 @@
           </div>
         </p-card>
       </div>
+
+      <!-- Escala Noturna -->
+      <div class="col-12 md:col-6 lg:col-4">
+        <p-card styleClass="module-card" header="🌙 Escala Noturna" subheader="Revezamento">
+          <p class="module-description">
+            Gere escala de trabalho noturno com dois funcionários e folgas fixas
+          </p>
+          <div class="module-features">
+            <span><i class="pi pi-check-circle text-success mr-2"></i>Revezamento automático</span>
+            <span><i class="pi pi-check-circle text-success mr-2"></i>Folgas configuráveis</span>
+            <span><i class="pi pi-check-circle text-success mr-2"></i>Imprimir / Exportar</span>
+          </div>
+          <div class="flex justify-content-end mt-3">
+            <p-button
+              label="Acessar"
+              icon="pi pi-clock"
+              styleClass="p-button-secondary"
+              (click)="abrirModulo('escala-noturna')"
+            ></p-button>
+          </div>
+        </p-card>
+      </div>
     </div>
   </div>
 
@@ -232,6 +254,11 @@
           (onVoltar)="fecharModulo()"
         >
         </app-wallbox>
+        <app-escala-noturna
+          *ngSwitchCase="'escala-noturna'"
+          (onMensagem)="mostrarMensagem($event)"
+          (onVoltar)="fecharModulo()"
+        ></app-escala-noturna>
         <!-- Outros módulos serão adicionados futuramente -->
       </ng-container>
     </div>

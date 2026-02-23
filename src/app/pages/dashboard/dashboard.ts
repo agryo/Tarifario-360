@@ -25,6 +25,7 @@ import { WallboxComponent } from '../wallbox/wallbox';
 import { OrcamentoRapidoComponent } from '../orcamento-rapido/orcamento-rapido';
 import { OrcamentoOficialComponent } from '../orcamento-oficial/orcamento-oficial';
 import { TabelaOpcoesComponent } from '../tabela-opcoes/tabela-opcoes';
+import { EscalaNoturnaComponent } from '../escala-noturna/escala-noturna';
 
 @Component({
   selector: 'app-dashboard',
@@ -48,6 +49,7 @@ import { TabelaOpcoesComponent } from '../tabela-opcoes/tabela-opcoes';
     OrcamentoRapidoComponent,
     OrcamentoOficialComponent,
     TabelaOpcoesComponent,
+    EscalaNoturnaComponent,
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './dashboard.html',
