@@ -1,11 +1,11 @@
 <div class="wallbox-container p-1 border-round text-center mb-1">
   <!-- Título da página -->
-  <div class="titulo-wallbox bg-blue-50 p-1 border-round text-center mb-3">
+  <div class="titulo-wallbox surface-card p-1 border-round text-center mb-3">
     <h1 class="text-3xl font-bold text-center">⚡ Calculadora Wallbox</h1>
   </div>
 
   <!-- Tarifa atual -->
-  <div class="info-tarifa bg-blue-50 p-2 border-round text-center mb-3">
+  <div class="info-tarifa surface-card p-2 border-round text-center mb-3">
     <span class="text-secondary block text-xs">Tarifa Atual Configurada:</span>
     <span class="text-xl font-bold text-primary">{{ tarifaKwh | currency: 'BRL' }} / kWh</span>
   </div>
@@ -62,7 +62,7 @@
   </div>
 
   <!-- Detalhes do cálculo -->
-  <div *ngIf="consumo && consumo > 0" class="detalhes-calculo bg-gray-50 p-2 border-round mb-3">
+  <div *ngIf="consumo && consumo > 0" class="detalhes-calculo surface-ground p-2 border-round mb-3">
     <div class="flex justify-content-between py-1">
       <span class="text-sm">Energia:</span>
       <strong class="text-sm">{{ consumo * tarifaKwh | currency: 'BRL' }}</strong>
@@ -70,7 +70,7 @@
   </div>
 
   <!-- Resultado -->
-  <div class="resultado-area bg-yellow-50 p-1 border-round text-center mb-4">
+  <div class="resultado-area surface-card p-1 border-round text-center mb-4">
     <span class="text-secondary block mb-2">Valor a Cobrar</span>
     <div [class.text-green-600]="consumo && consumo > 0" class="text-4xl font-bold">
       {{ (consumo || 0) * tarifaKwh | currency: 'BRL' }}
