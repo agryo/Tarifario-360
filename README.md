@@ -1,59 +1,46 @@
-# Tarifario360
+# Tarifário 360
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.4.
+Sistema completo para gestão de tarifas, orçamentos e escalas hoteleiras.
 
-## Development server
+## 📋 Sobre o Projeto
 
-To start a local development server, run:
+O **Tarifário 360** é uma aplicação web desenvolvida para otimizar a rotina operacional de hotéis e pousadas. O sistema permite o gerenciamento centralizado de categorias de quartos, precificação dinâmica (alta/baixa temporada), promoções e escalas de trabalho da equipe, oferecendo uma interface intuitiva e responsiva.
 
-```bash
-ng serve
-```
+## 🚀 Funcionalidades Principais
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+- **Gestão de Tarifas**: Controle total de categorias de quartos (Standard, Luxo, Suítes, etc.) com precificação diferenciada para alta e baixa temporada, com ou sem café da manhã.
+- **Orçamentos**:
+  - **Oficial**: Geração e gerenciamento de orçamentos detalhados.
+  - **Rápido**: Calculadora ágil para cotações imediatas no balcão ou telefone.
+- **Promoções**: Configuração de regras de desconto (ex: Early Bird, Long Stay) com critérios de dias mínimos e validade sazonal.
+- **Escala de Trabalho**: Organização e visualização das escalas dos colaboradores.
+- **Painel Master**: Área administrativa protegida por senha para configurações globais (horários de refeições, valores de extras, festividades e parâmetros do sistema).
+- **Backup e Segurança**: Sistema robusto de exportação e importação de dados (JSON) com verificação de integridade e criptografia de senhas.
+- **Impressão**: Geração de tabelas de preços formatadas especificamente para impressão física.
 
-## Code scaffolding
+## 🛠 Tecnologias Utilizadas
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+- **[Angular](https://angular.io/)**: Framework principal para construção da aplicação SPA.
+- **[PrimeNG](https://primeng.org/)**: Suíte de componentes de UI rica (Tabelas, Dialogs, Inputs, etc.).
+- **TypeScript**: Linguagem base para lógica de negócios e tipagem segura.
+- **SCSS**: Estilização avançada e responsiva.
 
-```bash
-ng generate component component-name
-```
+## 📦 Instalação e Configuração
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Para instruções detalhadas sobre como preparar o ambiente (Node.js, Angular CLI) e executar o projeto em sua máquina, consulte nosso guia dedicado:
 
-```bash
-ng generate --help
-```
+👉 **[Guia de Instalação e Configuração](./INSTALLATION.md)**
 
-## Building
+## 📄 Estrutura de Dados
 
-To build the project run:
+O sistema utiliza persistência local e arquivos JSON estruturados para portabilidade dos dados, gerenciando entidades como:
 
-```bash
-ng build
-```
+- `CategoriaQuarto`: Definições das UHs.
+- `Promocao`: Regras de descontos.
+- `ConfiguracaoGeral`: Parâmetros globais do hotel.
+- `Orcamento`: Histórico de cotações.
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+---
 
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+**Versão do Sistema**: 2.0
+Desenvolvido para o Tarifário 360.
