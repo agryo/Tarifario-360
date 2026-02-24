@@ -80,6 +80,14 @@ export class TabelaOpcoesComponent implements OnInit {
   private inferirGrupo(cat: any): 'solteiro' | 'casal' {
     // Se tiver grupo explícito no modelo (caso exista)
     if (cat.grupo) return cat.grupo;
+
+    // Verifica se tem tipo de ocupação padrão definido (mapeando para grupo)
+    if (cat.tipoOcupacaoPadrao === 'solteiro') return 'solteiro';
+    if (cat.tipoOcupacaoPadrao === 'casal') return 'casal';
+
+    // Se a capacidade for 1, força como solteiro (mesmo com cama de casal)
+    if (cat.capacidadeMaxima === 1) return 'solteiro';
+
     const camasCasal = cat.camasCasal ?? 0;
     const camasSolteiro = cat.camasSolteiro ?? 0;
     // Regras de inferência (baseadas no JS antigo)
@@ -115,14 +123,15 @@ export class TabelaOpcoesComponent implements OnInit {
     const d1 = this.dataCheckin;
     const d2 = this.dataCheckout;
 
-    let texto = `*ORÇAMENTO DE HOSPEDAGEM*\n🏨 *Hotel Plaza - Cruzeta/RN*\n\n`;
+    let texto = `*ORÇAMENTO DE HOSPEDAGEM*\n\n`;
+    texto += `🏨 *Hotel Plaza - Cruzeta/RN*\n\n`;
     texto += `📅 *Período:* ${d1.toLocaleDateString('pt-BR')} a ${d2.toLocaleDateString('pt-BR')}\n`;
     texto += `🌙 *Duração:* ${noites} diária(s)\n\n--- *OPÇÕES DE ACOMODAÇÃO* ---\n`;
 
     const resultados: { nome: string; com: number; sem: number }[] = [];
 
     selecionados.forEach((cat) => {
-      const { somaCom, somaSem } = this.calcularTotaisCategoria(cat, d1, d2, noites);
+      const { somaCom, somaSem, isMisto } = this.calcularTotaisCategoria(cat, d1, d2, noites);
       resultados.push({ nome: cat.nome, com: somaCom, sem: somaSem });
 
       const diariaMediaCom = somaCom / noites;
@@ -132,11 +141,18 @@ export class TabelaOpcoesComponent implements OnInit {
           ? 'Apenas 1 pessoa'
           : `Até ${cat.capacidadeMaxima} pessoas`;
 
+      const txtDiariaCom =
+        diariaMediaCom.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) +
+        (isMisto ? ' (média)' : '');
+      const txtDiariaSem =
+        diariaMediaSem.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) +
+        (isMisto ? ' (média)' : '');
+
       texto += `\n🟢 *${cat.nome.toUpperCase()}*\n`;
       if (cat.descricao) texto += `_${cat.descricao}_\n`;
       texto += `🛏️ ${this.formatarCamas(cat)}\n`;
       texto += `👤 Capacidade: ${capacidadeTexto}\n`;
-      texto += `💰 Diária: ${diariaMediaCom.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} (c/ café) ou ${diariaMediaSem.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} (s/ café)\n`;
+      texto += `💰 Diária: ${txtDiariaCom} ☕ Com Café ou ${txtDiariaSem} ❌ Sem Café\n`;
       texto += `☕ *Total com café:* ${somaCom.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
       texto += `🍽️ *Total sem café:* ${somaSem.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
     });
@@ -164,18 +180,20 @@ export class TabelaOpcoesComponent implements OnInit {
     d1: Date,
     d2: Date,
     noites: number,
-  ): { somaCom: number; somaSem: number } {
+  ): { somaCom: number; somaSem: number; isMisto: boolean } {
     if (this.temporada !== 'auto') {
       const base =
         this.temporada === 'alta'
           ? [cat.precoAltaCafe, cat.precoAltaSemCafe]
           : [cat.precoBaixaCafe, cat.precoBaixaSemCafe];
-      return { somaCom: base[0] * noites, somaSem: base[1] * noites };
+      return { somaCom: base[0] * noites, somaSem: base[1] * noites, isMisto: false };
     }
 
     // Cálculo dia a dia
     let somaCom = 0,
       somaSem = 0;
+    let diasAlta = 0;
+    let diasBaixa = 0;
     const current = new Date(d1);
     current.setHours(0, 0, 0, 0);
     const end = new Date(d2);
@@ -184,15 +202,17 @@ export class TabelaOpcoesComponent implements OnInit {
     while (current < end) {
       const isAlta = this.isAltaTemporada(current);
       if (isAlta) {
+        diasAlta++;
         somaCom += cat.precoAltaCafe;
         somaSem += cat.precoAltaSemCafe;
       } else {
+        diasBaixa++;
         somaCom += cat.precoBaixaCafe;
         somaSem += cat.precoBaixaSemCafe;
       }
       current.setDate(current.getDate() + 1);
     }
-    return { somaCom, somaSem };
+    return { somaCom, somaSem, isMisto: diasAlta > 0 && diasBaixa > 0 };
   }
 
   private isAltaTemporada(data: Date): boolean {
