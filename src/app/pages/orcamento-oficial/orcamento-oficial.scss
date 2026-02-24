@@ -12,18 +12,19 @@
   display: flex;
   gap: 1px;
   justify-content: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  background-color: var(--surface-card);
+  color: var(--text-color);
 }
 
 .config-area {
-  background: #fff;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-  border: 2px solid #075e54;
+  background: var(--surface-card);
+  border: 2px solid var(--primary-color);
 }
 
 .documento {
-  background: white;
-  border: 1px solid #ddd;
+  background: var(--surface-card);
+  color: var(--text-color);
+  border: 1px solid var(--surface-border);
   font-size: 12px;
 
   .header-doc {
@@ -31,17 +32,17 @@
       max-width: 80px;
     }
     h1 {
-      color: #075e54;
+      color: var(--primary-color);
       font-size: 15px;
     }
     p {
       font-size: 9px;
-      color: #555;
+      color: var(--text-secondary-color);
     }
   }
 
   .doc-title {
-    color: #075e54;
+    color: var(--primary-color);
     font-size: 16px;
     text-transform: uppercase;
   }
@@ -51,17 +52,19 @@
     border-collapse: collapse;
     th,
     td {
-      border: 1px solid #ddd;
+      border: 1px solid var(--surface-border);
       padding: 4px 6px;
       font-size: 10px;
     }
     th {
-      background: #f4f4f4;
+      background: var(--surface-ground);
+      color: var(--text-color);
     }
   }
 
   .check-info-box {
     font-size: 10px;
+    background: var(--surface-ground);
   }
 
   .obs-doc ul {
@@ -72,49 +75,9 @@
 
   .footer-assinaturas {
     .assinatura-box {
-      border-top: 1.5px solid #333;
+      border-top: 1.5px solid var(--text-color);
       font-size: 10px;
       font-weight: bold;
-    }
-  }
-}
-
-// Modo escuro
-:host-context(.my-app-dark) {
-  .orcamento-oficial-titulo {
-    background: #1e293b !important;
-    color: var(--primary-color) !important;
-  }
-
-  .config-area {
-    background: #1e293b;
-    border-color: #4b5563;
-  }
-  .documento {
-    background: #1e293b;
-    color: #e2e8f0;
-    border-color: #4b5563;
-    h1,
-    .doc-title {
-      color: #60a5fa;
-    }
-    p,
-    li {
-      color: #cbd5e1;
-    }
-    table th,
-    table td {
-      border-color: #4b5563;
-    }
-    table th {
-      background: #334155;
-      color: #e2e8f0;
-    }
-    .check-info-box {
-      background: #2d3748 !important;
-    }
-    .assinatura-box {
-      border-top-color: #94a3b8;
     }
   }
 }
@@ -129,5 +92,8 @@
     width: 100%;
     margin: 0;
     padding: 5mm;
+    background: white !important;
+    color: black !important;
+    border: 1px solid #ddd !important;
   }
 }

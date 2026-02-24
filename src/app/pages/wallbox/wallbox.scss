@@ -12,7 +12,8 @@
   display: flex;
   gap: 1px;
   justify-content: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  background-color: var(--surface-card);
+  color: var(--text-color);
 }
 
 .input-label-wrapper {
@@ -20,42 +21,4 @@
   display: flex;
   align-items: center;
   margin-bottom: 0.5rem;
-}
-
-// Modo escuro
-:host-context(.my-app-dark) {
-  .titulo-wallbox {
-    background: #1e293b !important;
-    color: var(--primary-color) !important;
-  }
-
-  .titulo-tabela {
-    background: #1e293b !important;
-    color: var(--primary-color) !important;
-  }
-
-  .info-tarifa {
-    background: #1e293b !important;
-    color: var(--primary-color) !important;
-
-    .text-secondary {
-      color: #94a3b8 !important;
-    }
-
-    .text-primary {
-      color: #60a5fa !important;
-    }
-  }
-
-  .bg-yellow-50 {
-    background: #1e293b !important;
-  }
-
-  .bg-gray-50 {
-    background: #1e293b !important;
-  }
-
-  .text-green-600 {
-    color: #4ade80 !important;
-  }
 }

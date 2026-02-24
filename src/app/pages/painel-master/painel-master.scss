@@ -3,13 +3,9 @@
   padding: 0;
 }
 
-// Ajustes para os campos dentro do modal
-.field {
-  margin-bottom: 1rem;
-}
-
 .sub-th {
   font-weight: normal;
   font-size: 0.85rem;
-  background-color: var(--surface-50);
+  background-color: var(--surface-ground);
+  color: var(--text-color);
 }

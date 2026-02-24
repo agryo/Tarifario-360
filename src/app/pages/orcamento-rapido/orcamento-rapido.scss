@@ -12,7 +12,8 @@
   display: flex;
   gap: 1px;
   justify-content: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  background-color: var(--surface-card);
+  color: var(--text-color);
 }
 
 .previa {
@@ -23,8 +24,10 @@
   word-wrap: break-word; /* quebra palavras longas */
   overflow-wrap: break-word; /* mesmo efeito */
   font-family: 'Courier New', monospace;
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--surface-border);
   padding: 1rem;
+  background-color: var(--surface-card);
+  color: var(--text-color);
   /* Removido max-height e overflow */
 }
 
@@ -41,22 +44,4 @@
   font-family: inherit;
   font-size: inherit;
   color: inherit;
-}
-
-:host-context(.my-app-dark) {
-  .orcamento-rapido-titulo {
-    background: #1e293b !important;
-    color: var(--primary-color) !important;
-  }
-
-  .previa {
-    background: #1e293b !important;
-    color: var(--primary-color) !important;
-    border-color: #334155;
-  }
-
-  .previa pre {
-    background: transparent;
-    color: inherit;
-  }
 }

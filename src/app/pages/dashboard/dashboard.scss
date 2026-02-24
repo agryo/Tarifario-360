@@ -8,11 +8,8 @@
 .dashboard-card {
   border-radius: 10px;
   transition: all 0.3s ease;
-
-  // Sombra mais forte no modo claro
-  box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.12),
-    0 2px 4px rgba(0, 0, 0, 0.05) !important;
+  background-color: var(--surface-card);
+  box-shadow: var(--card-shadow, 0 4px 12px rgba(0, 0, 0, 0.12));
 
   .p-card-body {
     padding: 0.5rem 0.75rem !important;
@@ -24,10 +21,7 @@
 
   &:hover {
     transform: translateY(-2px);
-    // Sombra ainda mais forte no hover
-    box-shadow:
-      0 8px 24px rgba(0, 0, 0, 0.15),
-      0 4px 8px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: var(--card-shadow-hover, 0 8px 24px rgba(0, 0, 0, 0.15));
   }
 
   .flex {
@@ -89,18 +83,12 @@
   flex-direction: column;
   border-radius: 12px;
   transition: all 0.3s ease;
-
-  // Sombra mais forte no modo claro
-  box-shadow:
-    0 6px 16px rgba(0, 0, 0, 0.08),
-    0 2px 6px rgba(0, 0, 0, 0.02) !important;
+  background-color: var(--surface-card);
+  box-shadow: var(--card-shadow, 0 6px 16px rgba(0, 0, 0, 0.08));
 
   &:hover {
     transform: translateY(-3px);
-    // Sombra ainda mais forte no hover
-    box-shadow:
-      0 12px 28px rgba(0, 0, 0, 0.15),
-      0 4px 12px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: var(--card-shadow-hover, 0 12px 28px rgba(0, 0, 0, 0.15));
   }
 
   .p-card-body {
@@ -125,7 +113,7 @@
   }
 
   .module-description {
-    color: var(--text-secondary);
+    color: var(--text-secondary-color);
     margin-bottom: 0.35rem;
     font-size: 0.75rem;
     line-height: 1.2;
@@ -138,7 +126,7 @@
 
     span {
       font-size: 0.65rem;
-      color: var(--text-secondary);
+      color: var(--text-secondary-color);
       display: flex;
       align-items: center;
       gap: 0.2rem;
@@ -179,25 +167,6 @@
 h2.text-2xl {
   font-size: 1.3rem !important;
   margin-bottom: 0.5rem !important;
-}
-
-// ===== MODO ESCURO - SOMBRAS SUAVIZADAS =====
-.my-app-dark {
-  .dashboard-card {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
-
-    &:hover {
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
-    }
-  }
-
-  .module-card {
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4) !important;
-
-    &:hover {
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5) !important;
-    }
-  }
 }
 
 @media (max-width: 768px) {
