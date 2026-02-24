@@ -16,7 +16,6 @@
 }
 
 .main-bar {
-  background: #fff;
   border: 2px solid #075e54;
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
@@ -34,7 +33,6 @@
 
 .tabela-escala {
   overflow-x: auto;
-  background: white;
   padding: 1rem;
   border-radius: 8px;
   border: 1px solid #ddd;
@@ -239,13 +237,5 @@
         color: #f87171;
       }
     }
-  }
-
-  .bg-yellow-50 {
-    background: #1e293b !important;
-  }
-
-  .bg-gray-50 {
-    background: #1e293b !important;
   }
 }
