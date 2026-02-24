@@ -60,28 +60,28 @@
     }
 
     .color-folga {
-      background-color: #f8d7da;
+      background-color: var(--red-100);
     }
     .color-0 {
-      background-color: #ffeeba;
+      background-color: var(--yellow-100);
     }
     .color-1 {
-      background-color: #c3e6cb;
+      background-color: var(--green-100);
     }
     .color-2 {
-      background-color: #b8daff;
+      background-color: var(--blue-100);
     }
     .color-3 {
-      background-color: #d6d8d9;
+      background-color: var(--gray-200);
     }
     .color-4 {
-      background-color: #f5c6cb;
+      background-color: var(--pink-100);
     }
     .color-5 {
-      background-color: #bee5eb;
+      background-color: var(--cyan-100);
     }
     .color-6 {
-      background-color: #f1b0b0;
+      background-color: var(--red-200);
     }
 
     .cell-wrapper {
@@ -112,13 +112,13 @@
     }
 
     .turno-madruga {
-      background-color: #e3f2fd;
+      background-color: var(--blue-50);
     }
     .equipe-dia {
-      background-color: #f1f8e9;
+      background-color: var(--green-50);
     }
     .turno-noite {
-      background-color: #fff3e0;
+      background-color: var(--orange-50);
     }
 
     .seta-fluxo,
@@ -132,7 +132,7 @@
     .folga-aviso {
       display: block;
       font-size: 0.7rem;
-      color: #dc3545;
+      color: var(--red-500);
       font-weight: bold;
       margin-top: 2px;
     }

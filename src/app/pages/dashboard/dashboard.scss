@@ -42,17 +42,28 @@
       color: white;
     }
 
-    &.bg-primary {
-      background: linear-gradient(135deg, #3b82f6, #2563eb);
+    // Adicionando fallbacks de cor e mais classes para garantir compatibilidade
+    &.bg-primary,
+    &.bg-blue-500,
+    &.bg-blue-600 {
+      background: linear-gradient(135deg, var(--blue-500, #3b82f6), var(--blue-600, #2563eb));
     }
-    &.bg-success {
-      background: linear-gradient(135deg, #10b981, #059669);
+    &.bg-success,
+    &.bg-green-500,
+    &.bg-green-600 {
+      background: linear-gradient(135deg, var(--green-500, #10b981), var(--green-600, #059669));
     }
-    &.bg-warning {
-      background: linear-gradient(135deg, #f59e0b, #d97706);
+    &.bg-warning,
+    &.bg-orange-500,
+    &.bg-orange-600,
+    &.bg-yellow-500 {
+      background: linear-gradient(135deg, var(--orange-500, #f59e0b), var(--orange-600, #d97706));
     }
-    &.bg-info {
-      background: linear-gradient(135deg, #3b82f6, #2563eb);
+    &.bg-info,
+    &.bg-cyan-500,
+    &.bg-cyan-600,
+    &.bg-sky-500 {
+      background: linear-gradient(135deg, var(--cyan-500, #06b6d4), var(--cyan-600, #0891b2));
     }
   }
 
