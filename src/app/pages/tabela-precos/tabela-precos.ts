@@ -37,7 +37,10 @@ export class TabelaPrecosComponent implements OnInit {
   temporadaAtual: 'alta' | 'baixa' = 'baixa';
   categorias: CategoriaQuarto[] = [];
   grupos: GrupoUHs[] = [];
-  config: any = {};
+  config: any = {
+    altaInicio: '2025-12-15',
+    altaFim: '2026-03-15',
+  };
 
   constructor(
     private tarifaService: TarifaService,
@@ -53,7 +56,10 @@ export class TabelaPrecosComponent implements OnInit {
   carregarDados() {
     const categoriasRaw = this.tarifaService.getCategorias();
     this.categorias = categoriasRaw.map((cat) => this.normalizarCategoria(cat));
-    this.config = this.tarifaService.getConfiguracao();
+    const savedConfig = this.tarifaService.getConfiguracao();
+    if (savedConfig) {
+      this.config = { ...this.config, ...savedConfig };
+    }
   }
 
   private normalizarCategoria(cat: CategoriaQuarto): CategoriaQuarto {

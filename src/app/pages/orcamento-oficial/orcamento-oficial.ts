@@ -72,10 +72,19 @@ export class OrcamentoOficialComponent implements OnInit {
     altaFim: '2026-03-15',
     cafeInicio: '07:00',
     cafeFim: '10:00',
+    cafeAtivo: true,
+    almocoInicio: '12:00',
+    almocoFim: '14:00',
+    almocoAtivo: true,
+    jantarInicio: '19:00',
+    jantarFim: '21:00',
+    jantarAtivo: true,
     promocaoAtiva: false,
     promocaoDesconto: 15,
     promocaoMinDiarias: 3,
+    promocaoTexto: 'Pagamento integral via Pix ou Dinheiro',
     promocaoSomenteAlta: true,
+    promocaoMsgBaixa: false,
   };
 
   cliente: string = '';

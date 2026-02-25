@@ -38,14 +38,16 @@ export class WallboxComponent implements OnInit {
 
   consumo: number | null = null;
   tempo: string = '';
-  tarifaKwh: number = 1.8;
+  tarifaKwh: number = 0.89; // Valor padrão alinhado com o Painel Master
   mostrarAjuda: boolean = false;
 
   constructor(private tarifaService: TarifaService) {}
 
   ngOnInit() {
     const config = this.tarifaService.getConfiguracao();
-    this.tarifaKwh = config.valorKwh || 1.8;
+    if (config && config.valorKwh !== undefined) {
+      this.tarifaKwh = config.valorKwh;
+    }
   }
 
   calcular() {

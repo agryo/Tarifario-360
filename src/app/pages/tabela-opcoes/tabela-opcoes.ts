@@ -53,7 +53,27 @@ export class TabelaOpcoesComponent implements OnInit {
   @Output() onVoltar = new EventEmitter<void>();
 
   categorias: CategoriaComSelecao[] = [];
-  config: any = {};
+  // Inicializa com os mesmos padrões do Painel Master
+  config: any = {
+    valorAlmocoExtra: 45,
+    altaInicio: '2025-12-15',
+    altaFim: '2026-03-15',
+    cafeInicio: '07:00',
+    cafeFim: '10:00',
+    cafeAtivo: true,
+    almocoInicio: '12:00',
+    almocoFim: '14:00',
+    almocoAtivo: true,
+    jantarInicio: '19:00',
+    jantarFim: '21:00',
+    jantarAtivo: true,
+    promocaoAtiva: false,
+    promocaoDesconto: 15,
+    promocaoMinDiarias: 3,
+    promocaoTexto: 'Pagamento integral via Pix ou Dinheiro',
+    promocaoSomenteAlta: true,
+    promocaoMsgBaixa: false,
+  };
 
   dataCheckin: Date = new Date();
   dataCheckout: Date = new Date(new Date().setDate(new Date().getDate() + 1));
@@ -70,7 +90,10 @@ export class TabelaOpcoesComponent implements OnInit {
   }
 
   carregarDados() {
-    this.config = this.tarifaService.getConfiguracao();
+    const savedConfig = this.tarifaService.getConfiguracao();
+    if (savedConfig) {
+      this.config = { ...this.config, ...savedConfig };
+    }
     const cats = this.tarifaService.getCategorias();
     this.categorias = cats.map((cat) => ({
       ...cat,

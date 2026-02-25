@@ -56,9 +56,9 @@ export class PainelMasterComponent implements OnInit {
   // Configurações
   config: any = {
     festividade: '🎊 Evento Especial',
-    valorAlmocoExtra: 45,
-    valorKwh: 0.89,
-    totalUhs: 50,
+    valorAlmocoExtra: 30,
+    valorKwh: 1.8,
+    totalUhs: 10,
     comodidadesGlobais: 'Frigobar, TV, Ar-condicionado, Wi-Fi, Hidro',
     altaInicio: '2025-12-15',
     altaFim: '2026-03-15',

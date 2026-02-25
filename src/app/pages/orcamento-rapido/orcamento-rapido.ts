@@ -28,7 +28,15 @@ export class OrcamentoRapidoComponent implements OnInit {
   @Output() onVoltar = new EventEmitter<void>();
 
   categorias: any[] = [];
-  config: any = {};
+  // Padrões básicos caso não haja configuração salva
+  config: any = {
+    altaInicio: '2025-12-15',
+    altaFim: '2026-03-15',
+    promocaoAtiva: false,
+    promocaoDesconto: 15,
+    promocaoMinDiarias: 3,
+    promocaoSomenteAlta: true,
+  };
 
   categoriaId: string | null = null;
   dataCheckin: Date = new Date();
@@ -51,7 +59,10 @@ export class OrcamentoRapidoComponent implements OnInit {
 
   carregarDados() {
     this.categorias = this.tarifaService.getCategorias();
-    this.config = this.tarifaService.getConfiguracao();
+    const savedConfig = this.tarifaService.getConfiguracao();
+    if (savedConfig) {
+      this.config = { ...this.config, ...savedConfig };
+    }
     if (this.categorias.length) {
       this.categoriaId = this.categorias[0].id;
     }
