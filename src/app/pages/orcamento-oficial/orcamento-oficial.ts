@@ -1,5 +1,6 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, Output, EventEmitter, LOCALE_ID } from '@angular/core';
+import { CommonModule, registerLocaleData } from '@angular/common';
+import localePt from '@angular/common/locales/pt';
 import { FormsModule } from '@angular/forms';
 
 // PrimeNG
@@ -22,11 +23,16 @@ import { OrcamentoOficialService } from '../../services/orcamento-oficial';
 // Models
 import { CategoriaQuarto } from '../../services/tarifa';
 
+// Registra a localização pt-BR para formatação de moeda e data
+registerLocaleData(localePt);
+
 interface ItemOrcamento {
   id?: string;
   quantidade: number;
   categoriaId: string;
   categoriaNome?: string;
+  camasDescricao?: string;
+  descricao?: string;
   comCafe: boolean;
   comAlmoco: boolean;
   precoDiaria: number; // preço por diária (já considerando temporada e opcionais)
@@ -49,8 +55,7 @@ interface ItemOrcamento {
     ToastModule,
     ConfirmDialogModule,
   ],
-  // Removido providers locais para usar os serviços globais (do Dashboard/App)
-  // providers: [MessageService, ConfirmationService],
+  providers: [{ provide: LOCALE_ID, useValue: 'pt-BR' }],
   templateUrl: './orcamento-oficial.html',
   styleUrls: ['./orcamento-oficial.scss'],
 })
@@ -59,7 +64,19 @@ export class OrcamentoOficialComponent implements OnInit {
   @Output() onVoltar = new EventEmitter<void>();
 
   categorias: CategoriaQuarto[] = [];
-  config: any = {};
+  // Inicializa com os mesmos padrões do Painel Master para evitar erros de undefined
+  config: any = {
+    valorAlmocoExtra: 45,
+    comodidadesGlobais: 'Frigobar, TV, Ar-condicionado, Wi-Fi, Hidro',
+    altaInicio: '2025-12-15',
+    altaFim: '2026-03-15',
+    cafeInicio: '07:00',
+    cafeFim: '10:00',
+    promocaoAtiva: false,
+    promocaoDesconto: 15,
+    promocaoMinDiarias: 3,
+    promocaoSomenteAlta: true,
+  };
 
   cliente: string = '';
   temporada: 'auto' | 'baixa' | 'alta' = 'auto';
@@ -86,7 +103,10 @@ export class OrcamentoOficialComponent implements OnInit {
 
   carregarDados() {
     this.categorias = this.tarifaService.getCategorias();
-    this.config = this.tarifaService.getConfiguracao();
+    const savedConfig = this.tarifaService.getConfiguracao();
+    if (savedConfig) {
+      this.config = { ...this.config, ...savedConfig };
+    }
   }
 
   adicionarItem() {
@@ -98,6 +118,8 @@ export class OrcamentoOficialComponent implements OnInit {
       quantidade: 1,
       categoriaId: this.categorias[0].id,
       categoriaNome: this.categorias[0].nome,
+      camasDescricao: this.formatarCamas(this.categorias[0]),
+      descricao: '',
       comCafe: true,
       comAlmoco: false,
       precoDiaria: 0,
@@ -126,6 +148,7 @@ export class OrcamentoOficialComponent implements OnInit {
     const cat = this.categorias.find((c) => c.id === item.categoriaId);
     if (cat) {
       item.categoriaNome = cat.nome;
+      item.camasDescricao = this.formatarCamas(cat);
       this.calcularItem(item);
     }
   }
@@ -134,32 +157,88 @@ export class OrcamentoOficialComponent implements OnInit {
     const cat = this.categorias.find((c) => c.id === item.categoriaId);
     if (!cat) return;
 
-    // Determinar qual temporada usar
-    let usarAlta = false;
-    if (this.temporada === 'alta') usarAlta = true;
-    else if (this.temporada === 'baixa') usarAlta = false;
-    else {
-      // Automático: verificar se a data de check-in está na alta temporada
-      usarAlta = this.isAltaTemporada(
-        this.dataCheckin,
-        this.config.altaInicio,
-        this.config.altaFim,
-      );
+    const noites = this.calcularNoites(this.dataCheckin, this.dataCheckout);
+    if (noites <= 0) {
+      item.precoDiaria = 0;
+      item.total = 0;
+      this.calcularTotais();
+      return;
     }
 
-    const precoBase = usarAlta
-      ? item.comCafe
-        ? cat.precoAltaCafe
-        : cat.precoAltaSemCafe
-      : item.comCafe
-        ? cat.precoBaixaCafe
-        : cat.precoBaixaSemCafe;
+    let totalBaseHospedagem = 0;
 
-    // Almoço opcional (valor fixo da configuração)
-    const precoAlmoco = item.comAlmoco ? this.config.valorAlmocoExtra || 0 : 0;
+    if (this.temporada === 'auto') {
+      // Cálculo dia a dia para suportar períodos mistos
+      let current = new Date(this.dataCheckin);
+      current.setHours(0, 0, 0, 0);
 
-    item.precoDiaria = precoBase + precoAlmoco;
-    this.calcularItemTotal(item);
+      for (let i = 0; i < noites; i++) {
+        const isAlta = this.isAltaTemporada(current, this.config.altaInicio, this.config.altaFim);
+
+        // Garante que os valores sejam números para evitar concatenação de strings
+        const pAltaCafe = Number(cat.precoAltaCafe) || 0;
+        const pAltaSemCafe = Number(cat.precoAltaSemCafe) || 0;
+        const pBaixaCafe = Number(cat.precoBaixaCafe) || 0;
+        const pBaixaSemCafe = Number(cat.precoBaixaSemCafe) || 0;
+
+        const valorDia = isAlta
+          ? item.comCafe
+            ? pAltaCafe
+            : pAltaSemCafe
+          : item.comCafe
+            ? pBaixaCafe
+            : pBaixaSemCafe;
+
+        totalBaseHospedagem += valorDia;
+        current.setDate(current.getDate() + 1);
+      }
+    } else {
+      // Temporada fixa forçada
+      const usarAlta = this.temporada === 'alta';
+
+      const pAltaCafe = Number(cat.precoAltaCafe) || 0;
+      const pAltaSemCafe = Number(cat.precoAltaSemCafe) || 0;
+      const pBaixaCafe = Number(cat.precoBaixaCafe) || 0;
+      const pBaixaSemCafe = Number(cat.precoBaixaSemCafe) || 0;
+
+      const valorDia = usarAlta
+        ? item.comCafe
+          ? pAltaCafe
+          : pAltaSemCafe
+        : item.comCafe
+          ? pBaixaCafe
+          : pBaixaSemCafe;
+      totalBaseHospedagem = valorDia * noites;
+    }
+
+    // Aplicação de Promoção (Lógica do Painel Master)
+    if (this.config.promocaoAtiva && noites >= (this.config.promocaoMinDiarias || 1)) {
+      // Verifica se a promoção se aplica (se for somente alta, checa se estamos na alta)
+      const isPeriodoAlta =
+        this.temporada === 'alta' ||
+        (this.temporada === 'auto' &&
+          this.isAltaTemporada(this.dataCheckin, this.config.altaInicio, this.config.altaFim));
+
+      if (!this.config.promocaoSomenteAlta || isPeriodoAlta) {
+        const desconto = totalBaseHospedagem * (this.config.promocaoDesconto / 100);
+        totalBaseHospedagem -= desconto;
+      }
+    }
+
+    // Almoço opcional: Valor * Capacidade * Noites
+    // Tenta pegar a capacidade de várias formas (novo, antigo ou alternativo)
+    const catAny = cat as any;
+    const capacidade = Number(catAny.capacidadeMaxima || catAny.cap || 1);
+    const valorAlmoco = Number(this.config.valorAlmocoExtra || 0);
+
+    const custoAlmocoTotal = item.comAlmoco ? valorAlmoco * capacidade * noites : 0;
+
+    // Define o preço médio da diária para exibição e cálculo final
+    item.precoDiaria = (totalBaseHospedagem + custoAlmocoTotal) / noites;
+
+    // Atualiza o total do item
+    item.total = item.precoDiaria * item.quantidade * noites;
+    this.calcularTotais();
   }
 
   calcularItemTotal(item: ItemOrcamento) {
@@ -179,9 +258,13 @@ export class OrcamentoOficialComponent implements OnInit {
 
   isAltaTemporada(data: Date, altaInicio: string, altaFim: string): boolean {
     if (!altaInicio || !altaFim) return false;
-    const inicio = new Date(altaInicio);
-    const fim = new Date(altaFim);
-    return data >= inicio && data <= fim;
+
+    // Cria datas em hora local (00:00) adicionando T00:00:00 para evitar UTC
+    const inicio = new Date(altaInicio + 'T00:00:00');
+    const fim = new Date(altaFim + 'T00:00:00');
+
+    // Compara os timestamps para garantir precisão
+    return data.getTime() >= inicio.getTime() && data.getTime() <= fim.getTime();
   }
 
   onTemporadaChange() {
@@ -190,6 +273,18 @@ export class OrcamentoOficialComponent implements OnInit {
 
   onDataChange() {
     this.itens.forEach((item) => this.calcularItem(item));
+  }
+
+  // Helper para formatar descrição das camas (ex: "1 Casal + 2 Solteiro")
+  formatarCamas(cat: any): string {
+    const partes = [];
+    if (cat.camasCasal > 0) {
+      partes.push(`${cat.camasCasal} Casal`);
+    }
+    if (cat.camasSolteiro > 0) {
+      partes.push(`${cat.camasSolteiro} Solteiro`);
+    }
+    return partes.length > 0 ? `(${partes.join(' + ')})` : '';
   }
 
   // Ações em lote

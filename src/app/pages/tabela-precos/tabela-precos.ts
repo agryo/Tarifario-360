@@ -1,5 +1,6 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, Output, EventEmitter, LOCALE_ID } from '@angular/core';
+import { CommonModule, registerLocaleData } from '@angular/common';
+import localePt from '@angular/common/locales/pt';
 import { FormsModule } from '@angular/forms';
 
 // PrimeNG
@@ -13,6 +14,9 @@ import { MessageService } from 'primeng/api';
 import { TarifaService, CategoriaQuarto } from '../../services/tarifa';
 import { ImpressaoTabelaService } from '../../services/impressao-tabela';
 
+// Registra a localização pt-BR
+registerLocaleData(localePt);
+
 interface GrupoUHs {
   prioridade: number;
   uhs: string;
@@ -23,7 +27,7 @@ interface GrupoUHs {
   selector: 'app-tabela-precos',
   standalone: true,
   imports: [CommonModule, FormsModule, ButtonModule, CardModule, ToastModule, MessageModule],
-  providers: [MessageService],
+  providers: [MessageService, { provide: LOCALE_ID, useValue: 'pt-BR' }],
   templateUrl: './tabela-precos.html',
   styleUrls: ['./tabela-precos.scss'],
 })

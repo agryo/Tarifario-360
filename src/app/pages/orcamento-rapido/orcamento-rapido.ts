@@ -1,5 +1,6 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, Output, EventEmitter, LOCALE_ID } from '@angular/core';
+import { CommonModule, registerLocaleData } from '@angular/common';
+import localePt from '@angular/common/locales/pt';
 import { FormsModule } from '@angular/forms';
 
 // PrimeNG 21 - componentes standalone com nomes atualizados
@@ -11,10 +12,14 @@ import { DatePicker } from 'primeng/datepicker'; // Antigo Calendar
 import { TarifaService } from '../../services/tarifa';
 import { OrcamentoRapidoService } from '../../services/orcamento-rapido';
 
+// Registra a localização pt-BR
+registerLocaleData(localePt);
+
 @Component({
   selector: 'app-orcamento-rapido',
   standalone: true,
   imports: [CommonModule, FormsModule, Button, Select, DatePicker],
+  providers: [{ provide: LOCALE_ID, useValue: 'pt-BR' }],
   templateUrl: './orcamento-rapido.html',
   styleUrls: ['./orcamento-rapido.scss'],
 })

@@ -1,5 +1,13 @@
-import { Component, OnInit, Output, EventEmitter, ViewEncapsulation } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {
+  Component,
+  OnInit,
+  Output,
+  EventEmitter,
+  ViewEncapsulation,
+  LOCALE_ID,
+} from '@angular/core';
+import { CommonModule, registerLocaleData } from '@angular/common';
+import localePt from '@angular/common/locales/pt';
 import { FormsModule } from '@angular/forms';
 import html2canvas from 'html2canvas';
 
@@ -10,10 +18,14 @@ import { DatePicker } from 'primeng/datepicker';
 // Services
 import { EscalaService, EscalaConfig } from '../../services/escala';
 
+// Registra a localização pt-BR
+registerLocaleData(localePt);
+
 @Component({
   selector: 'app-escala-noturna',
   standalone: true,
   imports: [CommonModule, FormsModule, ButtonModule, DatePicker],
+  providers: [{ provide: LOCALE_ID, useValue: 'pt-BR' }],
   templateUrl: './escala-noturna.html',
   styleUrls: ['./escala-noturna.scss'],
   encapsulation: ViewEncapsulation.None, // Permite estilizar o conteúdo dinâmico da tabela

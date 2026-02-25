@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, LOCALE_ID } from '@angular/core';
+import { CommonModule, registerLocaleData } from '@angular/common';
+import localePt from '@angular/common/locales/pt';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
@@ -27,6 +28,9 @@ import { OrcamentoOficialComponent } from '../orcamento-oficial/orcamento-oficia
 import { TabelaOpcoesComponent } from '../tabela-opcoes/tabela-opcoes';
 import { EscalaNoturnaComponent } from '../escala-noturna/escala-noturna';
 
+// Registra a localização pt-BR
+registerLocaleData(localePt);
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -51,7 +55,7 @@ import { EscalaNoturnaComponent } from '../escala-noturna/escala-noturna';
     TabelaOpcoesComponent,
     EscalaNoturnaComponent,
   ],
-  providers: [MessageService, ConfirmationService],
+  providers: [MessageService, ConfirmationService, { provide: LOCALE_ID, useValue: 'pt-BR' }],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss'],
 })

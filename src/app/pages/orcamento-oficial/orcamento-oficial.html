@@ -1,13 +1,13 @@
 <div class="orcamento-oficial-container p-1 border-round align-items-center mb-1">
   <!-- Título da página -->
   <div class="orcamento-oficial-titulo surface-card p-1 border-round text-center mb-3">
-    <h1 class="text-2xl font-bold text-center">📊 Tabela de Preços</h1>
+    <h1 class="text-2xl font-bold text-center">📄 Orçamento Oficial</h1>
   </div>
 
   <!-- Área de Configuração -->
   <div class="config-area surface-card p-3 border-round mb-3">
     <div class="flex justify-content-between align-items-center mb-3">
-      <h2 class="text-xl font-bold m-0">📄 Orçamento Oficial</h2>
+      <h2 class="text-xl font-bold m-0">📄 Insira os dados</h2>
       <div class="flex gap-2">
         <p-button
           label="Salvar"
@@ -38,7 +38,7 @@
     </div>
 
     <div class="grid">
-      <div class="col-12 md:col-4">
+      <div class="col-12 md:col-6">
         <div class="field">
           <label for="cliente">Empresa / Cliente</label>
           <input
@@ -69,7 +69,7 @@
           ></p-select>
         </div>
       </div>
-      <div class="col-12 md:col-3">
+      <div class="col-12 md:col-2">
         <div class="field">
           <label for="checkin">Check-in</label>
           <p-datepicker
@@ -83,7 +83,7 @@
           ></p-datepicker>
         </div>
       </div>
-      <div class="col-12 md:col-3">
+      <div class="col-12 md:col-2">
         <div class="field">
           <label for="checkout">Check-out</label>
           <p-datepicker
@@ -103,12 +103,11 @@
     <p-table [value]="itens" styleClass="p-datatable-sm mt-3">
       <ng-template pTemplate="header">
         <tr>
-          <th style="width: 60px">Qtd</th>
+          <th style="width: 50px">Qtd</th>
           <th>Acomodação</th>
+          <th>Hóspedes</th>
           <th style="width: 80px">Café</th>
           <th style="width: 80px">Almoço</th>
-          <th>Valor Diária</th>
-          <th>Total</th>
           <th style="width: 50px"></th>
         </tr>
       </ng-template>
@@ -119,7 +118,8 @@
               [(ngModel)]="item.quantidade"
               [min]="1"
               (onInput)="calcularItem(item)"
-              styleClass="w-full"
+              [inputStyle]="{ width: '3rem' }"
+              inputStyleClass="text-center"
             ></p-inputNumber>
           </td>
           <td>
@@ -132,6 +132,14 @@
               appendTo="body"
               (onChange)="onCategoriaChange(item)"
             ></p-select>
+          </td>
+          <td>
+            <input
+              pInputText
+              [(ngModel)]="item.descricao"
+              placeholder="Nome dos hóspedes"
+              class="w-full"
+            />
           </td>
           <td class="text-center">
             <p-checkbox
@@ -147,8 +155,6 @@
               (onChange)="calcularItem(item)"
             ></p-checkbox>
           </td>
-          <td>{{ item.precoDiaria | currency: 'BRL' }}</td>
-          <td>{{ item.total | currency: 'BRL' }}</td>
           <td>
             <p-button
               icon="pi pi-trash"
@@ -162,7 +168,7 @@
 
     <div class="flex justify-content-between align-items-center mt-2">
       <p-button
-        label="ADICIONAR UH"
+        label="Adicionar UH"
         icon="pi pi-plus"
         styleClass="p-button-success p-button-sm"
         (click)="adicionarItem()"
@@ -230,7 +236,17 @@
       <ng-template pTemplate="body" let-item>
         <tr>
           <td>{{ item.quantidade }}</td>
-          <td>{{ item.categoriaNome }}</td>
+          <td>
+            <strong>{{ item.categoriaNome }}</strong>
+            <span class="text-500 text-xs">{{ item.camasDescricao }}</span>
+            <div
+              *ngIf="item.descricao"
+              class="text-500"
+              style="font-size: 10px; font-style: italic"
+            >
+              {{ item.descricao }}
+            </div>
+          </td>
           <td>
             {{ item.comCafe ? 'Café' : '' }}
             {{ item.comCafe && item.comAlmoco ? ' + ' : '' }}
@@ -256,12 +272,9 @@
     <div class="obs-doc mt-3 text-sm">
       <strong>Observações:</strong>
       <ul class="m-0 pl-3">
-        <li>Incluso Wi-Fi e Estacionamento monitorado.</li>
+        <li>{{ config.comodidadesGlobais || 'Incluso Wi-Fi e Estacionamento monitorado.' }}</li>
         <li>Café da manhã: {{ config.cafeInicio }} às {{ config.cafeFim }}.</li>
-        <li>
-          Almoço opcional: {{ config.valorAlmocoExtra | currency: 'BRL' }} por pessoa (Buffet
-          Livre).
-        </li>
+        <li>Almoço opcional: {{ config.valorAlmocoExtra | currency: 'BRL' }} por pessoa.</li>
         <li>Proposta válida por 48 horas, sujeita a disponibilidade.</li>
       </ul>
     </div>
@@ -279,7 +292,7 @@
   <!-- Botão Imprimir -->
   <div class="flex justify-content-center mt-3 no-print">
     <p-button
-      label="IMPRIMIR / GERAR PDF"
+      label="Imprimir / Gerar PDF"
       icon="pi pi-print"
       styleClass="p-button-success p-button-raised"
       (click)="imprimir()"

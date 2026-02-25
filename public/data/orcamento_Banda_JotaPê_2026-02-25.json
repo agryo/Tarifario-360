@@ -1,0 +1,119 @@
+{
+  "cliente": "Banda JotaPê",
+  "temporada": "auto",
+  "dataCheckin": "2026-02-27T03:00:00.000Z",
+  "dataCheckout": "2026-02-28T03:00:00.000Z",
+  "itens": [
+    {
+      "quantidade": 1,
+      "categoriaId": "mlvclyzdzxelnckxb1q",
+      "categoriaNome": "Standard Plus",
+      "descricao": "Staff",
+      "comCafe": true,
+      "comAlmoco": true,
+      "precoDiaria": 228,
+      "total": 228
+    },
+    {
+      "quantidade": 1,
+      "categoriaId": "mlvclyzdgi6htn73gm",
+      "categoriaNome": "Standard Triplo",
+      "descricao": "Baixista, Guitarrista e Baterista",
+      "comCafe": true,
+      "comAlmoco": true,
+      "precoDiaria": 305,
+      "total": 305
+    },
+    {
+      "quantidade": 1,
+      "categoriaId": "mlvclyzdgi6htn73gm",
+      "categoriaNome": "Standard Triplo",
+      "descricao": "Sanfoneiro, Percursionista e GF",
+      "comCafe": true,
+      "comAlmoco": true,
+      "precoDiaria": 305,
+      "total": 305
+    },
+    {
+      "quantidade": 1,
+      "categoriaId": "mlvclyzd2t71edgb5eh",
+      "categoriaNome": "Standard Promocional",
+      "descricao": "Motorista",
+      "comCafe": true,
+      "comAlmoco": true,
+      "precoDiaria": 160,
+      "total": 160
+    },
+    {
+      "quantidade": 1,
+      "categoriaId": "mlvclyzdzxelnckxb1q",
+      "categoriaNome": "Standard Plus",
+      "descricao": "Roadies",
+      "comCafe": true,
+      "comAlmoco": true,
+      "precoDiaria": 228,
+      "total": 228
+    },
+    {
+      "quantidade": 1,
+      "categoriaId": "mlvclyzdgi6htn73gm",
+      "categoriaNome": "Standard Triplo",
+      "descricao": "Equipe Técnica (Som e Luz)",
+      "comCafe": true,
+      "comAlmoco": true,
+      "precoDiaria": 305,
+      "total": 305
+    },
+    {
+      "quantidade": 1,
+      "categoriaId": "mlvclyzd2t71edgb5eh",
+      "categoriaNome": "Standard Promocional",
+      "descricao": "Produtor Artístico",
+      "comCafe": true,
+      "comAlmoco": true,
+      "precoDiaria": 160,
+      "total": 160
+    },
+    {
+      "quantidade": 1,
+      "categoriaId": "mlvclyzd2t71edgb5eh",
+      "categoriaNome": "Standard Promocional",
+      "descricao": "Produtor Geral",
+      "comCafe": true,
+      "comAlmoco": true,
+      "precoDiaria": 160,
+      "total": 160
+    },
+    {
+      "quantidade": 1,
+      "categoriaId": "mlvclyzdzxelnckxb1q",
+      "categoriaNome": "Standard Plus",
+      "descricao": "Audiovisual",
+      "comCafe": true,
+      "comAlmoco": true,
+      "precoDiaria": 228,
+      "total": 228
+    },
+    {
+      "quantidade": 1,
+      "categoriaId": "mlvclyzd64w0h9e638j",
+      "categoriaNome": "Suíte Superior (Duplo)",
+      "descricao": "Cantor",
+      "comCafe": true,
+      "comAlmoco": true,
+      "precoDiaria": 239,
+      "total": 239
+    },
+    {
+      "quantidade": 1,
+      "categoriaId": "mlvclyzd64w0h9e638j",
+      "categoriaNome": "Suíte Superior (Duplo)",
+      "descricao": "Empresários",
+      "comCafe": true,
+      "comAlmoco": true,
+      "precoDiaria": 239,
+      "total": 239
+    }
+  ],
+  "totalGeral": 2557
+}

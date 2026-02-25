@@ -1,5 +1,6 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, Output, EventEmitter, LOCALE_ID } from '@angular/core';
+import { CommonModule, registerLocaleData } from '@angular/common';
+import localePt from '@angular/common/locales/pt';
 import { FormsModule } from '@angular/forms';
 
 // PrimeNG
@@ -11,6 +12,9 @@ import { TooltipModule } from 'primeng/tooltip';
 
 // Services
 import { TarifaService } from '../../services/tarifa';
+
+// Registra a localização pt-BR
+registerLocaleData(localePt);
 
 @Component({
   selector: 'app-wallbox',
@@ -24,6 +28,7 @@ import { TarifaService } from '../../services/tarifa';
     InputTextModule,
     TooltipModule,
   ],
+  providers: [{ provide: LOCALE_ID, useValue: 'pt-BR' }],
   templateUrl: './wallbox.html',
   styleUrls: ['./wallbox.scss'],
 })

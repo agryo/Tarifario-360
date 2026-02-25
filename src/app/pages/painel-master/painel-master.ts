@@ -1,5 +1,6 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, Output, EventEmitter, LOCALE_ID } from '@angular/core';
+import { CommonModule, registerLocaleData } from '@angular/common';
+import localePt from '@angular/common/locales/pt';
 import { FormsModule } from '@angular/forms';
 
 // PrimeNG
@@ -21,6 +22,9 @@ import { TarifaService } from '../../services/tarifa';
 import { CriptografiaService } from '../../services/criptografia';
 import { EscalaService, EscalaConfig } from '../../services/escala';
 
+// Registra a localização pt-BR
+registerLocaleData(localePt);
+
 @Component({
   selector: 'app-painel-master',
   standalone: true,
@@ -40,7 +44,7 @@ import { EscalaService, EscalaConfig } from '../../services/escala';
     SelectModule,
     TooltipModule,
   ],
-  providers: [ConfirmationService],
+  providers: [ConfirmationService, { provide: LOCALE_ID, useValue: 'pt-BR' }],
   templateUrl: './painel-master.html',
   styleUrls: ['./painel-master.scss'],
 })
