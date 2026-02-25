@@ -12,6 +12,7 @@ import { TooltipModule } from 'primeng/tooltip';
 
 // Services
 import { TarifaService } from '../../services/tarifa';
+import { DateUtils } from '../../utils/date-utils';
 
 // Registra a localização pt-BR
 registerLocaleData(localePt);
@@ -76,7 +77,7 @@ export class TabelaOpcoesComponent implements OnInit {
   };
 
   dataCheckin: Date = new Date();
-  dataCheckout: Date = new Date(new Date().setDate(new Date().getDate() + 1));
+  dataCheckout: Date = DateUtils.adicionarDias(new Date(), 1);
   temporada: 'auto' | 'baixa' | 'alta' = 'auto';
   hoje: Date = new Date();
 
@@ -251,8 +252,7 @@ export class TabelaOpcoesComponent implements OnInit {
   }
 
   private calcularNoites(checkin: Date, checkout: Date): number {
-    const diff = checkout.getTime() - checkin.getTime();
-    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+    return DateUtils.calcularDiasEntre(checkin, checkout);
   }
 
   private formatarCamas(cat: CategoriaComSelecao): string {

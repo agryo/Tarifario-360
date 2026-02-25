@@ -11,6 +11,7 @@ import { DatePicker } from 'primeng/datepicker'; // Antigo Calendar
 // Services
 import { TarifaService } from '../../services/tarifa';
 import { OrcamentoRapidoService } from '../../services/orcamento-rapido';
+import { DateUtils } from '../../utils/date-utils';
 
 // Registra a localização pt-BR
 registerLocaleData(localePt);
@@ -40,7 +41,7 @@ export class OrcamentoRapidoComponent implements OnInit {
 
   categoriaId: string | null = null;
   dataCheckin: Date = new Date();
-  dataCheckout: Date = new Date(new Date().setDate(new Date().getDate() + 1));
+  dataCheckout: Date = DateUtils.adicionarDias(new Date(), 1);
   quantidade: number = 1;
   incluirCafe: boolean = true;
 
@@ -112,7 +113,7 @@ export class OrcamentoRapidoComponent implements OnInit {
   limpar() {
     this.categoriaId = this.categorias.length ? this.categorias[0].id : null;
     this.dataCheckin = new Date();
-    this.dataCheckout = new Date(new Date().setDate(new Date().getDate() + 1));
+    this.dataCheckout = DateUtils.adicionarDias(new Date(), 1);
     this.quantidade = 1;
     this.incluirCafe = true;
     this.gerarOrcamento();

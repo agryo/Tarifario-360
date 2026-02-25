@@ -12,6 +12,7 @@ import { TooltipModule } from 'primeng/tooltip';
 
 // Services
 import { TarifaService } from '../../services/tarifa';
+import { DateUtils } from '../../utils/date-utils';
 
 // Registra a localização pt-BR
 registerLocaleData(localePt);
@@ -75,7 +76,7 @@ export class WallboxComponent implements OnInit {
     }
 
     const agora = new Date();
-    const dataFim = agora.toLocaleDateString('pt-BR');
+    const dataFim = DateUtils.formatarDataBR(agora);
     const horaFim = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     const total = this.consumo * this.tarifaKwh;
 

@@ -17,6 +17,7 @@ import { DatePicker } from 'primeng/datepicker';
 
 // Services
 import { EscalaService, EscalaConfig } from '../../services/escala';
+import { DateUtils } from '../../utils/date-utils';
 
 // Registra a localização pt-BR
 registerLocaleData(localePt);
@@ -36,7 +37,7 @@ export class EscalaNoturnaComponent implements OnInit {
 
   escalaConfig!: EscalaConfig;
   dataInicio: Date = new Date();
-  dataFim: Date = new Date(new Date().setDate(new Date().getDate() + 41));
+  dataFim: Date = DateUtils.adicionarDias(new Date(), 41);
   tabelaHTML: string = '';
 
   constructor(private escalaService: EscalaService) {}

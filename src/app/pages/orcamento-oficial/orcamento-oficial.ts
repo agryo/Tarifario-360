@@ -19,6 +19,7 @@ import { ConfirmationService } from 'primeng/api';
 // Services
 import { TarifaService } from '../../services/tarifa';
 import { OrcamentoOficialService } from '../../services/orcamento-oficial';
+import { DateUtils } from '../../utils/date-utils';
 
 // Models
 import { CategoriaQuarto } from '../../services/tarifa';
@@ -90,7 +91,7 @@ export class OrcamentoOficialComponent implements OnInit {
   cliente: string = '';
   temporada: 'auto' | 'baixa' | 'alta' = 'auto';
   dataCheckin: Date = new Date();
-  dataCheckout: Date = new Date(new Date().setDate(new Date().getDate() + 1));
+  dataCheckout: Date = DateUtils.adicionarDias(new Date(), 1);
   hoje: Date = new Date();
 
   itens: ItemOrcamento[] = [];
@@ -261,8 +262,7 @@ export class OrcamentoOficialComponent implements OnInit {
   }
 
   calcularNoites(checkin: Date, checkout: Date): number {
-    const diff = checkout.getTime() - checkin.getTime();
-    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+    return DateUtils.calcularDiasEntre(checkin, checkout);
   }
 
   isAltaTemporada(data: Date, altaInicio: string, altaFim: string): boolean {

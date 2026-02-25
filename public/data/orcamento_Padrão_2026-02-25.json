@@ -1,0 +1,97 @@
+{
+  "cliente": "Padrão",
+  "temporada": "auto",
+  "dataCheckin": "2026-02-27T03:00:00.000Z",
+  "dataCheckout": "2026-02-28T03:00:00.000Z",
+  "itens": [
+    {
+      "quantidade": 1,
+      "categoriaId": "mlvclyzd2t71edgb5eh",
+      "categoriaNome": "Standard Promocional",
+      "camasDescricao": "(1 Solteiro)",
+      "descricao": "Uma pessoa",
+      "comCafe": true,
+      "comAlmoco": true,
+      "precoDiaria": 160,
+      "total": 160
+    },
+    {
+      "quantidade": 1,
+      "categoriaId": "mlvclyzdzxelnckxb1q",
+      "categoriaNome": "Standard Plus",
+      "camasDescricao": "(2 Solteiro)",
+      "descricao": "Duas Pessoas",
+      "comCafe": true,
+      "comAlmoco": true,
+      "precoDiaria": 258,
+      "total": 258
+    },
+    {
+      "quantidade": 1,
+      "categoriaId": "mlvclyzdgi6htn73gm",
+      "categoriaNome": "Standard Triplo",
+      "camasDescricao": "(3 Solteiro)",
+      "descricao": "Três Pessoas",
+      "comCafe": true,
+      "comAlmoco": true,
+      "precoDiaria": 365,
+      "total": 365
+    },
+    {
+      "quantidade": 1,
+      "categoriaId": "mlvclyzdnbetdnjg27q",
+      "categoriaNome": "Suíte Superior (Single)",
+      "camasDescricao": "(1 Casal)",
+      "descricao": "Uma Pessoa",
+      "comCafe": true,
+      "comAlmoco": true,
+      "precoDiaria": 195,
+      "total": 195
+    },
+    {
+      "quantidade": 1,
+      "categoriaId": "mlvclyzd64w0h9e638j",
+      "categoriaNome": "Suíte Superior (Duplo)",
+      "camasDescricao": "(1 Casal)",
+      "descricao": "Duas Pessoas",
+      "comCafe": true,
+      "comAlmoco": true,
+      "precoDiaria": 269,
+      "total": 269
+    },
+    {
+      "quantidade": 1,
+      "categoriaId": "mlvclyzehlwo6ilqy2a",
+      "categoriaNome": "Suíte Master",
+      "camasDescricao": "(1 Casal)",
+      "descricao": "Duas Pessoas",
+      "comCafe": true,
+      "comAlmoco": true,
+      "precoDiaria": 291,
+      "total": 291
+    },
+    {
+      "quantidade": 1,
+      "categoriaId": "mlvclyzeem5phesmc4b",
+      "categoriaNome": "Suíte Triplo",
+      "camasDescricao": "(1 Casal + 1 Solteiro)",
+      "descricao": "Três Pessoas",
+      "comCafe": true,
+      "comAlmoco": true,
+      "precoDiaria": 343,
+      "total": 343
+    },
+    {
+      "quantidade": 1,
+      "categoriaId": "mlvclyzeq7my6hybplc",
+      "categoriaNome": "Suíte Deluxe",
+      "camasDescricao": "(1 Casal)",
+      "descricao": "Duas Pessoas",
+      "comCafe": true,
+      "comAlmoco": true,
+      "precoDiaria": 390,
+      "total": 390
+    }
+  ],
+  "totalGeral": 2271
+}
