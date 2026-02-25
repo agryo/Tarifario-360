@@ -49,7 +49,8 @@ interface ItemOrcamento {
     ToastModule,
     ConfirmDialogModule,
   ],
-  providers: [MessageService, ConfirmationService],
+  // Removido providers locais para usar os serviços globais (do Dashboard/App)
+  // providers: [MessageService, ConfirmationService],
   templateUrl: './orcamento-oficial.html',
   styleUrls: ['./orcamento-oficial.scss'],
 })
@@ -111,6 +112,8 @@ export class OrcamentoOficialComponent implements OnInit {
       message: 'Remover este item do orçamento?',
       header: 'Confirmação',
       icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Sim',
+      rejectLabel: 'Não',
       accept: () => {
         this.itens.splice(index, 1);
         this.calcularTotais();

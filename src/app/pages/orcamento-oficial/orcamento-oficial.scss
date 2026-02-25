@@ -98,3 +98,8 @@
     border: 1px solid #ddd !important;
   }
 }
+
+// Correção para o Dropdown/Select não ficar cortado dentro da tabela
+:host ::ng-deep .p-datatable .p-datatable-wrapper {
+  overflow: visible !important;
+}

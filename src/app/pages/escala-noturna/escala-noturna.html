@@ -29,9 +29,24 @@
         (onSelect)="gerarEscala()"
       ></p-datepicker>
     </div>
-    <p-button label="GERAR ESCALA" (click)="gerarEscala()"></p-button>
-    <p-button label="🖨️ IMPRIMIR" (click)="imprimir()"></p-button>
-    <p-button label="🖼️ IMAGEM WEBP" (click)="exportarImagem()"></p-button>
+    <p-button
+      label="GERAR ESCALA"
+      icon="pi pi-table"
+      styleClass="p-button-info"
+      (click)="gerarEscala()"
+    ></p-button>
+    <p-button
+      label="IMPRIMIR"
+      icon="pi pi-print"
+      styleClass="p-button-sucess"
+      (click)="imprimir()"
+    ></p-button>
+    <p-button
+      label="IMAGEM WEBP"
+      icon="pi pi-image"
+      styleClass="p-button-contrast"
+      (click)="exportarImagem()"
+    ></p-button>
     <p-button
       label="Voltar"
       icon="pi pi-arrow-left"
