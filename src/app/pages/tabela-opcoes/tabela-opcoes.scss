@@ -8,19 +8,8 @@
   padding: 1rem;
 }
 
-.header-area {
-  background-color: var(--surface-card);
-  color: var(--text-color);
-}
-
-.config-area {
-  background: var(--surface-card);
-  border: 2px solid var(--primary-color);
-}
-
 .coluna-uh {
   background: var(--surface-ground);
-  border: 1px solid var(--surface-border);
   min-height: 300px;
   display: flex;
   flex-direction: column;
@@ -28,7 +17,6 @@
 
 .titulo-coluna {
   color: var(--primary-color);
-  border-bottom: 2px solid var(--green-500);
   font-size: 14px;
 }
 
@@ -46,7 +34,6 @@
   white-space: pre-wrap;
   font-family: 'Courier New', monospace;
   font-size: 12px;
-  border: 1px solid var(--primary-color);
   background: var(--surface-card);
   color: var(--text-color);
   max-height: 400px;
