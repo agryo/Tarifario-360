@@ -5,64 +5,22 @@
 .orcamento-rapido-container {
   max-width: 900px;
   margin: 0 auto;
-  padding: 1px;
 }
 
 .orcamento-rapido-titulo {
-  display: flex;
-  gap: 1px;
-  justify-content: center;
   background-color: var(--surface-card);
   color: var(--text-color);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .botoes-container {
-  border-radius: 8px;
   background-color: var(--surface-card);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-}
-
-.formulario-container {
-  padding: 12px;
-  border-radius: 8px;
-  max-width: 1100px;
-  width: 100%;
-  margin: 5px auto auto auto;
-  padding: 1px;
-  display: flex;
-  gap: 1px;
-  justify-content: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .previa {
-  width: 100%;
-  max-width: 100%;
-  border-radius: 8px;
-  box-sizing: border-box;
-  white-space: pre-wrap; /* quebra linhas */
-  word-wrap: break-word; /* quebra palavras longas */
-  overflow-wrap: break-word; /* mesmo efeito */
   font-family: 'Courier New', monospace;
-  border: 1px solid var(--surface-border);
-  padding: 1rem;
-  background-color: var(--surface-card);
-  color: var(--text-color);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .previa pre {
-  margin: 0;
-  padding: 0;
-  background: transparent;
-  border: none;
   white-space: pre-wrap; /* herda a quebra */
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  max-width: 100%;
-  width: 100%;
   font-family: inherit;
-  font-size: inherit;
-  color: inherit;
 }
