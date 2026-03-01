@@ -104,13 +104,25 @@
         <div class="col-12 md:col-3">
           <div class="field">
             <label>Início Alta Temporada</label>
-            <input type="date" pInputText [(ngModel)]="config.altaInicio" class="w-full" />
+            <input
+              type="date"
+              pInputText
+              [(ngModel)]="config.altaInicio"
+              (ngModelChange)="onAltaInicioChange()"
+              class="w-full"
+            />
           </div>
         </div>
         <div class="col-12 md:col-3">
           <div class="field">
             <label>Fim Alta Temporada</label>
-            <input type="date" pInputText [(ngModel)]="config.altaFim" class="w-full" />
+            <input
+              type="date"
+              pInputText
+              [(ngModel)]="config.altaFim"
+              (ngModelChange)="onAltaFimChange()"
+              class="w-full"
+            />
           </div>
         </div>
       </div>
@@ -760,12 +772,12 @@
       <div class="grid">
         <!-- Exportar backup novo formato -->
         <div class="col-12 md:col-6">
-          <p-card header="📤 Exportar Configurações (novo formato)">
+          <p-card header="📤 Backup das Configurações">
             <p class="mb-3">
               Baixe um arquivo JSON com todas as configurações do sistema no formato atual.
             </p>
             <p-button
-              label="Exportar Backup"
+              label="Salvar Backup"
               icon="pi pi-download"
               styleClass="p-button-success"
               (click)="exportarBackup()"
@@ -775,10 +787,9 @@
 
         <!-- Importar backup novo formato -->
         <div class="col-12 md:col-6">
-          <p-card header="📥 Importar Configurações (novo formato)">
+          <p-card header="📥 Restaurar Backup das Configurações">
             <p class="mb-3">
-              Carregue um arquivo JSON para restaurar configurações previamente salvas (formato
-              atual).
+              Carregue um arquivo JSON para restaurar configurações previamente salvas.
             </p>
             <input
               type="file"
@@ -788,7 +799,7 @@
               (change)="importarBackup($event)"
             />
             <p-button
-              label="Importar Backup"
+              label="Restaurar Backup"
               icon="pi pi-upload"
               styleClass="p-button-warning"
               (click)="fileInput.click()"

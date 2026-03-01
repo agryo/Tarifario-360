@@ -14,7 +14,6 @@ import { TooltipModule } from 'primeng/tooltip';
 import { TarifaService } from '../../services/tarifa';
 import { DateUtils } from '../../utils/date-utils';
 
-// Registra a localização pt-BR
 registerLocaleData(localePt);
 
 interface CategoriaComSelecao {
@@ -54,7 +53,6 @@ export class TabelaOpcoesComponent implements OnInit {
   @Output() onVoltar = new EventEmitter<void>();
 
   categorias: CategoriaComSelecao[] = [];
-  // Inicializa com os mesmos padrões do Painel Master
   config: any = {
     valorAlmocoExtra: 45,
     altaInicio: '2025-12-15',
@@ -98,7 +96,6 @@ export class TabelaOpcoesComponent implements OnInit {
     const cats = this.tarifaService.getCategorias();
     this.categorias = cats.map((cat) => ({
       ...cat,
-      // Garantir valores padrão para campos obrigatórios
       camasCasal: cat.camasCasal ?? 0,
       camasSolteiro: cat.camasSolteiro ?? 0,
       grupo: this.inferirGrupo(cat),
@@ -107,26 +104,18 @@ export class TabelaOpcoesComponent implements OnInit {
   }
 
   private inferirGrupo(cat: any): 'solteiro' | 'casal' {
-    // Se tiver grupo explícito no modelo (caso exista)
     if (cat.grupo) return cat.grupo;
-
-    // Verifica se tem tipo de ocupação padrão definido (mapeando para grupo)
     if (cat.tipoOcupacaoPadrao === 'solteiro') return 'solteiro';
     if (cat.tipoOcupacaoPadrao === 'casal') return 'casal';
-
-    // Se a capacidade for 1, força como solteiro (mesmo com cama de casal)
     if (cat.capacidadeMaxima === 1) return 'solteiro';
-
     const camasCasal = cat.camasCasal ?? 0;
     const camasSolteiro = cat.camasSolteiro ?? 0;
-    // Regras de inferência (baseadas no JS antigo)
     if (camasSolteiro >= 3 && camasCasal === 0) return 'solteiro';
     if (camasCasal >= 1 && camasSolteiro >= 1) return 'casal';
     if (camasCasal > 0) return 'casal';
     return 'solteiro';
   }
 
-  // Getters para filtrar por grupo
   get categoriasSolteiro() {
     return this.categorias.filter((c) => c.grupo === 'solteiro');
   }
@@ -138,6 +127,14 @@ export class TabelaOpcoesComponent implements OnInit {
     const grupoCats = this.categorias.filter((c) => c.grupo === grupo);
     const todosSelecionados = grupoCats.every((c) => c.selecionado);
     grupoCats.forEach((c) => (c.selecionado = !todosSelecionados));
+    this.gerar();
+  }
+
+  // ===== NOVO MÉTODO =====
+  onDataChange() {
+    if (this.dataCheckin && this.dataCheckout) {
+      this.dataCheckout = DateUtils.ajustarDataSaida(this.dataCheckin, this.dataCheckout);
+    }
     this.gerar();
   }
 
@@ -186,19 +183,14 @@ export class TabelaOpcoesComponent implements OnInit {
       texto += `🍽️ *Total sem café:* ${somaSem.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
     });
 
-    // Comodidades comuns
     const comuns = this.comodidadesComuns(selecionados);
     texto += `\n----------------------------------\n`;
     if (comuns.length > 0) {
       texto += `✅ *Todas as opções acima possuem:* ${comuns.join(', ')}.\n\n`;
     }
 
-    // Horários
     texto += this.formatarHorarios();
-
-    // Promoção
     texto += this.aplicarPromocao(selecionados, resultados, noites, d1, d2);
-
     texto += `\n⚠️ _Valores sujeitos a disponibilidade no ato da reserva._\n\nDeseja garantir sua reserva?`;
 
     this.textoPrevia = texto;
@@ -218,11 +210,10 @@ export class TabelaOpcoesComponent implements OnInit {
       return { somaCom: base[0] * noites, somaSem: base[1] * noites, isMisto: false };
     }
 
-    // Cálculo dia a dia
     let somaCom = 0,
       somaSem = 0;
-    let diasAlta = 0;
-    let diasBaixa = 0;
+    let diasAlta = 0,
+      diasBaixa = 0;
     const current = new Date(d1);
     current.setHours(0, 0, 0, 0);
     const end = new Date(d2);
@@ -315,7 +306,6 @@ export class TabelaOpcoesComponent implements OnInit {
       if (this.temporada === 'alta') temAlta = true;
       else if (this.temporada === 'baixa') temAlta = false;
       else {
-        // auto: verificar se há dias de alta
         const current = new Date(d1);
         current.setHours(0, 0, 0, 0);
         const end = new Date(d2);

@@ -26,6 +26,7 @@ import { CriptografiaService } from '../../services/criptografia';
 import { EscalaService, EscalaConfig } from '../../services/escala';
 import { BackupService } from '../../services/backup';
 import { CategoriaQuarto } from '../../models/categoria-quarto.model';
+import { DateUtils } from '../../utils/date-utils';
 
 registerLocaleData(localePt);
 
@@ -428,6 +429,25 @@ export class PainelMasterComponent implements OnInit {
     });
     this.onSalvo.emit();
     this.onFechar.emit();
+  }
+
+  // ===== CONTROLE DE DATAS DA ALTA TEMPORADA =====
+  onAltaInicioChange() {
+    const ajustadas = DateUtils.ajustarDatasAltaTemporada(
+      this.config.altaInicio,
+      this.config.altaFim,
+    );
+    this.config.altaInicio = ajustadas.inicio;
+    this.config.altaFim = ajustadas.fim;
+  }
+
+  onAltaFimChange() {
+    const ajustadas = DateUtils.ajustarDatasAltaTemporada(
+      this.config.altaInicio,
+      this.config.altaFim,
+    );
+    this.config.altaInicio = ajustadas.inicio;
+    this.config.altaFim = ajustadas.fim;
   }
 
   fechar() {

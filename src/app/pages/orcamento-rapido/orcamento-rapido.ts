@@ -3,17 +3,16 @@ import { CommonModule, registerLocaleData } from '@angular/common';
 import localePt from '@angular/common/locales/pt';
 import { FormsModule } from '@angular/forms';
 
-// PrimeNG 21 - componentes standalone com nomes atualizados
+// PrimeNG 21
 import { Button } from 'primeng/button';
-import { Select } from 'primeng/select'; // Antigo Dropdown
-import { DatePicker } from 'primeng/datepicker'; // Antigo Calendar
+import { Select } from 'primeng/select';
+import { DatePicker } from 'primeng/datepicker';
 
 // Services
 import { TarifaService } from '../../services/tarifa';
 import { OrcamentoRapidoService } from '../../services/orcamento-rapido';
 import { DateUtils } from '../../utils/date-utils';
 
-// Registra a localização pt-BR
 registerLocaleData(localePt);
 
 @Component({
@@ -29,8 +28,8 @@ export class OrcamentoRapidoComponent implements OnInit {
   @Output() onVoltar = new EventEmitter<void>();
 
   categorias: any[] = [];
-  // Padrões básicos caso não haja configuração salva
   config: any = {
+    festividade: 'Evento',
     altaInicio: '2025-12-15',
     altaFim: '2026-03-15',
     promocaoAtiva: false,
@@ -42,8 +41,8 @@ export class OrcamentoRapidoComponent implements OnInit {
   categoriaId: string | null = null;
   dataCheckin: Date = new Date();
   dataCheckout: Date = DateUtils.adicionarDias(new Date(), 1);
-  quantidade: number = 1;
-  incluirCafe: boolean = true;
+  quantidade: number = 1; // fixo
+  incluirCafe: boolean = true; // fixo
 
   textoOrcamento: string = '';
   hoje: Date = new Date();
@@ -69,6 +68,13 @@ export class OrcamentoRapidoComponent implements OnInit {
     }
   }
 
+  onDataChange() {
+    if (this.dataCheckin && this.dataCheckout) {
+      this.dataCheckout = DateUtils.ajustarDataSaida(this.dataCheckin, this.dataCheckout);
+    }
+    this.gerarOrcamento();
+  }
+
   gerarOrcamento() {
     if (
       !this.categoriaId ||
@@ -85,8 +91,8 @@ export class OrcamentoRapidoComponent implements OnInit {
         categoriaId: this.categoriaId,
         dataCheckin: this.dataCheckin,
         dataCheckout: this.dataCheckout,
-        quantidade: this.quantidade,
-        incluirCafe: this.incluirCafe,
+        quantidade: 1, // fixo
+        incluirCafe: true, // fixo
       });
       this.textoOrcamento = orcamento.textoWhatsApp;
     } catch (error) {
@@ -100,7 +106,6 @@ export class OrcamentoRapidoComponent implements OnInit {
 
   copiarWhatsApp() {
     if (!this.textoOrcamento) return;
-
     navigator.clipboard.writeText(this.textoOrcamento).then(() => {
       this.onMensagem.emit({
         severity: 'success',
@@ -114,8 +119,6 @@ export class OrcamentoRapidoComponent implements OnInit {
     this.categoriaId = this.categorias.length ? this.categorias[0].id : null;
     this.dataCheckin = new Date();
     this.dataCheckout = DateUtils.adicionarDias(new Date(), 1);
-    this.quantidade = 1;
-    this.incluirCafe = true;
     this.gerarOrcamento();
     this.onMensagem.emit({
       severity: 'info',

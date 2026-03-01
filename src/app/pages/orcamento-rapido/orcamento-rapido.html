@@ -7,7 +7,7 @@
   <!-- Formulário -->
   <div class="formulario-container flex border-round shadow-2 p-1">
     <div class="grid p-1">
-      <div class="col-2 md:col-12">
+      <div class="col-12 md:col-12">
         <div class="p-1">
           <label for="categoria" class="font-bold">Tipo de Acomodação:</label>
           <p-select
@@ -24,7 +24,7 @@
       </div>
     </div>
     <div class="grid p-1">
-      <div class="md:col-6">
+      <div class="col-12 md:col-6">
         <div class="p-1">
           <label for="checkin" class="font-bold">Check-in</label>
           <p-datepicker
@@ -33,12 +33,12 @@
             [showIcon]="true"
             dateFormat="dd/mm/yy"
             [minDate]="hoje"
-            (onSelect)="gerarOrcamento()"
+            (onSelect)="onDataChange()"
             styleClass="w-full"
           ></p-datepicker>
         </div>
       </div>
-      <div class="md:col-6">
+      <div class="col-12 md:col-6">
         <div class="p-1">
           <label for="checkout" class="font-bold">Check-out</label>
           <p-datepicker
@@ -47,7 +47,7 @@
             [showIcon]="true"
             dateFormat="dd/mm/yy"
             [minDate]="dataCheckin || hoje"
-            (onSelect)="gerarOrcamento()"
+            (onSelect)="onDataChange()"
             styleClass="w-full"
           ></p-datepicker>
         </div>

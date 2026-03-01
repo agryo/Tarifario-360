@@ -16,7 +16,7 @@
             [showIcon]="true"
             dateFormat="dd/mm/yy"
             [minDate]="hoje"
-            (onSelect)="gerar()"
+            (onSelect)="onDataChange()"
             styleClass="w-full"
           ></p-datepicker>
         </div>
@@ -30,7 +30,7 @@
             [showIcon]="true"
             dateFormat="dd/mm/yy"
             [minDate]="dataCheckin || hoje"
-            (onSelect)="gerar()"
+            (onSelect)="onDataChange()"
             styleClass="w-full"
           ></p-datepicker>
         </div>
