@@ -15,7 +15,7 @@
         [showIcon]="true"
         dateFormat="dd/mm/yy"
         styleClass="w-full"
-        (onSelect)="gerarEscala()"
+        (onSelect)="onDataChange()"
       ></p-datepicker>
     </div>
     <div>
@@ -26,19 +26,13 @@
         dateFormat="dd/mm/yy"
         [minDate]="dataInicio"
         styleClass="w-full"
-        (onSelect)="gerarEscala()"
+        (onSelect)="onDataChange()"
       ></p-datepicker>
     </div>
     <p-button
-      label="Gerar Escala"
-      icon="pi pi-table"
-      styleClass="p-button-info"
-      (click)="gerarEscala()"
-    ></p-button>
-    <p-button
       label="Imprimir"
       icon="pi pi-print"
-      styleClass="p-button-sucess"
+      styleClass="p-button-success"
       (click)="imprimir()"
     ></p-button>
     <p-button

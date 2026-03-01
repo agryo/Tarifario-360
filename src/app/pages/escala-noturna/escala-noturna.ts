@@ -9,7 +9,7 @@ import {
 import { CommonModule, registerLocaleData } from '@angular/common';
 import localePt from '@angular/common/locales/pt';
 import { FormsModule } from '@angular/forms';
-import html2canvas from 'html2canvas';
+import html2canvas from 'html2canvas'; // <-- Importação adicionada
 
 // PrimeNG
 import { ButtonModule } from 'primeng/button';
@@ -29,7 +29,7 @@ registerLocaleData(localePt);
   providers: [{ provide: LOCALE_ID, useValue: 'pt-BR' }],
   templateUrl: './escala-noturna.html',
   styleUrls: ['./escala-noturna.scss'],
-  encapsulation: ViewEncapsulation.None, // Permite estilizar o conteúdo dinâmico da tabela
+  encapsulation: ViewEncapsulation.None,
 })
 export class EscalaNoturnaComponent implements OnInit {
   @Output() onMensagem = new EventEmitter<{ severity: string; summary: string; detail: string }>();
@@ -44,6 +44,34 @@ export class EscalaNoturnaComponent implements OnInit {
 
   ngOnInit() {
     this.escalaConfig = this.escalaService.getConfiguracao();
+    this.ajustarDatasParaSemanaCompleta();
+    this.gerarEscala();
+  }
+
+  // Ajusta a data de início para o domingo anterior e a data de fim para o sábado posterior
+  private ajustarDatasParaSemanaCompleta() {
+    // Ajusta dataInicio para o domingo da semana
+    const diaInicio = this.dataInicio.getDay();
+    if (diaInicio !== 0) {
+      this.dataInicio.setDate(this.dataInicio.getDate() - diaInicio);
+    }
+
+    // Ajusta dataFim para o sábado da semana (se for menor que dataInicio + 6)
+    const fimMinimo = new Date(this.dataInicio);
+    fimMinimo.setDate(fimMinimo.getDate() + 6);
+    if (this.dataFim < fimMinimo) {
+      this.dataFim = fimMinimo;
+    } else {
+      // Garante que dataFim seja um sábado
+      const diaFim = this.dataFim.getDay();
+      if (diaFim !== 6) {
+        this.dataFim.setDate(this.dataFim.getDate() + (6 - diaFim));
+      }
+    }
+  }
+
+  onDataChange() {
+    this.ajustarDatasParaSemanaCompleta();
     this.gerarEscala();
   }
 
@@ -160,13 +188,52 @@ export class EscalaNoturnaComponent implements OnInit {
 
   exportarImagem() {
     const element = document.querySelector('.tabela-escala') as HTMLElement;
-    if (!element) return;
-    html2canvas(element, { scale: 3, useCORS: true }).then((canvas) => {
-      const link = document.createElement('a');
-      link.download = 'escala-equipe.webp';
-      link.href = canvas.toDataURL('image/webp', 1.0);
-      link.click();
+    if (!element) {
+      this.onMensagem.emit({
+        severity: 'warn',
+        summary: 'Aviso',
+        detail: 'Tabela não encontrada para gerar imagem.',
+      });
+      return;
+    }
+
+    // Feedback de processamento
+    this.onMensagem.emit({
+      severity: 'info',
+      summary: 'Processando',
+      detail: 'Gerando imagem...',
     });
+
+    html2canvas(element, {
+      scale: 3,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+      allowTaint: false,
+      imageTimeout: 15000,
+    })
+      .then((canvas: HTMLCanvasElement) => {
+        const webpDataUrl = canvas.toDataURL('image/webp', 0.95);
+
+        const link = document.createElement('a');
+        link.download = `escala-equipe-${new Date().toISOString().split('T')[0]}.webp`;
+        link.href = webpDataUrl;
+        link.click();
+
+        this.onMensagem.emit({
+          severity: 'success',
+          summary: 'Sucesso',
+          detail: 'Imagem WEBP gerada com sucesso!',
+        });
+      })
+      .catch((error: any) => {
+        console.error('Erro ao gerar imagem:', error);
+        this.onMensagem.emit({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Falha ao gerar imagem. Tente novamente.',
+        });
+      });
   }
 
   voltar() {
