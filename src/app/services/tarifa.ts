@@ -34,6 +34,8 @@ export interface ConfiguracaoGeral {
   // Dados gerais
   festividade: string;
   valorAlmocoExtra: number;
+  valorJantaExtra: number;
+  valorLancheExtra: number;
   valorKwh: number;
   totalUhs: number;
   comodidadesGlobais: string;
@@ -49,11 +51,14 @@ export interface ConfiguracaoGeral {
   almocoInicio: string;
   almocoFim: string;
   almocoAtivo: boolean;
+  lancheTardeInicio: string;
+  lancheTardeFim: string;
+  lancheTardeAtivo: boolean;
   jantarInicio: string;
   jantarFim: string;
   jantarAtivo: boolean;
 
-  // Promoção geral (simplificada)
+  // Promoção geral
   promocaoAtiva: boolean;
   promocaoDesconto: number;
   promocaoMinDiarias: number;
@@ -62,8 +67,19 @@ export interface ConfiguracaoGeral {
   promocaoMsgBaixa: boolean;
 
   // Segurança - AGORA USANDO HASH
-  senhaHash: string; // hash da senha (NÃO armazena senha em texto puro)
-  senhaSalt?: string; // salt (opcional, para mais segurança)
+  senhaHash: string; // hash da senha (string vazia = sem senha)
+  senhaSalt?: string;
+
+  // ========== TEXTOS DO ORÇAMENTO ==========
+  orcTitulo: string;
+  orcConfigTitulo: string;
+  orcConfigDescricao: string;
+  orcNotaRefeicoes: string;
+  orcCronograma: string;
+  orcPagamento: string;
+  orcObservacoes: string;
+  orcRodape: string;
+  orcSinalPercentual: number;
 }
 
 @Injectable({
@@ -136,9 +152,17 @@ export class TarifaService {
 
   // ===== CONFIGURAÇÃO GERAL =====
   getConfiguracao(): ConfiguracaoGeral {
-    const config = this.storage.get<ConfiguracaoGeral>(this.STORAGE_CONFIG);
-    if (config) {
-      return config;
+    const stored = this.storage.get<ConfiguracaoGeral>(this.STORAGE_CONFIG);
+    if (stored) {
+      const defaults = this.getConfiguracaoPadrao();
+      const result = { ...stored };
+      // Preenche apenas campos que estão totalmente ausentes (undefined)
+      Object.keys(defaults).forEach((key) => {
+        if (result[key as keyof ConfiguracaoGeral] === undefined) {
+          (result as any)[key] = defaults[key as keyof ConfiguracaoGeral];
+        }
+      });
+      return result;
     }
 
     // Se não existir configuração, retorna a padrão
@@ -149,6 +173,8 @@ export class TarifaService {
     return {
       festividade: '🎊 Evento Especial',
       valorAlmocoExtra: 45,
+      valorJantaExtra: 55,
+      valorLancheExtra: 25,
       valorKwh: 0.89,
       totalUhs: 50,
       comodidadesGlobais: 'Frigobar, TV, Ar-condicionado, Wi-Fi, Hidro',
@@ -160,6 +186,9 @@ export class TarifaService {
       almocoInicio: '12:00',
       almocoFim: '14:00',
       almocoAtivo: true,
+      lancheTardeInicio: '15:00',
+      lancheTardeFim: '17:00',
+      lancheTardeAtivo: true,
       jantarInicio: '19:00',
       jantarFim: '21:00',
       jantarAtivo: true,
@@ -170,6 +199,23 @@ export class TarifaService {
       promocaoSomenteAlta: true,
       promocaoMsgBaixa: false,
       senhaHash: this.criptografia.hashSenha('1234'), // HASH da senha padrão
+      senhaSalt: '',
+
+      // ========== VALORES PADRÃO PARA TEXTOS DO ORÇAMENTO ==========
+      orcTitulo: 'Orçamento de Hospedagem',
+      orcConfigTitulo: '1. Configuração de Acomodação e Valores',
+      orcConfigDescricao:
+        'A proposta contempla a estadia com café da manhã incluso, além de estrutura de alimentação completa e horas extras de permanência.',
+      orcNotaRefeicoes:
+        'Obs.: As quantidades de refeições descritas na tabela referem-se ao consumo por integrante da acomodação para o período total da estadia.',
+      orcCronograma:
+        'Check-in: {checkinHora} do dia {checkinDataBr}.\nCheck-out: {checkoutHora} do dia {checkoutDataBr}.\n{mensagemHorasExtras}',
+      orcPagamento:
+        'Forma de Pagamento: Sinal de {sinalPercentual}% do valor total ({totalGeral}) no ato da reserva para garantia do bloqueio dos quartos.\nSaldo Restante: Deve ser quitado no momento do check-in ou conforme acordado previamente.\nValidade do Orçamento: Válido apenas para as datas especificadas.\nPrazo de Confirmação: A reserva deve ser confirmada e o sinal pago com no mínimo 10 dias de antecedência ao check-in.',
+      orcObservacoes:
+        'Refeições: O café da manhã é cortesia da casa e já está incluso no valor das diárias.\nAlimentação: Os almoços, lanches da tarde e jantares foram calculados para atender toda a delegação durante o período de permanência.\nValores das refeições: Almoço {valorAlmoco}, Janta {valorJanta}, Lanche {valorLanche} por pessoa.',
+      orcRodape: 'Setor de Reservas - Hotel Plaza',
+      orcSinalPercentual: 50,
     };
   }
 
@@ -179,23 +225,18 @@ export class TarifaService {
 
   // ===== LIMPAR CACHE (RESET PARA PADRÃO) =====
   limparCache(): void {
-    // Remove todas as chaves do storage relacionadas ao sistema
     this.storage.remove(this.STORAGE_CATEGORIAS);
     this.storage.remove(this.STORAGE_PROMOCOES);
     this.storage.remove(this.STORAGE_CONFIG);
-
-    // Reinicializa com dados padrão (já vai usar hash)
     this.inicializarDadosPadrao();
   }
 
-  // Mantido para compatibilidade
   getComodidades(): any[] {
     return this.storage.get<any[]>('comodidades') || [];
   }
 
   // ===== DADOS INICIAIS =====
   private inicializarDadosPadrao(): void {
-    // Inicializa categorias se vazio
     if (this.getCategorias().length === 0) {
       const categoriasPadrao: CategoriaQuarto[] = [
         {
@@ -234,13 +275,12 @@ export class TarifaService {
       this.storage.set(this.STORAGE_CATEGORIAS, categoriasPadrao);
     }
 
-    // Inicializa configuração se vazio
     if (!this.storage.get(this.STORAGE_CONFIG)) {
       this.storage.set(this.STORAGE_CONFIG, this.getConfiguracaoPadrao());
     }
   }
 
-  // ===== BACKUP NOVO FORMATO =====
+  // ===== BACKUP =====
   exportarDados(): any {
     return {
       versao: '2.0',
@@ -266,31 +306,27 @@ export class TarifaService {
     }
   }
 
-  // ===== IMPORTAÇÃO DO BACKUP ANTIGO (Sistema-HP) =====
   importarBackupAntigo(dados: any): { sucesso: boolean; mensagem: string } {
     try {
-      // Validar se é um backup antigo (presença de 'cabecalho' e 't')
       if (!dados.cabecalho || !dados.t) {
         return { sucesso: false, mensagem: 'Arquivo não é um backup antigo válido.' };
       }
 
-      // Pegar configuração atual (para preservar senha)
       const config = this.getConfiguracao();
 
-      // Mapear campos do backup antigo para a nova config
       if (dados.f !== undefined) config.festividade = dados.f;
       if (dados.a !== undefined) config.valorAlmocoExtra = Number(dados.a);
+      if (dados.j !== undefined) config.valorJantaExtra = Number(dados.j);
+      if (dados.l !== undefined) config.valorLancheExtra = Number(dados.l);
       if (dados.k !== undefined) config.valorKwh = Number(dados.k);
       if (dados.u !== undefined) config.totalUhs = Number(dados.u);
       if (dados.ai) config.altaInicio = dados.ai;
       if (dados.af) config.altaFim = dados.af;
 
-      // Comodidades globais: array -> string separada por vírgula
       if (dados.c && Array.isArray(dados.c)) {
         config.comodidadesGlobais = dados.c.map((item: string) => item.trim()).join(', ');
       }
 
-      // Horários das refeições
       if (dados.h) {
         if (dados.h.cafe) {
           config.cafeInicio = dados.h.cafe[0] || '07:00';
@@ -302,6 +338,11 @@ export class TarifaService {
           config.almocoFim = dados.h.almoco[1] || '14:00';
           config.almocoAtivo = dados.h.almoco[2] === true;
         }
+        if (dados.h.lanche) {
+          config.lancheTardeInicio = dados.h.lanche[0] || '15:00';
+          config.lancheTardeFim = dados.h.lanche[1] || '17:00';
+          config.lancheTardeAtivo = dados.h.lanche[2] === true;
+        }
         if (dados.h.janta) {
           config.jantarInicio = dados.h.janta[0] || '19:00';
           config.jantarFim = dados.h.janta[1] || '21:00';
@@ -309,7 +350,6 @@ export class TarifaService {
         }
       }
 
-      // Promoções
       if (dados.p) {
         config.promocaoAtiva = dados.p.ativo === true;
         config.promocaoDesconto = Number(dados.p.pct) || 0;
@@ -319,20 +359,28 @@ export class TarifaService {
         config.promocaoMsgBaixa = dados.p.msgBaixa === true;
       }
 
-      // Salvar configurações (mantém a senha atual)
+      // ===== CAMPOS DE TEXTO =====
+      if (dados.orc_titulo) config.orcTitulo = dados.orc_titulo;
+      if (dados.orc_config_titulo) config.orcConfigTitulo = dados.orc_config_titulo;
+      if (dados.orc_config_descricao) config.orcConfigDescricao = dados.orc_config_descricao;
+      if (dados.orc_nota_refeicoes) config.orcNotaRefeicoes = dados.orc_nota_refeicoes;
+      if (dados.orc_cronograma) config.orcCronograma = dados.orc_cronograma;
+      if (dados.orc_pagamento) config.orcPagamento = dados.orc_pagamento;
+      if (dados.orc_observacoes) config.orcObservacoes = dados.orc_observacoes;
+      if (dados.orc_rodape) config.orcRodape = dados.orc_rodape;
+      if (dados.orc_sinal_percentual)
+        config.orcSinalPercentual = Number(dados.orc_sinal_percentual);
+
       this.salvarConfiguracao(config);
 
-      // Importar categorias (UHs)
       const novasCategorias: CategoriaQuarto[] = [];
-
       dados.t.forEach((uh: any) => {
-        // Determinar tipo de ocupação baseado no campo 'grupo' se existir
         let tipoOcupacao: '' | 'casal' | 'solteiro' = '';
         if (uh.grupo === 'solteiro') tipoOcupacao = 'solteiro';
         else if (uh.grupo === 'casal') tipoOcupacao = 'casal';
 
         const novaCategoria: CategoriaQuarto = {
-          id: this.storage.generateId(), // novo id
+          id: this.storage.generateId(),
           nome: uh.nome || 'Sem nome',
           capacidadeMaxima: uh.cap || 2,
           precoAltaCafe: uh.alta?.[0] || 0,
@@ -350,9 +398,7 @@ export class TarifaService {
         novasCategorias.push(novaCategoria);
       });
 
-      // Substituir todas as categorias antigas pelas novas
       this.storage.set(this.STORAGE_CATEGORIAS, novasCategorias);
-
       return { sucesso: true, mensagem: 'Backup antigo importado com sucesso!' };
     } catch (error) {
       console.error('Erro ao importar backup antigo:', error);

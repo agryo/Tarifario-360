@@ -8,12 +8,13 @@
     <p-tab value="1">🎁 Promoções</p-tab>
     <p-tab value="2">⏰ Horários</p-tab>
     <p-tab value="3">🔐 Segurança</p-tab>
-    <p-tab value="4">🌙 Escala</p-tab>
-    <p-tab value="5">💾 Backup</p-tab>
+    <p-tab value="4">📝 Textos do Orçamento</p-tab>
+    <p-tab value="5">🌙 Escala</p-tab>
+    <p-tab value="6">💾 Backup</p-tab>
   </p-tablist>
 
   <p-tabpanels>
-    <!-- ===== TAB 1: TARIFÁRIO ===== -->
+    <!-- ===== TAB 0: TARIFÁRIO ===== -->
     <p-tabpanel value="0">
       <!-- Configurações do topo -->
       <div class="grid mb-3">
@@ -34,6 +35,31 @@
             ></p-inputNumber>
           </div>
         </div>
+        <div class="col-12 md:col-2">
+          <div class="field">
+            <label>Valor Janta (R$)</label>
+            <p-inputNumber
+              [(ngModel)]="config.valorJantaExtra"
+              mode="currency"
+              currency="BRL"
+              styleClass="w-full"
+            ></p-inputNumber>
+          </div>
+        </div>
+        <div class="col-12 md:col-2">
+          <div class="field">
+            <label>Valor Lanche (R$)</label>
+            <p-inputNumber
+              [(ngModel)]="config.valorLancheExtra"
+              mode="currency"
+              currency="BRL"
+              styleClass="w-full"
+            ></p-inputNumber>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid mb-3">
         <div class="col-12 md:col-2">
           <div class="field">
             <label>Valor kWh (R$)</label>
@@ -153,7 +179,7 @@
       </p-table>
     </p-tabpanel>
 
-    <!-- ===== TAB 2: PROMOÇÕES ===== -->
+    <!-- ===== TAB 1: PROMOÇÕES ===== -->
     <p-tabpanel value="1">
       <div class="grid">
         <div class="col-12">
@@ -250,10 +276,10 @@
       </div>
     </p-tabpanel>
 
-    <!-- ===== TAB 3: PARÂMETROS GLOBAIS ===== -->
+    <!-- ===== TAB 2: HORÁRIOS (agora com 4 refeições) ===== -->
     <p-tabpanel value="2">
       <div class="grid">
-        <div class="col-12 md:col-4">
+        <div class="col-12 md:col-3">
           <div class="field">
             <label>Horário Café</label>
             <div class="flex gap-2">
@@ -272,7 +298,7 @@
           </div>
         </div>
 
-        <div class="col-12 md:col-4">
+        <div class="col-12 md:col-3">
           <div class="field">
             <label>Horário Almoço</label>
             <div class="flex gap-2">
@@ -291,9 +317,28 @@
           </div>
         </div>
 
-        <div class="col-12 md:col-4">
+        <div class="col-12 md:col-3">
           <div class="field">
-            <label>Lanche à Noite</label>
+            <label>Lanche da Tarde</label>
+            <div class="flex gap-2">
+              <input type="time" pInputText [(ngModel)]="config.lancheTardeInicio" class="w-full" />
+              <span class="p-2">às</span>
+              <input type="time" pInputText [(ngModel)]="config.lancheTardeFim" class="w-full" />
+            </div>
+            <div class="field-checkbox mt-1">
+              <p-checkbox
+                [(ngModel)]="config.lancheTardeAtivo"
+                [binary]="true"
+                inputId="lancheTardeAtivo"
+              ></p-checkbox>
+              <label for="lancheTardeAtivo" class="ml-2">Exibir nas mensagens</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 md:col-3">
+          <div class="field">
+            <label>Jantar</label>
             <div class="flex gap-2">
               <input type="time" pInputText [(ngModel)]="config.jantarInicio" class="w-full" />
               <span class="p-2">às</span>
@@ -312,7 +357,7 @@
       </div>
     </p-tabpanel>
 
-    <!-- ===== TAB 4: SEGURANÇA ===== -->
+    <!-- ===== TAB 3: SEGURANÇA ===== -->
     <p-tabpanel value="3">
       <div class="grid">
         <div class="col-12 md:col-6">
@@ -424,8 +469,232 @@
       </div>
     </p-tabpanel>
 
-    <!-- ===== TAB 5: ESCALA ===== -->
+    <!-- ===== TAB 4: TEXTOS DO ORÇAMENTO ===== -->
     <p-tabpanel value="4">
+      <div class="grid">
+        <!-- Caixa de ajuda colapsável com placeholders (Fieldset) -->
+        <div class="col-12">
+          <p-fieldset
+            legend="📌 Placeholders disponíveis e dicas de formatação"
+            [toggleable]="true"
+            [collapsed]="true"
+          >
+            <div class="grid">
+              <div class="col-12 md:col-6">
+                <strong class="text-primary">Placeholders:</strong>
+                <ul class="list-none p-0 m-0 mt-2">
+                  <li>
+                    <code>{{ '{' }}cliente{{ '}' }}</code> – Nome do cliente
+                  </li>
+                  <li>
+                    <code>{{ '{' }}checkinHora{{ '}' }}</code> – Hora de entrada
+                  </li>
+                  <li>
+                    <code>{{ '{' }}checkoutHora{{ '}' }}</code> – Hora de saída
+                  </li>
+                  <li>
+                    <code>{{ '{' }}checkinDataBr{{ '}' }}</code> – Data entrada (pt-BR)
+                  </li>
+                  <li>
+                    <code>{{ '{' }}checkoutDataBr{{ '}' }}</code> – Data saída (pt-BR)
+                  </li>
+                  <li>
+                    <code>{{ '{' }}noites{{ '}' }}</code> – Número de diárias
+                  </li>
+                  <li>
+                    <code>{{ '{' }}totalGeral{{ '}' }}</code> – Valor total
+                  </li>
+                  <li>
+                    <code>{{ '{' }}valorAlmoco{{ '}' }}</code> – Valor do almoço
+                  </li>
+                  <li>
+                    <code>{{ '{' }}valorJanta{{ '}' }}</code> – Valor da janta
+                  </li>
+                  <li>
+                    <code>{{ '{' }}valorLanche{{ '}' }}</code> – Valor do lanche
+                  </li>
+                </ul>
+              </div>
+              <div class="col-12 md:col-6">
+                <strong class="text-primary">Outros placeholders:</strong>
+                <ul class="list-none p-0 m-0 mt-2">
+                  <li>
+                    <code>{{ '{' }}sinalPercentual{{ '}' }}</code> – % de sinal
+                  </li>
+                  <li>
+                    <code>{{ '{' }}horasExtras{{ '}' }}</code> – Horas extras
+                  </li>
+                  <li>
+                    <code>{{ '{' }}mensagemHorasExtras{{ '}' }}</code> – Texto das horas extras
+                  </li>
+                  <li>
+                    <code>{{ '{' }}percentualDesconto{{ '}' }}</code> – % desconto (promoção)
+                  </li>
+                  <li>
+                    <code>{{ '{' }}minimoDiarias{{ '}' }}</code> – Mín. diárias (promoção)
+                  </li>
+                  <li>
+                    <code>{{ '{' }}textoPromocao{{ '}' }}</code> – Texto da promoção
+                  </li>
+                  <li>
+                    <code>{{ '{' }}temporada{{ '}' }}</code> – Temporada selecionada
+                  </li>
+                </ul>
+              </div>
+              <div class="col-12">
+                <p-divider></p-divider>
+                <strong class="text-primary">🎨 Formatação com HTML:</strong>
+                <p class="mt-2">Você pode usar tags HTML para estilizar os textos:</p>
+                <div class="grid">
+                  <div class="col-12 md:col-6">
+                    <ul class="list-none p-0 m-0">
+                      <li>
+                        <code>&lt;strong&gt;negrito&lt;/strong&gt;</code> → <strong>negrito</strong>
+                      </li>
+                      <li><code>&lt;em&gt;itálico&lt;/em&gt;</code> → <em>itálico</em></li>
+                      <li><code>&lt;u&gt;sublinhado&lt;/u&gt;</code> → <u>sublinhado</u></li>
+                    </ul>
+                  </div>
+                  <div class="col-12 md:col-6">
+                    <ul class="list-none p-0 m-0">
+                      <li><code>&lt;br&gt;</code> – quebra de linha</li>
+                      <li><code>&lt;p&gt;...&lt;/p&gt;</code> – novo parágrafo</li>
+                    </ul>
+                  </div>
+                </div>
+                <p class="mt-2">
+                  Ex:
+                  <code
+                    >&lt;strong&gt;Check-in:&lt;/strong&gt; {{ '{' }}checkinHora{{ '}' }} do dia
+                    {{ '{' }}checkinDataBr{{ '}' }}.&lt;br&gt;</code
+                  >
+                </p>
+              </div>
+            </div>
+          </p-fieldset>
+        </div>
+
+        <!-- Campos de texto organizados em grid -->
+        <div class="col-12 md:col-6">
+          <div class="field">
+            <label for="orcTitulo">Título do Orçamento</label>
+            <input
+              id="orcTitulo"
+              type="text"
+              pInputText
+              [(ngModel)]="config.orcTitulo"
+              class="w-full"
+            />
+          </div>
+        </div>
+        <div class="col-12 md:col-6">
+          <div class="field">
+            <label for="orcConfigTitulo">Título da Seção de Configuração</label>
+            <input
+              id="orcConfigTitulo"
+              type="text"
+              pInputText
+              [(ngModel)]="config.orcConfigTitulo"
+              class="w-full"
+            />
+          </div>
+        </div>
+
+        <div class="col-12">
+          <div class="field">
+            <label for="orcConfigDescricao">Descrição da Seção de Configuração</label>
+            <textarea
+              id="orcConfigDescricao"
+              pInputTextarea
+              [(ngModel)]="config.orcConfigDescricao"
+              rows="2"
+              class="w-full"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <div class="field">
+            <label for="orcNotaRefeicoes">Nota após a tabela</label>
+            <textarea
+              id="orcNotaRefeicoes"
+              pInputTextarea
+              [(ngModel)]="config.orcNotaRefeicoes"
+              rows="2"
+              class="w-full"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <div class="field">
+            <label for="orcCronograma">Cronograma de Estadia e Logística</label>
+            <textarea
+              id="orcCronograma"
+              pInputTextarea
+              [(ngModel)]="config.orcCronograma"
+              rows="3"
+              class="w-full"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <div class="field">
+            <label for="orcPagamento">Condições de Pagamento e Prazos</label>
+            <textarea
+              id="orcPagamento"
+              pInputTextarea
+              [(ngModel)]="config.orcPagamento"
+              rows="3"
+              class="w-full"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <div class="field">
+            <label for="orcObservacoes">Observações Gerais</label>
+            <textarea
+              id="orcObservacoes"
+              pInputTextarea
+              [(ngModel)]="config.orcObservacoes"
+              rows="3"
+              class="w-full"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="col-12 md:col-6">
+          <div class="field">
+            <label for="orcRodape">Texto do Rodapé (Assinaturas)</label>
+            <input
+              id="orcRodape"
+              type="text"
+              pInputText
+              [(ngModel)]="config.orcRodape"
+              class="w-full"
+            />
+          </div>
+        </div>
+
+        <div class="col-12 md:col-6">
+          <div class="field">
+            <label for="orcSinalPercentual">Percentual de Sinal (%)</label>
+            <p-inputNumber
+              id="orcSinalPercentual"
+              [(ngModel)]="config.orcSinalPercentual"
+              [min]="0"
+              [max]="100"
+              styleClass="w-full"
+            ></p-inputNumber>
+          </div>
+        </div>
+      </div>
+    </p-tabpanel>
+
+    <!-- ===== TAB 5: ESCALA ===== -->
+    <p-tabpanel value="5">
       <div class="grid">
         <div class="col-12 md:col-6">
           <div class="field">
@@ -487,7 +756,7 @@
     </p-tabpanel>
 
     <!-- ===== TAB 6: BACKUP ===== -->
-    <p-tabpanel value="5">
+    <p-tabpanel value="6">
       <div class="grid">
         <!-- Exportar backup novo formato -->
         <div class="col-12 md:col-6">

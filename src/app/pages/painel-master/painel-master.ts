@@ -15,6 +15,9 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { SelectModule } from 'primeng/select';
 import { TooltipModule } from 'primeng/tooltip';
+import { AccordionModule } from 'primeng/accordion';
+import { DividerModule } from 'primeng/divider';
+import { FieldsetModule } from 'primeng/fieldset';
 
 // Services
 import { ConfirmationService } from 'primeng/api';
@@ -22,7 +25,6 @@ import { TarifaService } from '../../services/tarifa';
 import { CriptografiaService } from '../../services/criptografia';
 import { EscalaService, EscalaConfig } from '../../services/escala';
 
-// Registra a localização pt-BR
 registerLocaleData(localePt);
 
 @Component({
@@ -31,7 +33,6 @@ registerLocaleData(localePt);
   imports: [
     CommonModule,
     FormsModule,
-    // PrimeNG
     ButtonModule,
     CardModule,
     DialogModule,
@@ -43,6 +44,9 @@ registerLocaleData(localePt);
     ConfirmDialogModule,
     SelectModule,
     TooltipModule,
+    AccordionModule,
+    DividerModule,
+    FieldsetModule,
   ],
   providers: [ConfirmationService, { provide: LOCALE_ID, useValue: 'pt-BR' }],
   templateUrl: './painel-master.html',
@@ -57,6 +61,8 @@ export class PainelMasterComponent implements OnInit {
   config: any = {
     festividade: '🎊 Evento Especial',
     valorAlmocoExtra: 30,
+    valorJantaExtra: 35,
+    valorLancheExtra: 20,
     valorKwh: 1.8,
     totalUhs: 10,
     comodidadesGlobais: 'Frigobar, TV, Ar-condicionado, Wi-Fi, Hidro',
@@ -68,6 +74,9 @@ export class PainelMasterComponent implements OnInit {
     almocoInicio: '12:00',
     almocoFim: '14:00',
     almocoAtivo: true,
+    lancheTardeInicio: '15:00',
+    lancheTardeFim: '17:00',
+    lancheTardeAtivo: true,
     jantarInicio: '19:00',
     jantarFim: '21:00',
     jantarAtivo: true,
@@ -77,9 +86,22 @@ export class PainelMasterComponent implements OnInit {
     promocaoTexto: 'Pagamento integral via Pix ou Dinheiro',
     promocaoSomenteAlta: true,
     promocaoMsgBaixa: false,
+    orcTitulo: 'Orçamento de Hospedagem',
+    orcConfigTitulo: '1. Configuração de Acomodação e Valores',
+    orcConfigDescricao:
+      'A proposta contempla a estadia com café da manhã incluso, além de estrutura de alimentação completa e horas extras de permanência.',
+    orcNotaRefeicoes:
+      'Obs.: As quantidades de refeições descritas na tabela referem-se ao consumo por integrante da acomodação para o período total da estadia.',
+    orcCronograma:
+      'Check-in: {checkinHora} do dia {checkinDataBr}.\nCheck-out: {checkoutHora} do dia {checkoutDataBr}.\n{mensagemHorasExtras}',
+    orcPagamento:
+      'Forma de Pagamento: Sinal de {sinalPercentual}% do valor total ({totalGeral}) no ato da reserva para garantia do bloqueio dos quartos.\nSaldo Restante: Deve ser quitado no momento do check-in ou conforme acordado previamente.\nValidade do Orçamento: Válido apenas para as datas especificadas.\nPrazo de Confirmação: A reserva deve ser confirmada e o sinal pago com no mínimo 10 dias de antecedência ao check-in.',
+    orcObservacoes:
+      'Refeições: O café da manhã é cortesia da casa e já está incluso no valor das diárias.\nAlimentação: Os almoços, lanches da tarde e jantares foram calculados para atender toda a delegação durante o período de permanência.\nValores das refeições: Almoço {valorAlmoco}, Janta {valorJanta}, Lanche {valorLanche} por pessoa.',
+    orcRodape: 'Setor de Reservas - Hotel Plaza',
+    orcSinalPercentual: 50,
   };
 
-  // Dias da semana (para a aba de escala)
   diasSemana = [
     { nome: 'DOM', valor: 0 },
     { nome: 'SEG', valor: 1 },
@@ -90,20 +112,16 @@ export class PainelMasterComponent implements OnInit {
     { nome: 'SÁB', valor: 6 },
   ];
 
-  // Configuração da escala (com asserção de atribuição definitiva)
   escalaConfig!: EscalaConfig;
 
-  // Categorias
   categorias: any[] = [];
   categoriaDialog: boolean = false;
   categoriaEdit: any = {};
 
-  // Promoções
   promocoes: any[] = [];
   promocaoDialog: boolean = false;
   promocaoEdit: any = {};
 
-  // Controles de senha
   mostrarSenhaAtual: boolean = false;
   mostrarNovaSenha: boolean = false;
   mostrarConfirmarSenha: boolean = false;
@@ -242,20 +260,12 @@ export class PainelMasterComponent implements OnInit {
   }
 
   salvarPromocao() {
-    this.onMensagem.emit({
-      severity: 'success',
-      summary: 'Sucesso',
-      detail: 'Promoção salva',
-    });
+    this.onMensagem.emit({ severity: 'success', summary: 'Sucesso', detail: 'Promoção salva' });
     this.promocaoDialog = false;
   }
 
   excluirPromocao(promocao: any) {
-    this.onMensagem.emit({
-      severity: 'info',
-      summary: 'Excluído',
-      detail: 'Promoção removida',
-    });
+    this.onMensagem.emit({ severity: 'info', summary: 'Excluído', detail: 'Promoção removida' });
   }
 
   onPromocaoSomenteAltaChange() {
@@ -302,7 +312,7 @@ export class PainelMasterComponent implements OnInit {
     if (this.novaSenhaInput) {
       this.config.senhaHash = this.criptografia.hashSenha(this.novaSenhaInput);
     } else {
-      delete this.config.senhaHash;
+      this.config.senhaHash = ''; // senha vazia = removida
     }
 
     this.tarifaService.salvarConfiguracao(this.config);
@@ -328,8 +338,8 @@ export class PainelMasterComponent implements OnInit {
         rejectLabel: 'Cancelar',
         acceptButtonStyleClass: 'p-button-danger',
         accept: () => {
-          delete this.config.senhaHash;
-          delete this.config.senhaSalt;
+          this.config.senhaHash = ''; // em vez de delete
+          this.config.senhaSalt = '';
           this.tarifaService.salvarConfiguracao(this.config);
           this.onMensagem.emit({
             severity: 'success',
@@ -381,18 +391,10 @@ export class PainelMasterComponent implements OnInit {
           });
           this.carregarDados();
         } else {
-          this.onMensagem.emit({
-            severity: 'error',
-            summary: 'Erro',
-            detail: resultado.mensagem,
-          });
+          this.onMensagem.emit({ severity: 'error', summary: 'Erro', detail: resultado.mensagem });
         }
       } catch {
-        this.onMensagem.emit({
-          severity: 'error',
-          summary: 'Erro',
-          detail: 'Arquivo inválido',
-        });
+        this.onMensagem.emit({ severity: 'error', summary: 'Erro', detail: 'Arquivo inválido' });
       }
     };
     reader.readAsText(file);
@@ -414,18 +416,10 @@ export class PainelMasterComponent implements OnInit {
           });
           this.carregarDados();
         } else {
-          this.onMensagem.emit({
-            severity: 'error',
-            summary: 'Erro',
-            detail: resultado.mensagem,
-          });
+          this.onMensagem.emit({ severity: 'error', summary: 'Erro', detail: resultado.mensagem });
         }
       } catch {
-        this.onMensagem.emit({
-          severity: 'error',
-          summary: 'Erro',
-          detail: 'Arquivo inválido',
-        });
+        this.onMensagem.emit({ severity: 'error', summary: 'Erro', detail: 'Arquivo inválido' });
       }
     };
     reader.readAsText(file);
