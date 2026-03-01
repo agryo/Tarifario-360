@@ -796,28 +796,6 @@
           </p-card>
         </div>
 
-        <!-- NOVO: Importar backup antigo (Sistema-HP) -->
-        <div class="col-12 md:col-6">
-          <p-card header="📥 Importar Backup Antigo (Sistema-HP)">
-            <p class="mb-3">
-              Carregue um arquivo JSON do sistema antigo para converter e importar todos os dados.
-            </p>
-            <input
-              type="file"
-              accept=".json"
-              #fileInputAntigo
-              style="display: none"
-              (change)="importarBackupAntigo($event)"
-            />
-            <p-button
-              label="Importar Backup Antigo"
-              icon="pi pi-upload"
-              styleClass="p-button-help"
-              (click)="fileInputAntigo.click()"
-            ></p-button>
-          </p-card>
-        </div>
-
         <!-- Limpeza -->
         <div class="col-12 mt-3">
           <p-card header="🧹 Limpeza">

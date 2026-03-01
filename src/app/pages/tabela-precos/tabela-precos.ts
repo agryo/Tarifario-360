@@ -11,8 +11,11 @@ import { MessageModule } from 'primeng/message';
 import { MessageService } from 'primeng/api';
 
 // Services
-import { TarifaService, CategoriaQuarto } from '../../services/tarifa';
+import { TarifaService } from '../../services/tarifa';
 import { ImpressaoTabelaService } from '../../services/impressao-tabela';
+
+// Models
+import { CategoriaQuarto } from '../../models/categoria-quarto.model';
 
 // Registra a localização pt-BR
 registerLocaleData(localePt);

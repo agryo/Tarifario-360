@@ -24,6 +24,8 @@ import { ConfirmationService } from 'primeng/api';
 import { TarifaService } from '../../services/tarifa';
 import { CriptografiaService } from '../../services/criptografia';
 import { EscalaService, EscalaConfig } from '../../services/escala';
+import { BackupService } from '../../services/backup';
+import { CategoriaQuarto } from '../../models/categoria-quarto.model';
 
 registerLocaleData(localePt);
 
@@ -114,7 +116,7 @@ export class PainelMasterComponent implements OnInit {
 
   escalaConfig!: EscalaConfig;
 
-  categorias: any[] = [];
+  categorias: CategoriaQuarto[] = [];
   categoriaDialog: boolean = false;
   categoriaEdit: any = {};
 
@@ -131,6 +133,7 @@ export class PainelMasterComponent implements OnInit {
 
   constructor(
     private tarifaService: TarifaService,
+    private backupService: BackupService,
     private confirmationService: ConfirmationService,
     private criptografia: CriptografiaService,
     private escalaService: EscalaService,
@@ -359,15 +362,8 @@ export class PainelMasterComponent implements OnInit {
 
   // ===== BACKUP =====
   exportarBackup() {
-    const backup = this.tarifaService.exportarDados();
-    const dataStr = JSON.stringify(backup, null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `backup_${new Date().toISOString().split('T')[0]}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
+    const backup = this.backupService.exportarDados();
+    this.backupService.downloadBackup(backup);
     this.onMensagem.emit({
       severity: 'success',
       summary: 'Backup exportado',
@@ -382,39 +378,14 @@ export class PainelMasterComponent implements OnInit {
     reader.onload = (e) => {
       try {
         const backup = JSON.parse(e.target?.result as string);
-        const resultado = this.tarifaService.importarDados(backup);
+        const resultado = this.backupService.importarDados(backup);
         if (resultado.sucesso) {
           this.onMensagem.emit({
             severity: 'success',
             summary: 'Sucesso',
             detail: resultado.mensagem,
           });
-          this.carregarDados();
-        } else {
-          this.onMensagem.emit({ severity: 'error', summary: 'Erro', detail: resultado.mensagem });
-        }
-      } catch {
-        this.onMensagem.emit({ severity: 'error', summary: 'Erro', detail: 'Arquivo inválido' });
-      }
-    };
-    reader.readAsText(file);
-  }
-
-  importarBackupAntigo(event: any) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const dados = JSON.parse(e.target?.result as string);
-        const resultado = this.tarifaService.importarBackupAntigo(dados);
-        if (resultado.sucesso) {
-          this.onMensagem.emit({
-            severity: 'success',
-            summary: 'Sucesso',
-            detail: resultado.mensagem,
-          });
-          this.carregarDados();
+          this.carregarDados(); // recarrega todos os dados
         } else {
           this.onMensagem.emit({ severity: 'error', summary: 'Erro', detail: resultado.mensagem });
         }

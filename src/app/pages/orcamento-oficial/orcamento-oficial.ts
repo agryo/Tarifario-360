@@ -17,7 +17,7 @@ import { MessageService } from 'primeng/api';
 import { ConfirmationService } from 'primeng/api';
 
 // Services
-import { TarifaService, ConfiguracaoGeral } from '../../services/tarifa';
+import { TarifaService } from '../../services/tarifa';
 import { OrcamentoOficialService } from '../../services/orcamento-oficial';
 import { DateUtils } from '../../utils/date-utils';
 
@@ -25,7 +25,8 @@ import { DateUtils } from '../../utils/date-utils';
 import { SubstituirPlaceholdersPipe } from '../../pipes/substituir-placeholders-pipe';
 
 // Models
-import { CategoriaQuarto } from '../../services/tarifa';
+import { CategoriaQuarto } from '../../models/categoria-quarto.model';
+import { ConfiguracaoGeral } from '../../models/tarifa.model';
 
 registerLocaleData(localePt);
 
