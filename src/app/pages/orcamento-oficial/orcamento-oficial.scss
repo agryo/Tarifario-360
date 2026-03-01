@@ -2,104 +2,28 @@
   display: block;
 }
 
-.orcamento-oficial-container {
+// Largura máxima personalizada (não disponível no PrimeFlex)
+.max-w-1100 {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 1px;
 }
 
-.orcamento-oficial-titulo {
-  display: flex;
-  gap: 1px;
-  justify-content: center;
-  background-color: var(--surface-card);
-  color: var(--text-color);
-}
-
-.config-area {
-  background: var(--surface-card);
-  border: 2px solid var(--primary-color);
-}
-
-.documento {
-  background: var(--surface-card);
-  color: var(--text-color);
-  border: 1px solid var(--surface-border);
-  font-size: 12px;
-
-  .header-doc {
-    img {
-      max-width: 80px;
-    }
-    h1 {
-      color: var(--primary-color);
-      font-size: 15px;
-    }
-    p {
-      font-size: 9px;
-      color: var(--text-secondary-color);
-    }
-  }
-
-  .doc-title {
-    color: var(--primary-color);
-    font-size: 16px;
-    text-transform: uppercase;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    th,
-    td {
-      border: 1px solid var(--surface-border);
-      padding: 4px 6px;
-      font-size: 10px;
-    }
-    th {
-      background: var(--surface-ground);
-      color: var(--text-color);
-    }
-  }
-
-  .check-info-box {
-    font-size: 10px;
-    background: var(--surface-ground);
-  }
-
-  .obs-doc ul {
-    list-style: disc;
-    padding-left: 15px;
-    font-size: 10px;
-  }
-
-  .footer-assinaturas {
-    .assinatura-box {
-      border-top: 1.5px solid var(--text-color);
-      font-size: 10px;
-      font-weight: bold;
-    }
-  }
+// Evita que dropdowns dentro da tabela sejam cortados
+:host ::ng-deep .p-datatable .p-datatable-wrapper {
+  overflow: visible !important;
 }
 
 @media print {
-  .config-area,
   .no-print {
     display: none !important;
   }
-
   .documento {
+    background: white !important;
+    color: black !important;
+    border: 1px solid #ddd !important;
     box-shadow: none;
     width: 100%;
     margin: 0;
     padding: 5mm;
-    background: white !important;
-    color: black !important;
-    border: 1px solid #ddd !important;
   }
-}
-
-// Correção para o Dropdown/Select não ficar cortado dentro da tabela
-:host ::ng-deep .p-datatable .p-datatable-wrapper {
-  overflow: visible !important;
 }

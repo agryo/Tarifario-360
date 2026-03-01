@@ -1,11 +1,11 @@
-<div class="orcamento-oficial-container p-1 border-round align-items-center mb-1">
+<div class="max-w-1100 mx-auto p-1">
   <!-- Título da página -->
-  <div class="orcamento-oficial-titulo surface-card p-1 border-round text-center mb-3">
+  <div class="surface-card p-1 border-round text-center mb-3">
     <h1 class="text-2xl font-bold text-center">📄 Orçamento Oficial</h1>
   </div>
 
   <!-- Área de Configuração -->
-  <div class="config-area surface-card p-3 border-round mb-3">
+  <div class="surface-card p-3 border-round mb-3 border-2 border-primary">
     <div class="flex justify-content-between align-items-center mb-3">
       <h2 class="text-xl font-bold m-0">📄 Insira os dados</h2>
       <div class="flex gap-2">
@@ -37,6 +37,7 @@
       </div>
     </div>
 
+    <!-- Primeira linha: Cliente e Temporada -->
     <div class="grid">
       <div class="col-12 md:col-6">
         <div class="field">
@@ -51,7 +52,7 @@
           />
         </div>
       </div>
-      <div class="col-12 md:col-2">
+      <div class="col-12 md:col-6">
         <div class="field">
           <label for="temporada">Temporada</label>
           <p-select
@@ -69,7 +70,11 @@
           ></p-select>
         </div>
       </div>
-      <div class="col-12 md:col-2">
+    </div>
+
+    <!-- Segunda linha: Datas e Horas -->
+    <div class="grid">
+      <div class="col-12 md:col-3">
         <div class="field">
           <label for="checkin">Check-in</label>
           <p-datepicker
@@ -83,7 +88,20 @@
           ></p-datepicker>
         </div>
       </div>
-      <div class="col-12 md:col-2">
+      <div class="col-12 md:col-3">
+        <div class="field">
+          <label for="horaEntrada">Hora Entrada</label>
+          <input
+            id="horaEntrada"
+            type="time"
+            pInputText
+            [(ngModel)]="horaEntrada"
+            (change)="onDataChange()"
+            class="w-full"
+          />
+        </div>
+      </div>
+      <div class="col-12 md:col-3">
         <div class="field">
           <label for="checkout">Check-out</label>
           <p-datepicker
@@ -97,6 +115,19 @@
           ></p-datepicker>
         </div>
       </div>
+      <div class="col-12 md:col-3">
+        <div class="field">
+          <label for="horaSaida">Hora Saída</label>
+          <input
+            id="horaSaida"
+            type="time"
+            pInputText
+            [(ngModel)]="horaSaida"
+            (change)="onDataChange()"
+            class="w-full"
+          />
+        </div>
+      </div>
     </div>
 
     <!-- Tabela de Itens -->
@@ -106,8 +137,10 @@
           <th style="width: 50px">Qtd</th>
           <th>Acomodação</th>
           <th>Hóspedes</th>
-          <th style="width: 80px">Café</th>
-          <th style="width: 80px">Almoço</th>
+          <th style="width: 50px">Café</th>
+          <th style="width: 50px">Almoço</th>
+          <th style="width: 50px">Janta</th>
+          <th style="width: 50px">Lanche</th>
           <th style="width: 50px"></th>
         </tr>
       </ng-template>
@@ -137,7 +170,7 @@
             <input
               pInputText
               [(ngModel)]="item.descricao"
-              placeholder="Nome dos hóspedes"
+              placeholder="Nome / cargo"
               class="w-full"
             />
           </td>
@@ -155,6 +188,20 @@
               (onChange)="calcularItem(item)"
             ></p-checkbox>
           </td>
+          <td class="text-center">
+            <p-checkbox
+              [(ngModel)]="item.comJanta"
+              [binary]="true"
+              (onChange)="calcularItem(item)"
+            ></p-checkbox>
+          </td>
+          <td class="text-center">
+            <p-checkbox
+              [(ngModel)]="item.comLanche"
+              [binary]="true"
+              (onChange)="calcularItem(item)"
+            ></p-checkbox>
+          </td>
           <td>
             <p-button
               icon="pi pi-trash"
@@ -166,6 +213,7 @@
       </ng-template>
     </p-table>
 
+    <!-- Botões de ação -->
     <div class="flex justify-content-between align-items-center mt-2">
       <p-button
         label="Adicionar UH"
@@ -173,56 +221,84 @@
         styleClass="p-button-success p-button-sm"
         (click)="adicionarItem()"
       ></p-button>
-      <div class="flex gap-2">
+      <div class="flex gap-2 flex-wrap">
         <p-button
-          label="☕ Todos com Café"
+          [label]="todosCom('comCafe') ? '☕ Todos sem Café' : '☕ Todos com Café'"
           styleClass="p-button-secondary p-button-sm"
-          (click)="marcarTodos('cafe', true)"
+          (click)="alternarTodos('comCafe')"
         ></p-button>
         <p-button
-          label="☕ Todos sem Café"
+          [label]="todosCom('comAlmoco') ? '🍽️ Todos sem Almoço' : '🍽️ Todos com Almoço'"
           styleClass="p-button-secondary p-button-sm"
-          (click)="marcarTodos('cafe', false)"
+          (click)="alternarTodos('comAlmoco')"
         ></p-button>
         <p-button
-          label="🍽️ Todos com Almoço"
+          [label]="todosCom('comJanta') ? '🍛 Todos sem Janta' : '🍛 Todos com Janta'"
           styleClass="p-button-secondary p-button-sm"
-          (click)="marcarTodos('almoco', true)"
+          (click)="alternarTodos('comJanta')"
         ></p-button>
         <p-button
-          label="🍽️ Todos sem Almoço"
+          [label]="todosCom('comLanche') ? '🥪 Todos sem Lanche' : '🥪 Todos com Lanche'"
           styleClass="p-button-secondary p-button-sm"
-          (click)="marcarTodos('almoco', false)"
+          (click)="alternarTodos('comLanche')"
         ></p-button>
       </div>
     </div>
   </div>
 
   <!-- Documento para Impressão -->
-  <div class="documento surface-card p-3 border-round" id="documento-impressao">
-    <div class="header-doc flex align-items-center gap-3 border-bottom-1 pb-2 mb-3">
+  <div class="surface-card p-3 border-round text-xs" id="documento-impressao">
+    <!-- Cabeçalho com logo à esquerda e informações à direita -->
+    <div
+      class="flex align-items-center justify-content-between border-bottom-1 surface-border pb-2 mb-3"
+    >
       <div class="logo-container">
-        <img src="assets/img/logo_plaza.png" alt="Logo" style="max-width: 80px" />
+        <img
+          src="assets/img/logo_plaza.png"
+          alt="Logo"
+          style="margin: 10px auto 10px 80px; max-width: 90px"
+        />
       </div>
-      <div class="hotel-info-doc">
-        <h1 class="text-lg m-0">A. M. da Silva Hotel Plaza</h1>
+      <div class="text-right" style="margin: 10px 80px 10px 10px">
+        <h1 class="text-lg m-0 text-primary">A. M. da Silva Hotel Plaza</h1>
         <p class="text-sm m-0">CNPJ: 62.546.482/0001-3 | (84) 99180-1306</p>
         <p class="text-sm m-0">Rodovia RN 288, 91, Cruzeta - RN</p>
       </div>
     </div>
 
-    <div class="doc-title text-center font-bold text-primary mb-2">Orçamento de Hospedagem</div>
+    <!-- Título dinâmico (configurável) -->
+    <div
+      class="text-center font-bold text-primary mb-2 text-2xl uppercase"
+      [innerHTML]="config.orcTitulo | placeholders: getPlaceholderVars()"
+    ></div>
 
-    <p class="text-sm">
-      À <strong>{{ cliente || 'Nome do Cliente' }}</strong
-      >,
-    </p>
-    <p class="text-sm">
-      Proposta para o período de {{ dataCheckin | date: 'dd/MM/yyyy' }} a
-      {{ dataCheckout | date: 'dd/MM/yyyy' }} ({{ calcularNoites(dataCheckin, dataCheckout) }}
-      diária(s)):
-    </p>
+    <!-- Linha de proposta -->
+    <h2 class="text-left">PROPOSTA DE HOSPEDAGEM: {{ cliente || 'Nome do Cliente' }}</h2>
 
+    <!-- Seção de Configuração -->
+    <div class="mt-3 text-sm">
+      <h2
+        [innerHTML]="config.orcConfigTitulo | placeholders: getPlaceholderVars()"
+        id="docConfigTitulo"
+      ></h2>
+      <p
+        [innerHTML]="config.orcConfigDescricao | placeholders: getPlaceholderVars()"
+        id="docConfigDescricao"
+      ></p>
+      <p>
+        Proposta para o período de
+        <span id="docPeriodo"
+          >{{ dataCheckin | date: 'dd/MM/yyyy' }} a {{ dataCheckout | date: 'dd/MM/yyyy' }}</span
+        >
+        (<span id="docNoites">{{ calcularNoites(dataCheckin, dataCheckout) }}</span>
+        <span id="labelDiaria">{{
+          calcularNoites(dataCheckin, dataCheckout) === 1 ? 'diária' : 'diárias'
+        }}</span
+        >):
+      </p>
+    </div>
+
+    <!-- Tabela de valores -->
     <p-table [value]="itens" styleClass="p-datatable-sm">
       <ng-template pTemplate="header">
         <tr>
@@ -230,6 +306,7 @@
           <th>Acomodação</th>
           <th>Serviços</th>
           <th>Vlr. Diária</th>
+          <th>Diárias</th>
           <th>Total</th>
         </tr>
       </ng-template>
@@ -248,42 +325,62 @@
             </div>
           </td>
           <td>
-            {{ item.comCafe ? 'Café' : '' }}
-            {{ item.comCafe && item.comAlmoco ? ' + ' : '' }}
-            {{ item.comAlmoco ? 'Almoço' : '' }}
+            <span *ngIf="item.comCafe">Café</span>
+            <span *ngIf="item.comAlmoco && item.qtdAlmoco">
+              + {{ item.qtdAlmoco }} Almoço{{ item.qtdAlmoco > 1 ? 's' : '' }}</span
+            >
+            <span *ngIf="item.comJanta && item.qtdJanta">
+              + {{ item.qtdJanta }} Janta{{ item.qtdJanta > 1 ? 's' : '' }}</span
+            >
+            <span *ngIf="item.comLanche && item.qtdLanche">
+              + {{ item.qtdLanche }} Lanche{{ item.qtdLanche > 1 ? 's' : '' }}</span
+            >
           </td>
           <td>{{ item.precoDiaria | currency: 'BRL' }}</td>
-          <td>{{ item.total | currency: 'BRL' }}</td>
+          <td>
+            <span *ngIf="item._subtotalSemExtra != null">
+              {{ item._subtotalSemExtra | currency: 'BRL' }}
+            </span>
+            <span *ngIf="item._extraCharge && item._extraCharge > 0" class="block text-red-500">
+              + {{ item._extraCharge | currency: 'BRL' }} ({{ horasExtras | number: '1.0-0' }}h
+              extra)
+            </span>
+          </td>
+          <td>{{ item._totalItem | currency: 'BRL' }}</td>
         </tr>
       </ng-template>
       <ng-template pTemplate="footer">
+        <tr *ngIf="config.orcNotaRefeicoes">
+          <td
+            colspan="6"
+            class="text-italic p-2"
+            [innerHTML]="config.orcNotaRefeicoes | placeholders: getPlaceholderVars()"
+          ></td>
+        </tr>
         <tr class="font-bold">
-          <td colspan="4" class="text-right">VALOR TOTAL:</td>
+          <td colspan="5" class="text-right">VALOR TOTAL:</td>
           <td>{{ totalGeral | currency: 'BRL' }}</td>
         </tr>
       </ng-template>
     </p-table>
 
-    <div class="check-info-box flex justify-content-around surface-ground p-2 mt-3">
-      <span>📥 <strong>Check-in:</strong> {{ dataCheckin | date: 'dd/MM/yyyy' }} (14h)</span>
-      <span>📤 <strong>Check-out:</strong> {{ dataCheckout | date: 'dd/MM/yyyy' }} (11h)</span>
+    <!-- Seções dinâmicas -->
+    <div class="mt-3 text-sm">
+      <h2>2. Cronograma de Estadia e Logística:</h2>
+      <p [innerHTML]="config.orcCronograma | placeholders: getPlaceholderVars()"></p>
+      <h2>3.Condições de Pagamento e Prazos:</h2>
+      <p [innerHTML]="config.orcPagamento | placeholders: getPlaceholderVars()"></p>
+      <h2>4. Observações Gerais:</h2>
+      <p [innerHTML]="config.orcObservacoes | placeholders: getPlaceholderVars()"></p>
     </div>
 
-    <div class="obs-doc mt-3 text-sm">
-      <strong>Observações:</strong>
-      <ul class="m-0 pl-3">
-        <li>{{ config.comodidadesGlobais || 'Incluso Wi-Fi e Estacionamento monitorado.' }}</li>
-        <li>Café da manhã: {{ config.cafeInicio }} às {{ config.cafeFim }}.</li>
-        <li>Almoço opcional: {{ config.valorAlmocoExtra | currency: 'BRL' }} por pessoa.</li>
-        <li>Proposta válida por 48 horas, sujeita a disponibilidade.</li>
-      </ul>
-    </div>
-
-    <div class="footer-assinaturas flex justify-content-between mt-4">
-      <div class="assinatura-box text-center border-top-1 pt-2 w-5">
-        Setor de Reservas - Hotel Plaza
-      </div>
-      <div class="assinatura-box text-center border-top-1 pt-2 w-5">
+    <!-- Rodapé de assinaturas -->
+    <div class="flex justify-content-between mt-4">
+      <div
+        class="text-center border-top-1 surface-border pt-2 w-5"
+        [innerHTML]="config.orcRodape | placeholders: getPlaceholderVars()"
+      ></div>
+      <div class="text-center border-top-1 surface-border pt-2 w-5">
         Aceite do Cliente (Carimbo e Assinatura)
       </div>
     </div>

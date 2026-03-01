@@ -1,7 +1,7 @@
 import { Component, OnInit, Output, EventEmitter, LOCALE_ID } from '@angular/core';
 import { CommonModule, registerLocaleData } from '@angular/common';
-import localePt from '@angular/common/locales/pt';
 import { FormsModule } from '@angular/forms';
+import localePt from '@angular/common/locales/pt';
 
 // PrimeNG
 import { ButtonModule } from 'primeng/button';
@@ -17,28 +17,44 @@ import { MessageService } from 'primeng/api';
 import { ConfirmationService } from 'primeng/api';
 
 // Services
-import { TarifaService } from '../../services/tarifa';
+import { TarifaService, ConfiguracaoGeral } from '../../services/tarifa';
 import { OrcamentoOficialService } from '../../services/orcamento-oficial';
 import { DateUtils } from '../../utils/date-utils';
+
+// Pipes
+import { SubstituirPlaceholdersPipe } from '../../pipes/substituir-placeholders-pipe';
 
 // Models
 import { CategoriaQuarto } from '../../services/tarifa';
 
-// Registra a localização pt-BR para formatação de moeda e data
 registerLocaleData(localePt);
 
-interface ItemOrcamento {
+export interface ItemOrcamento {
   id?: string;
   quantidade: number;
   categoriaId: string;
   categoriaNome?: string;
   camasDescricao?: string;
-  descricao?: string;
+  descricao?: string; // nome dos hóspedes / cargo
   comCafe: boolean;
   comAlmoco: boolean;
-  precoDiaria: number; // preço por diária (já considerando temporada e opcionais)
+  comJanta: boolean;
+  comLanche: boolean;
+  precoDiaria: number; // preço médio por diária (acomodação + refeições inclusas)
   total: number;
+  // campos auxiliares para exibição (não persistidos)
+  _subtotalAcomodacao?: number;
+  _subtotalRefeicoes?: number;
+  _subtotalSemExtra?: number;
+  _extraCharge?: number;
+  _totalItem?: number;
+  // contagens de refeições para exibição
+  qtdAlmoco?: number;
+  qtdJanta?: number;
+  qtdLanche?: number;
 }
+
+type Refeicao = 'comCafe' | 'comAlmoco' | 'comJanta' | 'comLanche';
 
 @Component({
   selector: 'app-orcamento-oficial',
@@ -55,6 +71,7 @@ interface ItemOrcamento {
     TableModule,
     ToastModule,
     ConfirmDialogModule,
+    SubstituirPlaceholdersPipe,
   ],
   providers: [{ provide: LOCALE_ID, useValue: 'pt-BR' }],
   templateUrl: './orcamento-oficial.html',
@@ -65,39 +82,21 @@ export class OrcamentoOficialComponent implements OnInit {
   @Output() onVoltar = new EventEmitter<void>();
 
   categorias: CategoriaQuarto[] = [];
-  // Inicializa com os mesmos padrões do Painel Master para evitar erros de undefined
-  config: any = {
-    valorAlmocoExtra: 45,
-    comodidadesGlobais: 'Frigobar, TV, Ar-condicionado, Wi-Fi, Hidro',
-    altaInicio: '2025-12-15',
-    altaFim: '2026-03-15',
-    cafeInicio: '07:00',
-    cafeFim: '10:00',
-    cafeAtivo: true,
-    almocoInicio: '12:00',
-    almocoFim: '14:00',
-    almocoAtivo: true,
-    jantarInicio: '19:00',
-    jantarFim: '21:00',
-    jantarAtivo: true,
-    promocaoAtiva: false,
-    promocaoDesconto: 15,
-    promocaoMinDiarias: 3,
-    promocaoTexto: 'Pagamento integral via Pix ou Dinheiro',
-    promocaoSomenteAlta: true,
-    promocaoMsgBaixa: false,
-  };
+  config!: ConfiguracaoGeral;
 
   cliente: string = '';
   temporada: 'auto' | 'baixa' | 'alta' = 'auto';
   dataCheckin: Date = new Date();
   dataCheckout: Date = DateUtils.adicionarDias(new Date(), 1);
+  horaEntrada: string = '14:00';
+  horaSaida: string = '11:00';
   hoje: Date = new Date();
 
   itens: ItemOrcamento[] = [];
 
   // Para o documento impresso
   totalGeral: number = 0;
+  horasExtras: number = 0;
 
   constructor(
     private tarifaService: TarifaService,
@@ -113,10 +112,47 @@ export class OrcamentoOficialComponent implements OnInit {
 
   carregarDados() {
     this.categorias = this.tarifaService.getCategorias();
-    const savedConfig = this.tarifaService.getConfiguracao();
-    if (savedConfig) {
-      this.config = { ...this.config, ...savedConfig };
-    }
+    this.config = this.tarifaService.getConfiguracao();
+  }
+
+  formatarDataBr(data: Date | null): string {
+    if (!data) return '';
+    return data.toLocaleDateString('pt-BR');
+  }
+
+  getPlaceholderVars(): { [key: string]: string } {
+    const noites = this.calcularNoites(this.dataCheckin, this.dataCheckout);
+    return {
+      cliente: this.cliente || '',
+      checkinHora: this.horaEntrada,
+      checkoutHora: this.horaSaida,
+      checkinDataBr: this.formatarDataBr(this.dataCheckin),
+      checkoutDataBr: this.formatarDataBr(this.dataCheckout),
+      noites: noites.toString(),
+      totalGeral: this.totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+      valorAlmoco: (this.config.valorAlmocoExtra || 0).toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+      }),
+      valorJanta: (this.config.valorJantaExtra || 0).toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+      }),
+      valorLanche: (this.config.valorLancheExtra || 0).toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+      }),
+      sinalPercentual: this.config.orcSinalPercentual?.toString() || '50',
+      temporada: this.temporada,
+      horasExtras: this.horasExtras.toFixed(0),
+      mensagemHorasExtras:
+        this.horasExtras > 0
+          ? `<strong>Horas Extras (Day Use):</strong> Estão contabilizadas ${this.horasExtras.toFixed(0)} horas de prolongamento na estadia após o vencimento da diária.`
+          : '',
+      percentualDesconto: this.config.promocaoDesconto?.toString() || '0',
+      minimoDiarias: this.config.promocaoMinDiarias?.toString() || '0',
+      textoPromocao: this.config.promocaoTexto || '',
+    };
   }
 
   adicionarItem() {
@@ -132,6 +168,8 @@ export class OrcamentoOficialComponent implements OnInit {
       descricao: '',
       comCafe: true,
       comAlmoco: false,
+      comJanta: false,
+      comLanche: false,
       precoDiaria: 0,
       total: 0,
     };
@@ -163,6 +201,13 @@ export class OrcamentoOficialComponent implements OnInit {
     }
   }
 
+  // Função auxiliar para converter hora "HH:MM" em minutos
+  parseTime(time: string): number {
+    if (!time) return 0;
+    const [h, m] = time.split(':').map(Number);
+    return h * 60 + (m || 0);
+  }
+
   calcularItem(item: ItemOrcamento) {
     const cat = this.categorias.find((c) => c.id === item.categoriaId);
     if (!cat) return;
@@ -175,17 +220,14 @@ export class OrcamentoOficialComponent implements OnInit {
       return;
     }
 
+    // Cálculo da hospedagem (diárias)
     let totalBaseHospedagem = 0;
 
     if (this.temporada === 'auto') {
-      // Cálculo dia a dia para suportar períodos mistos
       let current = new Date(this.dataCheckin);
       current.setHours(0, 0, 0, 0);
-
       for (let i = 0; i < noites; i++) {
         const isAlta = this.isAltaTemporada(current, this.config.altaInicio, this.config.altaFim);
-
-        // Garante que os valores sejam números para evitar concatenação de strings
         const pAltaCafe = Number(cat.precoAltaCafe) || 0;
         const pAltaSemCafe = Number(cat.precoAltaSemCafe) || 0;
         const pBaixaCafe = Number(cat.precoBaixaCafe) || 0;
@@ -203,9 +245,7 @@ export class OrcamentoOficialComponent implements OnInit {
         current.setDate(current.getDate() + 1);
       }
     } else {
-      // Temporada fixa forçada
       const usarAlta = this.temporada === 'alta';
-
       const pAltaCafe = Number(cat.precoAltaCafe) || 0;
       const pAltaSemCafe = Number(cat.precoAltaSemCafe) || 0;
       const pBaixaCafe = Number(cat.precoBaixaCafe) || 0;
@@ -218,12 +258,12 @@ export class OrcamentoOficialComponent implements OnInit {
         : item.comCafe
           ? pBaixaCafe
           : pBaixaSemCafe;
+
       totalBaseHospedagem = valorDia * noites;
     }
 
-    // Aplicação de Promoção (Lógica do Painel Master)
+    // Aplicar promoção se ativa
     if (this.config.promocaoAtiva && noites >= (this.config.promocaoMinDiarias || 1)) {
-      // Verifica se a promoção se aplica (se for somente alta, checa se estamos na alta)
       const isPeriodoAlta =
         this.temporada === 'alta' ||
         (this.temporada === 'auto' &&
@@ -235,26 +275,94 @@ export class OrcamentoOficialComponent implements OnInit {
       }
     }
 
-    // Almoço opcional: Valor * Capacidade * Noites
-    // Tenta pegar a capacidade de várias formas (novo, antigo ou alternativo)
+    // Capacidade da UH (para calcular refeições por pessoa)
     const catAny = cat as any;
     const capacidade = Number(catAny.capacidadeMaxima || catAny.cap || 1);
-    const valorAlmoco = Number(this.config.valorAlmocoExtra || 0);
 
-    const custoAlmocoTotal = item.comAlmoco ? valorAlmoco * capacidade * noites : 0;
+    // Cálculo das refeições com base nos horários
+    const arrMin = this.parseTime(this.horaEntrada);
+    const depMin = this.parseTime(this.horaSaida);
+    const middleDays = Math.max(0, noites - 1);
 
-    // Define o preço médio da diária para exibição e cálculo final
-    item.precoDiaria = (totalBaseHospedagem + custoAlmocoTotal) / noites;
+    let qtdAlmoco = 0,
+      qtdJanta = 0,
+      qtdLanche = 0;
+    let custoAlmoco = 0,
+      custoJanta = 0,
+      custoLanche = 0;
 
-    // Atualiza o total do item
-    item.total = item.precoDiaria * item.quantidade * noites;
+    if (item.comAlmoco) {
+      let count = 0;
+      if (arrMin <= this.parseTime(this.config.almocoFim)) count++;
+      if (depMin >= this.parseTime(this.config.almocoInicio)) count++;
+      count += middleDays;
+      qtdAlmoco = count;
+      custoAlmoco = count * (this.config.valorAlmocoExtra || 0) * capacidade;
+    }
+    if (item.comJanta) {
+      let count = 0;
+      if (arrMin <= this.parseTime(this.config.jantarFim)) count++;
+      if (depMin >= this.parseTime(this.config.jantarInicio)) count++;
+      count += middleDays;
+      qtdJanta = count;
+      custoJanta = count * (this.config.valorJantaExtra || 0) * capacidade;
+    }
+    if (item.comLanche) {
+      let count = 0;
+      if (arrMin <= this.parseTime(this.config.lancheTardeFim)) count++;
+      if (depMin >= this.parseTime(this.config.lancheTardeInicio)) count++;
+      count += middleDays;
+      qtdLanche = count;
+      custoLanche = count * (this.config.valorLancheExtra || 0) * capacidade;
+    }
+
+    const totalRefeicoes = custoAlmoco + custoJanta + custoLanche;
+
+    // Horas extras
+    this.calcularHorasExtras();
+    let extraCharge = 0;
+    if (this.horasExtras > 0 && noites > 0) {
+      const baseDaily = totalBaseHospedagem / noites;
+      const hourlyRate = baseDaily / 21;
+      extraCharge = hourlyRate * this.horasExtras * item.quantidade;
+    }
+
+    // Totais do item
+    const totalItemSemExtra = (totalBaseHospedagem + totalRefeicoes) * item.quantidade;
+    const totalItem = totalItemSemExtra + extraCharge;
+
+    item.precoDiaria = (totalBaseHospedagem + totalRefeicoes) / noites;
+    item.total = totalItem;
+
+    // Guardar valores auxiliares para exibição
+    item._subtotalAcomodacao = totalBaseHospedagem * item.quantidade;
+    item._subtotalRefeicoes = totalRefeicoes * item.quantidade;
+    item._subtotalSemExtra = totalItemSemExtra;
+    item._extraCharge = extraCharge;
+    item._totalItem = totalItem;
+    item.qtdAlmoco = qtdAlmoco;
+    item.qtdJanta = qtdJanta;
+    item.qtdLanche = qtdLanche;
+
     this.calcularTotais();
   }
 
-  calcularItemTotal(item: ItemOrcamento) {
-    const noites = this.calcularNoites(this.dataCheckin, this.dataCheckout);
-    item.total = item.quantidade * item.precoDiaria * noites;
-    this.calcularTotais();
+  calcularHorasExtras() {
+    if (!this.dataCheckin || !this.dataCheckout) {
+      this.horasExtras = 0;
+      return;
+    }
+    const dtEntrada = new Date(this.dataCheckin);
+    const [hEnt, mEnt] = this.horaEntrada.split(':').map(Number);
+    dtEntrada.setHours(hEnt, mEnt, 0, 0);
+
+    const dtSaida = new Date(this.dataCheckout);
+    const [hSai, mSai] = this.horaSaida.split(':').map(Number);
+    dtSaida.setHours(hSai, mSai, 0, 0);
+
+    const dtStandardEnd = new Date(dtEntrada.getTime() + 21 * 60 * 60 * 1000);
+    const diffMs = dtSaida.getTime() - dtStandardEnd.getTime();
+    this.horasExtras = Math.max(0, diffMs / (1000 * 60 * 60));
   }
 
   calcularTotais() {
@@ -267,13 +375,17 @@ export class OrcamentoOficialComponent implements OnInit {
 
   isAltaTemporada(data: Date, altaInicio: string, altaFim: string): boolean {
     if (!altaInicio || !altaFim) return false;
-
-    // Cria datas em hora local (00:00) adicionando T00:00:00 para evitar UTC
     const inicio = new Date(altaInicio + 'T00:00:00');
     const fim = new Date(altaFim + 'T00:00:00');
-
-    // Compara os timestamps para garantir precisão
     return data.getTime() >= inicio.getTime() && data.getTime() <= fim.getTime();
+  }
+
+  ajustarDataSaida(): void {
+    if (!this.dataCheckin) return;
+    if (!this.dataCheckout || this.dataCheckout <= this.dataCheckin) {
+      this.dataCheckout = new Date(this.dataCheckin);
+      this.dataCheckout.setDate(this.dataCheckout.getDate() + 1);
+    }
   }
 
   onTemporadaChange() {
@@ -281,26 +393,26 @@ export class OrcamentoOficialComponent implements OnInit {
   }
 
   onDataChange() {
+    this.ajustarDataSaida();
     this.itens.forEach((item) => this.calcularItem(item));
   }
 
-  // Helper para formatar descrição das camas (ex: "1 Casal + 2 Solteiro")
   formatarCamas(cat: any): string {
     const partes = [];
-    if (cat.camasCasal > 0) {
-      partes.push(`${cat.camasCasal} Casal`);
-    }
-    if (cat.camasSolteiro > 0) {
-      partes.push(`${cat.camasSolteiro} Solteiro`);
-    }
+    if (cat.camasCasal > 0) partes.push(`${cat.camasCasal} Casal`);
+    if (cat.camasSolteiro > 0) partes.push(`${cat.camasSolteiro} Solteiro`);
     return partes.length > 0 ? `(${partes.join(' + ')})` : '';
   }
 
-  // Ações em lote
-  marcarTodos(tipo: 'cafe' | 'almoco', valor: boolean) {
+  // ===== MÉTODOS PARA BOTÕES ÚNICOS =====
+  todosCom(meal: Refeicao): boolean {
+    return this.itens.length > 0 && this.itens.every((item) => item[meal] === true);
+  }
+
+  alternarTodos(meal: Refeicao): void {
+    const novoValor = !this.todosCom(meal);
     this.itens.forEach((item) => {
-      if (tipo === 'cafe') item.comCafe = valor;
-      else item.comAlmoco = valor;
+      item[meal] = novoValor;
       this.calcularItem(item);
     });
   }
@@ -316,6 +428,8 @@ export class OrcamentoOficialComponent implements OnInit {
       temporada: this.temporada,
       dataCheckin: this.dataCheckin,
       dataCheckout: this.dataCheckout,
+      horaEntrada: this.horaEntrada,
+      horaSaida: this.horaSaida,
       itens: this.itens,
       totalGeral: this.totalGeral,
     };
@@ -341,8 +455,10 @@ export class OrcamentoOficialComponent implements OnInit {
         this.temporada = dados.temporada || 'auto';
         this.dataCheckin = new Date(dados.dataCheckin);
         this.dataCheckout = new Date(dados.dataCheckout);
+        this.horaEntrada = dados.horaEntrada || '14:00';
+        this.horaSaida = dados.horaSaida || '11:00';
         this.itens = dados.itens || [];
-        this.calcularTotais();
+        this.onDataChange(); // Recalcula tudo e ajusta datas
         this.mostrarMensagem('success', 'Importado', 'Orçamento carregado.');
       } catch {
         this.mostrarMensagem('error', 'Erro', 'Arquivo inválido.');
@@ -351,12 +467,10 @@ export class OrcamentoOficialComponent implements OnInit {
     reader.readAsText(file);
   }
 
-  // Impressão
   imprimir() {
     window.print();
   }
 
-  // Botão Voltar
   voltar() {
     this.onVoltar.emit();
   }
