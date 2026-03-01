@@ -18,7 +18,7 @@ export class BackupService {
 
   // Exportar todos os dados
   exportarDados(): BackupData {
-    return {
+    const backup: BackupData = {
       versao: this.VERSAO,
       dataExportacao: new Date(),
       configuracaoGeral: this.tarifaService.getConfiguracao(),
@@ -30,8 +30,15 @@ export class BackupService {
       comodidades: this.tarifaService.getComodidades(),
       temporadas: [],
       tarifas: [],
-      assinatura: this.gerarAssinatura({}),
+      assinatura: '', // será preenchida depois
     };
+
+    // Cria uma cópia sem a assinatura para calcular
+    const backupSemAssinatura = { ...backup };
+    delete backupSemAssinatura.assinatura;
+    backup.assinatura = this.gerarAssinatura(backupSemAssinatura);
+
+    return backup;
   }
 
   // Importar dados (substitui todos)
@@ -40,24 +47,35 @@ export class BackupService {
       if (!this.validarAssinatura(backup)) {
         return { sucesso: false, mensagem: 'Backup inválido ou corrompido.' };
       }
+
+      // Substitui configurações gerais
       if (backup.configuracaoGeral) {
         this.tarifaService.salvarConfiguracao(backup.configuracaoGeral);
       }
+
+      // Substitui categorias completamente
       if (backup.categorias) {
-        backup.categorias.forEach((cat) => this.tarifaService.salvarCategoria(cat));
+        this.tarifaService.setCategorias(backup.categorias);
       }
+
+      // Substitui promoções completamente
       if (backup.promocoes) {
-        backup.promocoes.forEach((p) => this.tarifaService.salvarPromocao(p));
+        this.tarifaService.setPromocoes(backup.promocoes);
       }
+
+      // Orçamentos (já substituem via importarDados)
       if (backup.orcamentosOficiais) {
         this.orcamentoOficialService.importarDados(backup.orcamentosOficiais);
       }
       if (backup.orcamentosRapidos) {
         this.orcamentoRapidoService.importarDados(backup.orcamentosRapidos);
       }
+
+      // Escala (substituição)
       if (backup.escalaConfig) {
         this.escalaService.importarDados(backup.escalaConfig);
       }
+
       return { sucesso: true, mensagem: 'Backup importado com sucesso!' };
     } catch (error) {
       console.error('Erro na importação:', error);
@@ -93,7 +111,9 @@ export class BackupService {
   }
 
   private gerarAssinatura(dados: any): string {
-    return btoa(JSON.stringify(dados) + this.VERSAO);
+    const str = JSON.stringify(dados) + this.VERSAO;
+    // Converte para UTF-8 antes de usar btoa (para suportar acentos e emojis)
+    return btoa(unescape(encodeURIComponent(str)));
   }
 
   private validarAssinatura(backup: BackupData): boolean {

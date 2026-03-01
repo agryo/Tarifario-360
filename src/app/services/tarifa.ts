@@ -15,14 +15,24 @@ export class TarifaService {
     this.criptografia = new CriptografiaService();
     this.inicializarDadosPadrao();
   }
+  // ===== SUBSTITUIÇÃO TOTAL =====
+  setCategorias(categorias: CategoriaQuarto[]): void {
+    this.storage.set(this.STORAGE_CATEGORIAS, categorias);
+  }
+
+  setPromocoes(promocoes: Promocao[]): void {
+    this.storage.set(this.STORAGE_PROMOCOES, promocoes);
+  }
 
   // ===== CATEGORIAS =====
   getCategorias(): CategoriaQuarto[] {
     return this.storage.get<CategoriaQuarto[]>(this.STORAGE_CATEGORIAS) || [];
   }
+
   getCategoria(id: string): CategoriaQuarto | null {
     return this.getCategorias().find((c) => c.id === id) || null;
   }
+
   salvarCategoria(categoria: CategoriaQuarto): void {
     const categorias = this.getCategorias();
     const index = categorias.findIndex((c) => c.id === categoria.id);
@@ -33,6 +43,7 @@ export class TarifaService {
     }
     this.storage.set(this.STORAGE_CATEGORIAS, categorias);
   }
+
   excluirCategoria(id: string): void {
     const categorias = this.getCategorias().filter((c) => c.id !== id);
     this.storage.set(this.STORAGE_CATEGORIAS, categorias);
@@ -42,6 +53,7 @@ export class TarifaService {
   getPromocoes(): Promocao[] {
     return this.storage.get<Promocao[]>(this.STORAGE_PROMOCOES) || [];
   }
+
   salvarPromocao(promocao: Promocao): void {
     const promocoes = this.getPromocoes();
     const index = promocoes.findIndex((p) => p.id === promocao.id);
@@ -52,6 +64,7 @@ export class TarifaService {
     }
     this.storage.set(this.STORAGE_PROMOCOES, promocoes);
   }
+
   excluirPromocao(id: string): void {
     const promocoes = this.getPromocoes().filter((p) => p.id !== id);
     this.storage.set(this.STORAGE_PROMOCOES, promocoes);
@@ -72,6 +85,7 @@ export class TarifaService {
     }
     return this.getConfiguracaoPadrao();
   }
+
   salvarConfiguracao(config: ConfiguracaoGeral): void {
     this.storage.set(this.STORAGE_CONFIG, config);
   }
