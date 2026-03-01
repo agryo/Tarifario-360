@@ -87,11 +87,11 @@ export class OrcamentoOficialComponent implements OnInit {
 
   cliente: string = '';
   temporada: 'auto' | 'baixa' | 'alta' = 'auto';
-  dataCheckin: Date = new Date();
-  dataCheckout: Date = DateUtils.adicionarDias(new Date(), 1);
-  horaEntrada: string = '14:00';
-  horaSaida: string = '11:00';
-  hoje: Date = new Date();
+  dataCheckin: Date = DateUtils.hoje();
+  dataCheckout: Date = DateUtils.amanha();
+  horaEntrada: string = DateUtils.HORA_CHECKIN;
+  horaSaida: string = DateUtils.HORA_CHECKOUT;
+  hoje: Date = DateUtils.hoje();
 
   itens: ItemOrcamento[] = [];
 
@@ -116,19 +116,14 @@ export class OrcamentoOficialComponent implements OnInit {
     this.config = this.tarifaService.getConfiguracao();
   }
 
-  formatarDataBr(data: Date | null): string {
-    if (!data) return '';
-    return data.toLocaleDateString('pt-BR');
-  }
-
   getPlaceholderVars(): { [key: string]: string } {
     const noites = this.calcularNoites(this.dataCheckin, this.dataCheckout);
     return {
       cliente: this.cliente || '',
       checkinHora: this.horaEntrada,
       checkoutHora: this.horaSaida,
-      checkinDataBr: this.formatarDataBr(this.dataCheckin),
-      checkoutDataBr: this.formatarDataBr(this.dataCheckout),
+      checkinDataBr: DateUtils.formatarDataBR(this.dataCheckin),
+      checkoutDataBr: DateUtils.formatarDataBR(this.dataCheckout),
       noites: noites.toString(),
       totalGeral: this.totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
       valorAlmoco: (this.config.valorAlmocoExtra || 0).toLocaleString('pt-BR', {
@@ -228,7 +223,11 @@ export class OrcamentoOficialComponent implements OnInit {
       let current = new Date(this.dataCheckin);
       current.setHours(0, 0, 0, 0);
       for (let i = 0; i < noites; i++) {
-        const isAlta = this.isAltaTemporada(current, this.config.altaInicio, this.config.altaFim);
+        const isAlta = DateUtils.isAltaTemporada(
+          current,
+          this.config.altaInicio,
+          this.config.altaFim,
+        );
         const pAltaCafe = Number(cat.precoAltaCafe) || 0;
         const pAltaSemCafe = Number(cat.precoAltaSemCafe) || 0;
         const pBaixaCafe = Number(cat.precoBaixaCafe) || 0;
@@ -268,7 +267,7 @@ export class OrcamentoOficialComponent implements OnInit {
       const isPeriodoAlta =
         this.temporada === 'alta' ||
         (this.temporada === 'auto' &&
-          this.isAltaTemporada(this.dataCheckin, this.config.altaInicio, this.config.altaFim));
+          DateUtils.isAltaTemporada(this.dataCheckin, this.config.altaInicio, this.config.altaFim));
 
       if (!this.config.promocaoSomenteAlta || isPeriodoAlta) {
         const desconto = totalBaseHospedagem * (this.config.promocaoDesconto / 100);
@@ -374,18 +373,9 @@ export class OrcamentoOficialComponent implements OnInit {
     return DateUtils.calcularDiasEntre(checkin, checkout);
   }
 
-  isAltaTemporada(data: Date, altaInicio: string, altaFim: string): boolean {
-    if (!altaInicio || !altaFim) return false;
-    const inicio = new Date(altaInicio + 'T00:00:00');
-    const fim = new Date(altaFim + 'T00:00:00');
-    return data.getTime() >= inicio.getTime() && data.getTime() <= fim.getTime();
-  }
-
   ajustarDataSaida(): void {
-    if (!this.dataCheckin) return;
-    if (!this.dataCheckout || this.dataCheckout <= this.dataCheckin) {
-      this.dataCheckout = new Date(this.dataCheckin);
-      this.dataCheckout.setDate(this.dataCheckout.getDate() + 1);
+    if (this.dataCheckin && this.dataCheckout) {
+      this.dataCheckout = DateUtils.ajustarDataSaida(this.dataCheckin, this.dataCheckout);
     }
   }
 
@@ -456,8 +446,8 @@ export class OrcamentoOficialComponent implements OnInit {
         this.temporada = dados.temporada || 'auto';
         this.dataCheckin = new Date(dados.dataCheckin);
         this.dataCheckout = new Date(dados.dataCheckout);
-        this.horaEntrada = dados.horaEntrada || '14:00';
-        this.horaSaida = dados.horaSaida || '11:00';
+        this.horaEntrada = dados.horaEntrada || DateUtils.HORA_CHECKIN;
+        this.horaSaida = dados.horaSaida || DateUtils.HORA_CHECKOUT;
         this.itens = dados.itens || [];
         this.onDataChange(); // Recalcula tudo e ajusta datas
         this.mostrarMensagem('success', 'Importado', 'Orçamento carregado.');

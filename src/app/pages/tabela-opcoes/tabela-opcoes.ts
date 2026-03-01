@@ -74,10 +74,10 @@ export class TabelaOpcoesComponent implements OnInit {
     promocaoMsgBaixa: false,
   };
 
-  dataCheckin: Date = new Date();
-  dataCheckout: Date = DateUtils.adicionarDias(new Date(), 1);
+  dataCheckin: Date = DateUtils.hoje();
+  dataCheckout: Date = DateUtils.amanha();
   temporada: 'auto' | 'baixa' | 'alta' = 'auto';
-  hoje: Date = new Date();
+  hoje: Date = DateUtils.hoje();
 
   textoPrevia: string = '';
 
@@ -130,7 +130,6 @@ export class TabelaOpcoesComponent implements OnInit {
     this.gerar();
   }
 
-  // ===== NOVO MÉTODO =====
   onDataChange() {
     if (this.dataCheckin && this.dataCheckout) {
       this.dataCheckout = DateUtils.ajustarDataSaida(this.dataCheckin, this.dataCheckout);
@@ -220,7 +219,11 @@ export class TabelaOpcoesComponent implements OnInit {
     end.setHours(0, 0, 0, 0);
 
     while (current < end) {
-      const isAlta = this.isAltaTemporada(current);
+      const isAlta = DateUtils.isAltaTemporada(
+        current,
+        this.config.altaInicio,
+        this.config.altaFim,
+      );
       if (isAlta) {
         diasAlta++;
         somaCom += cat.precoAltaCafe;
@@ -233,13 +236,6 @@ export class TabelaOpcoesComponent implements OnInit {
       current.setDate(current.getDate() + 1);
     }
     return { somaCom, somaSem, isMisto: diasAlta > 0 && diasBaixa > 0 };
-  }
-
-  private isAltaTemporada(data: Date): boolean {
-    if (!this.config.altaInicio || !this.config.altaFim) return false;
-    const inicio = new Date(this.config.altaInicio);
-    const fim = new Date(this.config.altaFim);
-    return data >= inicio && data <= fim;
   }
 
   private calcularNoites(checkin: Date, checkout: Date): number {
@@ -311,7 +307,7 @@ export class TabelaOpcoesComponent implements OnInit {
         const end = new Date(d2);
         end.setHours(0, 0, 0, 0);
         while (current < end) {
-          if (this.isAltaTemporada(current)) {
+          if (DateUtils.isAltaTemporada(current, this.config.altaInicio, this.config.altaFim)) {
             temAlta = true;
             break;
           }

@@ -9,7 +9,7 @@ import {
 import { CommonModule, registerLocaleData } from '@angular/common';
 import localePt from '@angular/common/locales/pt';
 import { FormsModule } from '@angular/forms';
-import html2canvas from 'html2canvas'; // <-- Importação adicionada
+import html2canvas from 'html2canvas';
 
 // PrimeNG
 import { ButtonModule } from 'primeng/button';
@@ -19,7 +19,6 @@ import { DatePicker } from 'primeng/datepicker';
 import { EscalaService, EscalaConfig } from '../../services/escala';
 import { DateUtils } from '../../utils/date-utils';
 
-// Registra a localização pt-BR
 registerLocaleData(localePt);
 
 @Component({
@@ -36,8 +35,8 @@ export class EscalaNoturnaComponent implements OnInit {
   @Output() onVoltar = new EventEmitter<void>();
 
   escalaConfig!: EscalaConfig;
-  dataInicio: Date = new Date();
-  dataFim: Date = DateUtils.adicionarDias(new Date(), 41);
+  dataInicio: Date = DateUtils.hoje();
+  dataFim: Date = DateUtils.adicionarDias(DateUtils.hoje(), 41);
   tabelaHTML: string = '';
 
   constructor(private escalaService: EscalaService) {}
@@ -51,22 +50,17 @@ export class EscalaNoturnaComponent implements OnInit {
   // Ajusta a data de início para o domingo anterior e a data de fim para o sábado posterior
   private ajustarDatasParaSemanaCompleta() {
     // Ajusta dataInicio para o domingo da semana
-    const diaInicio = this.dataInicio.getDay();
-    if (diaInicio !== 0) {
-      this.dataInicio.setDate(this.dataInicio.getDate() - diaInicio);
-    }
+    this.dataInicio = DateUtils.ajustarParaDomingo(this.dataInicio);
 
-    // Ajusta dataFim para o sábado da semana (se for menor que dataInicio + 6)
-    const fimMinimo = new Date(this.dataInicio);
-    fimMinimo.setDate(fimMinimo.getDate() + 6);
-    if (this.dataFim < fimMinimo) {
-      this.dataFim = fimMinimo;
+    // Calcula o sábado mínimo (domingo + 6)
+    const sabadoMinimo = DateUtils.adicionarDias(this.dataInicio, 6);
+
+    // Se dataFim for menor que o sábado mínimo, ajusta para ele
+    if (this.dataFim < sabadoMinimo) {
+      this.dataFim = sabadoMinimo;
     } else {
       // Garante que dataFim seja um sábado
-      const diaFim = this.dataFim.getDay();
-      if (diaFim !== 6) {
-        this.dataFim.setDate(this.dataFim.getDate() + (6 - diaFim));
-      }
+      this.dataFim = DateUtils.ajustarParaSabado(this.dataFim);
     }
   }
 

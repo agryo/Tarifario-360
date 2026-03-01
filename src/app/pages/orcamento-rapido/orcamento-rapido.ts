@@ -39,13 +39,13 @@ export class OrcamentoRapidoComponent implements OnInit {
   };
 
   categoriaId: string | null = null;
-  dataCheckin: Date = new Date();
-  dataCheckout: Date = DateUtils.adicionarDias(new Date(), 1);
+  dataCheckin: Date = DateUtils.hoje();
+  dataCheckout: Date = DateUtils.amanha();
   quantidade: number = 1; // fixo
   incluirCafe: boolean = true; // fixo
 
   textoOrcamento: string = '';
-  hoje: Date = new Date();
+  hoje: Date = DateUtils.hoje();
 
   constructor(
     private tarifaService: TarifaService,
@@ -117,8 +117,8 @@ export class OrcamentoRapidoComponent implements OnInit {
 
   limpar() {
     this.categoriaId = this.categorias.length ? this.categorias[0].id : null;
-    this.dataCheckin = new Date();
-    this.dataCheckout = DateUtils.adicionarDias(new Date(), 1);
+    this.dataCheckin = DateUtils.hoje();
+    this.dataCheckout = DateUtils.amanha();
     this.gerarOrcamento();
     this.onMensagem.emit({
       severity: 'info',
