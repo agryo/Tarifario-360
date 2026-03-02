@@ -20,6 +20,7 @@ import { ConfirmationService } from 'primeng/api';
 import { TarifaService } from '../../services/tarifa';
 import { OrcamentoOficialService } from '../../services/orcamento-oficial';
 import { DateUtils } from '../../utils/date-utils';
+import { ImpressaoService } from '../../utils/impressao-service';
 
 // Pipes
 import { SubstituirPlaceholdersPipe } from '../../pipes/substituir-placeholders-pipe';
@@ -27,6 +28,7 @@ import { SubstituirPlaceholdersPipe } from '../../pipes/substituir-placeholders-
 // Models
 import { CategoriaQuarto } from '../../models/categoria-quarto.model';
 import { ConfiguracaoGeral } from '../../models/tarifa.model';
+import { ImpressaoOrcamentoCSS } from './impressao-styles';
 
 registerLocaleData(localePt);
 
@@ -104,6 +106,7 @@ export class OrcamentoOficialComponent implements OnInit {
     private orcamentoService: OrcamentoOficialService,
     private messageService: MessageService,
     private confirmationService: ConfirmationService,
+    private impressaoService: ImpressaoService,
   ) {}
 
   ngOnInit() {
@@ -459,7 +462,12 @@ export class OrcamentoOficialComponent implements OnInit {
   }
 
   imprimir() {
-    window.print();
+    const elemento = document.getElementById('documento-impressao');
+    if (elemento) {
+      this.impressaoService.imprimirElemento(elemento, 'Orçamento Oficial', ImpressaoOrcamentoCSS);
+    } else {
+      this.mostrarMensagem('error', 'Erro', 'Elemento de impressão não encontrado.');
+    }
   }
 
   voltar() {

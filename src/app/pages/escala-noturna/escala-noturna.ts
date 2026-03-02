@@ -18,6 +18,10 @@ import { DatePicker } from 'primeng/datepicker';
 // Services
 import { EscalaService, EscalaConfig } from '../../services/escala';
 import { DateUtils } from '../../utils/date-utils';
+import { ImpressaoService } from '../../utils/impressao-service';
+
+// Model impressão
+import { ImpressaoEscalaCSS } from './impressao-styles';
 
 registerLocaleData(localePt);
 
@@ -39,7 +43,10 @@ export class EscalaNoturnaComponent implements OnInit {
   dataFim: Date = DateUtils.adicionarDias(DateUtils.hoje(), 41);
   tabelaHTML: string = '';
 
-  constructor(private escalaService: EscalaService) {}
+  constructor(
+    private escalaService: EscalaService,
+    private impressaoService: ImpressaoService,
+  ) {}
 
   ngOnInit() {
     this.escalaConfig = this.escalaService.getConfiguracao();
@@ -177,7 +184,16 @@ export class EscalaNoturnaComponent implements OnInit {
   }
 
   imprimir() {
-    window.print();
+    const elemento = document.querySelector('.tabela-escala') as HTMLElement;
+    if (elemento) {
+      this.impressaoService.imprimirElemento(elemento, 'Escala Noturna', ImpressaoEscalaCSS);
+    } else {
+      this.onMensagem.emit({
+        severity: 'error',
+        summary: 'Erro',
+        detail: 'Tabela não encontrada para impressão.',
+      });
+    }
   }
 
   exportarImagem() {

@@ -1,4 +1,4 @@
-export const ImpressaoTabelCSS = /*css*/ `
+export const ImpressaoTabelaCSS = /*css*/ `
 .no-print {
   background: white;
   padding: 12px;

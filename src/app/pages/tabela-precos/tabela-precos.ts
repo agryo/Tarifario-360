@@ -12,7 +12,10 @@ import { MessageService } from 'primeng/api';
 
 // Services
 import { TarifaService } from '../../services/tarifa';
-import { ImpressaoTabelaService } from '../../services/impressao-tabela';
+import { ImpressaoService } from '../../utils/impressao-service';
+
+// Model impressão
+import { ImpressaoTabelaCSS } from './impressao-styles';
 
 // Models
 import { CategoriaQuarto } from '../../models/categoria-quarto.model';
@@ -48,7 +51,7 @@ export class TabelaPrecosComponent implements OnInit {
   constructor(
     private tarifaService: TarifaService,
     private messageService: MessageService,
-    private impressaoService: ImpressaoTabelaService,
+    private impressaoService: ImpressaoService,
   ) {}
 
   ngOnInit() {
@@ -184,9 +187,21 @@ export class TabelaPrecosComponent implements OnInit {
   }
 
   imprimir() {
-    const temporada = this.temporadaAtual === 'alta' ? 'Alta' : 'Baixa';
-    const titulo = `Tabela de Preços - ${temporada} Temporada`;
-    this.impressaoService.imprimirTabela('folha-a4', titulo);
+    const elemento = document.getElementById('folha-a4');
+    if (elemento) {
+      const temporada = this.temporadaAtual === 'alta' ? 'Alta' : 'Baixa';
+      this.impressaoService.imprimirElemento(
+        elemento,
+        `Tabela de Preços - ${temporada} Temporada`,
+        ImpressaoTabelaCSS,
+      );
+    } else {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erro',
+        detail: 'Elemento de impressão não encontrado.',
+      });
+    }
   }
 
   voltar() {
