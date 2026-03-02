@@ -5,12 +5,13 @@
 <p-tabs value="0">
   <p-tablist>
     <p-tab value="0">📋 Tarifário</p-tab>
-    <p-tab value="1">🎁 Promoções</p-tab>
-    <p-tab value="2">⏰ Horários</p-tab>
-    <p-tab value="3">🔐 Segurança</p-tab>
+    <p-tab value="1">🛏️ UHs</p-tab>
+    <p-tab value="2">🎁 Promoções</p-tab>
+    <p-tab value="3">⏰ Horários</p-tab>
     <p-tab value="4">📝 Textos do Orçamento</p-tab>
     <p-tab value="5">🌙 Escala</p-tab>
-    <p-tab value="6">💾 Backup</p-tab>
+    <p-tab value="6">🔐 Segurança</p-tab>
+    <p-tab value="7">💾 Backup</p-tab>
   </p-tablist>
 
   <p-tabpanels>
@@ -57,9 +58,6 @@
             ></p-inputNumber>
           </div>
         </div>
-      </div>
-
-      <div class="grid mb-3">
         <div class="col-12 md:col-2">
           <div class="field">
             <label>Valor kWh (R$)</label>
@@ -69,32 +67,6 @@
               currency="BRL"
               styleClass="w-full"
             ></p-inputNumber>
-          </div>
-        </div>
-        <div class="col-12 md:col-2">
-          <div class="field">
-            <label>Qtd. Total de UHs</label>
-            <p-inputNumber
-              [(ngModel)]="config.totalUhs"
-              [min]="1"
-              styleClass="w-full"
-            ></p-inputNumber>
-          </div>
-        </div>
-      </div>
-
-      <!-- Comodidades Globais -->
-      <div class="grid mb-3">
-        <div class="col-12">
-          <div class="field">
-            <label>Comodidades Globais (Separe por vírgula)</label>
-            <input
-              type="text"
-              pInputText
-              [(ngModel)]="config.comodidadesGlobais"
-              class="w-full"
-              placeholder="Frigobar, TV, Hidro, Ar-condicionado..."
-            />
           </div>
         </div>
       </div>
@@ -109,6 +81,7 @@
               pInputText
               [(ngModel)]="config.altaInicio"
               (ngModelChange)="onAltaInicioChange()"
+              [min]="hoje"
               class="w-full"
             />
           </div>
@@ -121,7 +94,38 @@
               pInputText
               [(ngModel)]="config.altaFim"
               (ngModelChange)="onAltaFimChange()"
+              [min]="hoje"
               class="w-full"
+            />
+          </div>
+        </div>
+      </div>
+    </p-tabpanel>
+
+    <!-- ===== TAB 1: UHs ===== -->
+    <p-tabpanel value="1">
+      <!-- Qtd. Total de UHs -->
+      <div class="grid mb-3">
+        <div class="col-12 md:col-2">
+          <div class="field">
+            <label>Qtd. Total de UHs</label>
+            <p-inputNumber
+              [(ngModel)]="config.totalUhs"
+              [min]="1"
+              styleClass="w-full"
+            ></p-inputNumber>
+          </div>
+        </div>
+        <!-- Comodidades Globais -->
+        <div class="col-12 md:col-10">
+          <div class="field">
+            <label>Comodidades Globais (Separe por vírgula)</label>
+            <input
+              type="text"
+              pInputText
+              [(ngModel)]="config.comodidadesGlobais"
+              class="w-full"
+              placeholder="Frigobar, TV, Hidro, Ar-condicionado..."
             />
           </div>
         </div>
@@ -191,8 +195,8 @@
       </p-table>
     </p-tabpanel>
 
-    <!-- ===== TAB 1: PROMOÇÕES ===== -->
-    <p-tabpanel value="1">
+    <!-- ===== TAB 2: PROMOÇÕES ===== -->
+    <p-tabpanel value="2">
       <div class="grid">
         <div class="col-12">
           <div class="field-checkbox mb-3">
@@ -288,8 +292,8 @@
       </div>
     </p-tabpanel>
 
-    <!-- ===== TAB 2: HORÁRIOS (agora com 4 refeições) ===== -->
-    <p-tabpanel value="2">
+    <!-- ===== TAB 3: HORÁRIOS ===== -->
+    <p-tabpanel value="3">
       <div class="grid">
         <div class="col-12 md:col-3">
           <div class="field">
@@ -369,119 +373,7 @@
       </div>
     </p-tabpanel>
 
-    <!-- ===== TAB 3: SEGURANÇA ===== -->
-    <p-tabpanel value="3">
-      <div class="grid">
-        <div class="col-12 md:col-6">
-          <p-card header="🔐 Senha de Acesso">
-            <div class="field">
-              <label>Senha Atual</label>
-              <div class="flex gap-2">
-                <input
-                  [type]="mostrarSenhaAtual ? 'text' : 'password'"
-                  pInputText
-                  [(ngModel)]="senhaAtualInput"
-                  class="w-full"
-                  placeholder="Digite a senha atual"
-                />
-                <p-button
-                  [icon]="mostrarSenhaAtual ? 'pi pi-eye-slash' : 'pi pi-eye'"
-                  styleClass="p-button-text"
-                  (click)="mostrarSenhaAtual = !mostrarSenhaAtual"
-                ></p-button>
-              </div>
-            </div>
-
-            <div class="field">
-              <label>Nova Senha</label>
-              <div class="flex gap-2">
-                <input
-                  [type]="mostrarNovaSenha ? 'text' : 'password'"
-                  pInputText
-                  [(ngModel)]="novaSenhaInput"
-                  class="w-full"
-                  placeholder="Digite a nova senha"
-                />
-                <p-button
-                  [icon]="mostrarNovaSenha ? 'pi pi-eye-slash' : 'pi pi-eye'"
-                  styleClass="p-button-text"
-                  (click)="mostrarNovaSenha = !mostrarNovaSenha"
-                ></p-button>
-              </div>
-            </div>
-
-            <div class="field">
-              <label>Confirmar Nova Senha</label>
-              <div class="flex gap-2">
-                <input
-                  [type]="mostrarConfirmarSenha ? 'text' : 'password'"
-                  pInputText
-                  [(ngModel)]="confirmarSenhaInput"
-                  class="w-full"
-                  placeholder="Confirme a nova senha"
-                />
-                <p-button
-                  [icon]="mostrarConfirmarSenha ? 'pi pi-eye-slash' : 'pi pi-eye'"
-                  styleClass="p-button-text"
-                  (click)="mostrarConfirmarSenha = !mostrarConfirmarSenha"
-                ></p-button>
-              </div>
-            </div>
-
-            <div class="flex gap-2 mt-3">
-              <p-button
-                label="Alterar Senha"
-                icon="pi pi-key"
-                styleClass="p-button-success"
-                (click)="alterarSenha()"
-              ></p-button>
-              <p-button
-                label="Remover Senha"
-                icon="pi pi-trash"
-                styleClass="p-button-danger"
-                (click)="removerSenha()"
-              ></p-button>
-            </div>
-          </p-card>
-        </div>
-
-        <div class="col-12 md:col-6">
-          <p-card header="ℹ️ Status da Senha">
-            <div class="flex align-items-center gap-3 mb-3">
-              <i
-                [class]="
-                  config.senhaHash
-                    ? 'pi pi-check-circle text-success'
-                    : 'pi pi-exclamation-circle text-warning'
-                "
-                style="font-size: 2rem"
-              ></i>
-              <div>
-                <h3 class="text-lg font-bold mb-1">
-                  {{ config.senhaHash ? 'Senha Ativa' : 'Sem Senha' }}
-                </h3>
-                <p class="text-secondary">
-                  Acesso ao painel
-                  {{ config.senhaHash ? 'protegido por senha' : 'livre (sem proteção)' }}
-                </p>
-              </div>
-            </div>
-
-            <div class="border-top-1 surface-border pt-3">
-              <h4 class="text-md font-bold mb-2">Dicas de Segurança:</h4>
-              <ul class="text-secondary">
-                <li>Use uma senha com pelo menos 6 caracteres</li>
-                <li>Evite senhas óbvias como "1234" ou "admin"</li>
-                <li>Altere a senha periodicamente</li>
-                <li>Não compartilhe a senha com pessoas não autorizadas</li>
-              </ul>
-            </div>
-          </p-card>
-        </div>
-      </div>
-    </p-tabpanel>
-
-    <!-- ===== TAB 4: TEXTOS DO ORÇAMENTO ===== -->
+    <!-- ===== TAB 4 TEXTOS DO ORÇAMENTO ===== -->
     <p-tabpanel value="4">
       <div class="grid">
         <!-- Caixa de ajuda colapsável com placeholders (Fieldset) -->
@@ -601,7 +493,7 @@
         </div>
         <div class="col-12 md:col-6">
           <div class="field">
-            <label for="orcConfigTitulo">Título da Seção de Configuração</label>
+            <label for="orcConfigTitulo">1.1 Título da Seção de Configuração</label>
             <input
               id="orcConfigTitulo"
               type="text"
@@ -614,7 +506,7 @@
 
         <div class="col-12">
           <div class="field">
-            <label for="orcConfigDescricao">Descrição da Seção de Configuração</label>
+            <label for="orcConfigDescricao">1.2 Descrição da Seção de Configuração</label>
             <textarea
               id="orcConfigDescricao"
               pInputTextarea
@@ -640,7 +532,7 @@
 
         <div class="col-12">
           <div class="field">
-            <label for="orcCronograma">Cronograma de Estadia e Logística</label>
+            <label for="orcCronograma">2. Cronograma de Estadia e Logística</label>
             <textarea
               id="orcCronograma"
               pInputTextarea
@@ -653,7 +545,7 @@
 
         <div class="col-12">
           <div class="field">
-            <label for="orcPagamento">Condições de Pagamento e Prazos</label>
+            <label for="orcPagamento">3. Condições de Pagamento e Prazos</label>
             <textarea
               id="orcPagamento"
               pInputTextarea
@@ -666,7 +558,7 @@
 
         <div class="col-12">
           <div class="field">
-            <label for="orcObservacoes">Observações Gerais</label>
+            <label for="orcObservacoes">4. Observações Gerais</label>
             <textarea
               id="orcObservacoes"
               pInputTextarea
@@ -767,8 +659,120 @@
       </div>
     </p-tabpanel>
 
-    <!-- ===== TAB 6: BACKUP ===== -->
+    <!-- ===== TAB 6: SEGURANÇA ===== -->
     <p-tabpanel value="6">
+      <div class="grid">
+        <div class="col-12 md:col-6">
+          <p-card header="🔐 Senha de Acesso">
+            <div class="field">
+              <label>Senha Atual</label>
+              <div class="flex gap-2">
+                <input
+                  [type]="mostrarSenhaAtual ? 'text' : 'password'"
+                  pInputText
+                  [(ngModel)]="senhaAtualInput"
+                  class="w-full"
+                  placeholder="Digite a senha atual"
+                />
+                <p-button
+                  [icon]="mostrarSenhaAtual ? 'pi pi-eye-slash' : 'pi pi-eye'"
+                  styleClass="p-button-text"
+                  (click)="mostrarSenhaAtual = !mostrarSenhaAtual"
+                ></p-button>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Nova Senha</label>
+              <div class="flex gap-2">
+                <input
+                  [type]="mostrarNovaSenha ? 'text' : 'password'"
+                  pInputText
+                  [(ngModel)]="novaSenhaInput"
+                  class="w-full"
+                  placeholder="Digite a nova senha"
+                />
+                <p-button
+                  [icon]="mostrarNovaSenha ? 'pi pi-eye-slash' : 'pi pi-eye'"
+                  styleClass="p-button-text"
+                  (click)="mostrarNovaSenha = !mostrarNovaSenha"
+                ></p-button>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Confirmar Nova Senha</label>
+              <div class="flex gap-2">
+                <input
+                  [type]="mostrarConfirmarSenha ? 'text' : 'password'"
+                  pInputText
+                  [(ngModel)]="confirmarSenhaInput"
+                  class="w-full"
+                  placeholder="Confirme a nova senha"
+                />
+                <p-button
+                  [icon]="mostrarConfirmarSenha ? 'pi pi-eye-slash' : 'pi pi-eye'"
+                  styleClass="p-button-text"
+                  (click)="mostrarConfirmarSenha = !mostrarConfirmarSenha"
+                ></p-button>
+              </div>
+            </div>
+
+            <div class="flex gap-2 mt-3">
+              <p-button
+                label="Alterar Senha"
+                icon="pi pi-key"
+                styleClass="p-button-success"
+                (click)="alterarSenha()"
+              ></p-button>
+              <p-button
+                label="Remover Senha"
+                icon="pi pi-trash"
+                styleClass="p-button-danger"
+                (click)="removerSenha()"
+              ></p-button>
+            </div>
+          </p-card>
+        </div>
+
+        <div class="col-12 md:col-6">
+          <p-card header="ℹ️ Status da Senha">
+            <div class="flex align-items-center gap-3 mb-3">
+              <i
+                [class]="
+                  config.senhaHash
+                    ? 'pi pi-check-circle text-success'
+                    : 'pi pi-exclamation-circle text-warning'
+                "
+                style="font-size: 2rem"
+              ></i>
+              <div>
+                <h3 class="text-lg font-bold mb-1">
+                  {{ config.senhaHash ? 'Senha Ativa' : 'Sem Senha' }}
+                </h3>
+                <p class="text-secondary">
+                  Acesso ao painel
+                  {{ config.senhaHash ? 'protegido por senha' : 'livre (sem proteção)' }}
+                </p>
+              </div>
+            </div>
+
+            <div class="border-top-1 surface-border pt-3">
+              <h4 class="text-md font-bold mb-2">Dicas de Segurança:</h4>
+              <ul class="text-secondary">
+                <li>Use uma senha com pelo menos 6 caracteres</li>
+                <li>Evite senhas óbvias como "1234" ou "admin"</li>
+                <li>Altere a senha periodicamente</li>
+                <li>Não compartilhe a senha com pessoas não autorizadas</li>
+              </ul>
+            </div>
+          </p-card>
+        </div>
+      </div>
+    </p-tabpanel>
+
+    <!-- ===== TAB 7: BACKUP ===== -->
+    <p-tabpanel value="7">
       <div class="grid">
         <!-- Exportar backup novo formato -->
         <div class="col-12 md:col-6">
@@ -825,7 +829,7 @@
 </p-tabs>
 
 <!-- Botões de ação -->
-<div class="flex justify-content-end gap-2 mt-3">
+<div class="flex justify-content-end gap-2 mt-1">
   <p-button
     label="Cancelar"
     icon="pi pi-times"

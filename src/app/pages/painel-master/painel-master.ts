@@ -26,6 +26,7 @@ import { CriptografiaService } from '../../services/criptografia';
 import { EscalaService, EscalaConfig } from '../../services/escala';
 import { BackupService } from '../../services/backup';
 import { CategoriaQuarto } from '../../models/categoria-quarto.model';
+import { ConfiguracaoGeral } from '../../models/tarifa.model';
 import { DateUtils } from '../../utils/date-utils';
 
 registerLocaleData(localePt);
@@ -60,50 +61,7 @@ export class PainelMasterComponent implements OnInit {
   @Output() onSalvo = new EventEmitter<void>();
   @Output() onMensagem = new EventEmitter<{ severity: string; summary: string; detail: string }>();
 
-  // Configurações
-  config: any = {
-    festividade: '🎊 Evento Especial',
-    valorAlmocoExtra: 30,
-    valorJantaExtra: 35,
-    valorLancheExtra: 20,
-    valorKwh: 1.8,
-    totalUhs: 10,
-    comodidadesGlobais: 'Frigobar, TV, Ar-condicionado, Wi-Fi, Hidro',
-    altaInicio: '2025-12-15',
-    altaFim: '2026-03-15',
-    cafeInicio: '07:00',
-    cafeFim: '10:00',
-    cafeAtivo: true,
-    almocoInicio: '12:00',
-    almocoFim: '14:00',
-    almocoAtivo: true,
-    lancheTardeInicio: '15:00',
-    lancheTardeFim: '17:00',
-    lancheTardeAtivo: true,
-    jantarInicio: '19:00',
-    jantarFim: '21:00',
-    jantarAtivo: true,
-    promocaoAtiva: false,
-    promocaoDesconto: 15,
-    promocaoMinDiarias: 3,
-    promocaoTexto: 'Pagamento integral via Pix ou Dinheiro',
-    promocaoSomenteAlta: true,
-    promocaoMsgBaixa: false,
-    orcTitulo: 'Orçamento de Hospedagem',
-    orcConfigTitulo: '1. Configuração de Acomodação e Valores',
-    orcConfigDescricao:
-      'A proposta contempla a estadia com café da manhã incluso, além de estrutura de alimentação completa e horas extras de permanência.',
-    orcNotaRefeicoes:
-      'Obs.: As quantidades de refeições descritas na tabela referem-se ao consumo por integrante da acomodação para o período total da estadia.',
-    orcCronograma:
-      'Check-in: {checkinHora} do dia {checkinDataBr}.\nCheck-out: {checkoutHora} do dia {checkoutDataBr}.\n{mensagemHorasExtras}',
-    orcPagamento:
-      'Forma de Pagamento: Sinal de {sinalPercentual}% do valor total ({totalGeral}) no ato da reserva para garantia do bloqueio dos quartos.\nSaldo Restante: Deve ser quitado no momento do check-in ou conforme acordado previamente.\nValidade do Orçamento: Válido apenas para as datas especificadas.\nPrazo de Confirmação: A reserva deve ser confirmada e o sinal pago com no mínimo 10 dias de antecedência ao check-in.',
-    orcObservacoes:
-      'Refeições: O café da manhã é cortesia da casa e já está incluso no valor das diárias.\nAlimentação: Os almoços, lanches da tarde e jantares foram calculados para atender toda a delegação durante o período de permanência.\nValores das refeições: Almoço {valorAlmoco}, Janta {valorJanta}, Lanche {valorLanche} por pessoa.',
-    orcRodape: 'Setor de Reservas - Hotel Plaza',
-    orcSinalPercentual: 50,
-  };
+  config!: ConfiguracaoGeral; // Agora tipado
 
   diasSemana = [
     { nome: 'DOM', valor: 0 },
@@ -132,6 +90,8 @@ export class PainelMasterComponent implements OnInit {
   novaSenhaInput: string = '';
   confirmarSenhaInput: string = '';
 
+  hoje: string = DateUtils.formatarDataISO(DateUtils.hoje()); // Para o atributo min dos inputs
+
   constructor(
     private tarifaService: TarifaService,
     private backupService: BackupService,
@@ -148,7 +108,7 @@ export class PainelMasterComponent implements OnInit {
   carregarDados() {
     this.config = this.tarifaService.getConfiguracao();
     this.categorias = this.tarifaService.getCategorias();
-    this.promocoes = (this.tarifaService as any).getPromocoes?.() || [];
+    this.promocoes = this.tarifaService.getPromocoes();
   }
 
   // ===== CATEGORIAS =====
@@ -433,6 +393,15 @@ export class PainelMasterComponent implements OnInit {
 
   // ===== CONTROLE DE DATAS DA ALTA TEMPORADA =====
   onAltaInicioChange() {
+    // Impede datas passadas
+    if (this.config.altaInicio < this.hoje) {
+      this.config.altaInicio = this.hoje;
+      this.onMensagem.emit({
+        severity: 'warn',
+        summary: 'Atenção',
+        detail: 'A data de início não pode ser anterior a hoje. Ajustada para hoje.',
+      });
+    }
     const ajustadas = DateUtils.ajustarDatasAltaTemporada(
       this.config.altaInicio,
       this.config.altaFim,
