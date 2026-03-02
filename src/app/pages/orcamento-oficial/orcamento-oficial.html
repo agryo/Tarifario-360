@@ -247,7 +247,7 @@
   </div>
 
   <!-- Documento para Impressão -->
-  <div class="surface-card p-3 border-round text-xs" id="documento-impressao">
+  <div class="surface-card p-3 border-round text-xs documento" id="documento-impressao">
     <!-- Cabeçalho com logo à esquerda e informações à direita -->
     <div
       class="flex align-items-center justify-content-between border-bottom-1 surface-border pb-2 mb-3"
@@ -319,9 +319,9 @@
             <div
               *ngIf="item.descricao"
               class="text-500"
-              style="font-size: 10px; font-style: italic"
+              style="font-size: 10px; font-style: italic; margin-top: 2px"
             >
-              {{ item.descricao }}
+              • {{ item.descricao }}
             </div>
           </td>
           <td>

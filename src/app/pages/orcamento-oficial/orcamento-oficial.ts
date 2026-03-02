@@ -393,8 +393,12 @@ export class OrcamentoOficialComponent implements OnInit {
 
   formatarCamas(cat: any): string {
     const partes = [];
-    if (cat.camasCasal > 0) partes.push(`${cat.camasCasal} Casal`);
-    if (cat.camasSolteiro > 0) partes.push(`${cat.camasSolteiro} Solteiro`);
+    if (cat.camasCasal > 0) {
+      partes.push(`${cat.camasCasal} Cama${cat.camasCasal > 1 ? 's' : ''} Casal`);
+    }
+    if (cat.camasSolteiro > 0) {
+      partes.push(`${cat.camasSolteiro} Cama${cat.camasSolteiro > 1 ? 's' : ''} Solteiro`);
+    }
     return partes.length > 0 ? `(${partes.join(' + ')})` : '';
   }
 
