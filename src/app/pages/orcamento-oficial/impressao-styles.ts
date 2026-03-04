@@ -1,9 +1,9 @@
 export const ImpressaoOrcamentoCSS = /* css */ `
   /* CONFIGURAÇÕES DE PÁGINA */
   @media print {
-    @page { 
-      size: A4; 
-      margin: 10mm !important; 
+    @page {
+      size: A4;
+      margin: 10mm !important;
     }
     .no-print { display: none !important; }
   }
@@ -76,8 +76,8 @@ export const ImpressaoOrcamentoCSS = /* css */ `
     line-height: 1.3 !important;
   }
 
-  /* TABELA */
-  .documento table, 
+  /* TABELA - FORÇANDO ESTILOS */
+  .documento table,
   .documento .p-datatable-table {
     width: 100% !important;
     border-collapse: collapse !important;
@@ -85,7 +85,7 @@ export const ImpressaoOrcamentoCSS = /* css */ `
     border: 1px solid #ddd !important;
   }
 
-  .documento th, 
+  .documento th,
   .documento .p-datatable-thead > tr > th {
     background: #f4f4f4 !important;
     color: #333 !important;
@@ -96,7 +96,7 @@ export const ImpressaoOrcamentoCSS = /* css */ `
     text-align: left !important;
   }
 
-  .documento td, 
+  .documento td,
   .documento .p-datatable-tbody > tr > td {
     border: 1px solid #ddd !important;
     padding: 6px !important;
@@ -106,7 +106,7 @@ export const ImpressaoOrcamentoCSS = /* css */ `
     background: transparent !important;
   }
 
-  /* Larguras das colunas */
+  /* Larguras das colunas (ajustadas conforme modelo) */
   .documento th:nth-child(1) { width: 5%; }
   .documento th:nth-child(2) { width: 25%; }
   .documento th:nth-child(3) { width: 25%; }
@@ -118,18 +118,20 @@ export const ImpressaoOrcamentoCSS = /* css */ `
   .documento td:nth-child(4),
   .documento td:nth-child(5),
   .documento td:nth-child(6) {
-    text-align: right;
+    text-align: right !important;
   }
 
   /* Linha da observação (colspan) */
   .documento td[colspan="6"] {
-    text-align: left;
-    font-style: italic;
+    text-align: left !important;
+    font-style: italic !important;
     background: transparent !important;
+    border: 1px solid #ddd !important;
   }
 
   /* Linha do total */
-  .documento tr.font-bold td {
+  .documento tr.font-bold td,
+  .documento .p-datatable-tfoot tr.font-bold td {
     font-weight: bold !important;
     font-size: 11px !important;
     border: 1px solid #ddd !important;
