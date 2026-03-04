@@ -5,13 +5,9 @@
 .escala-container {
   max-width: 1500px;
   margin: 0 auto;
-  padding: 1px;
 }
 
 .escala-titulo {
-  display: flex;
-  gap: 1px;
-  justify-content: center;
   background-color: var(--surface-card);
   color: var(--text-color);
 }
