@@ -81,7 +81,7 @@ export class EscalaNoturnaComponent implements OnInit {
 
     const p1 = this.escalaConfig.p1 || 'P1';
     const p2 = this.escalaConfig.p2 || 'P2';
-    const diasFolga = this.escalaConfig.folgas; // array de números 0-6
+    const diasFolga = this.escalaConfig.folgas;
     const quemFolgaPrimeiro = this.escalaConfig.quemFolgaPrimeiro;
 
     const inicio = new Date(this.dataInicio);
@@ -118,11 +118,8 @@ export class EscalaNoturnaComponent implements OnInit {
       html += `<span class="data-label ${hojeFolga ? 'color-folga' : `color-${sem}`}">${diaMes}</span>`;
       html += `<div class="dia-container">`;
 
-      // Turno madruga (00h-06h)
+      // Turno madruga
       html += `<div class="coluna turno-madruga">`;
-      if (qMadruga === ultimoNoite && ultimoNoite !== '') {
-        html += `<div class="seta-fluxo">➔</div>`;
-      }
       html += `<strong>${qMadruga}</strong><br><small>00h-06h</small>`;
       if (hojeFolga) {
         const quemFolgaHoje = qNoite === p1 ? p2 : p1;
@@ -132,10 +129,10 @@ export class EscalaNoturnaComponent implements OnInit {
       }
       html += `</div>`;
 
-      // Turno dia (06h-18h) - sempre "Equipe do Dia"
+      // Turno dia
       html += `<div class="coluna equipe-dia">Equipe<br>do Dia<br><small>06h-18h</small></div>`;
 
-      // Turno noite (18h-00h)
+      // Turno noite
       html += `<div class="coluna turno-noite">`;
       html += `<strong>${qNoite}</strong><br><small>18h-00h</small>`;
       if (hojeFolga) {
@@ -144,8 +141,15 @@ export class EscalaNoturnaComponent implements OnInit {
           html += `<span class="folga-aviso">Folga: ${p1}</span>`;
         }
       }
+      html += `</div>`;
 
-      // Seta de saída no sábado (se houver continuidade)
+      html += `</div>`; // fecha dia-container
+
+      // SETAS (agora fora do dia-container, mas dentro da célula)
+      if (qMadruga === ultimoNoite && ultimoNoite !== '') {
+        html += `<div class="seta-fluxo">➔</div>`;
+      }
+
       if (sem === 6) {
         const amanha = new Date(atual);
         amanha.setDate(amanha.getDate() + 1);
@@ -161,9 +165,7 @@ export class EscalaNoturnaComponent implements OnInit {
         }
       }
 
-      html += `</div>`;
-
-      html += `</div></div></td>`;
+      html += `</div></td>`; // fecha cell-wrapper e td
 
       ultimoNoite = qNoite;
 
@@ -185,6 +187,8 @@ export class EscalaNoturnaComponent implements OnInit {
 
   imprimir() {
     const elemento = document.querySelector('.tabela-escala') as HTMLElement;
+    console.log('Elemento para impressão:', elemento);
+    console.log('Conteúdo:', elemento?.innerHTML);
     if (elemento) {
       this.impressaoService.imprimirElemento(elemento, 'Escala Noturna', ImpressaoEscalaCSS);
     } else {
@@ -207,41 +211,46 @@ export class EscalaNoturnaComponent implements OnInit {
       return;
     }
 
-    // Feedback de processamento
-    this.onMensagem.emit({
-      severity: 'info',
-      summary: 'Processando',
-      detail: 'Gerando imagem...',
-    });
+    // Salva o estilo original
+    const originalOverflow = element.style.overflowX;
+    element.style.overflowX = 'visible';
+    // Opcional: define uma largura fixa para evitar cortes
+    element.style.width = '1500px';
+
+    this.onMensagem.emit({ severity: 'info', summary: 'Processando', detail: 'Gerando imagem...' });
 
     html2canvas(element, {
-      scale: 3,
+      scale: 2,
       useCORS: true,
-      backgroundColor: '#ffffff',
-      logging: false,
+      backgroundColor: null,
+      logging: true, // ative para depuração
       allowTaint: false,
       imageTimeout: 15000,
     })
-      .then((canvas: HTMLCanvasElement) => {
-        const webpDataUrl = canvas.toDataURL('image/webp', 0.95);
+      .then((canvas) => {
+        // Restaura
+        element.style.overflowX = originalOverflow;
+        element.style.width = ''; // remove largura fixa
 
+        const webpDataUrl = canvas.toDataURL('image/webp', 0.95);
         const link = document.createElement('a');
         link.download = `escala-equipe-${new Date().toISOString().split('T')[0]}.webp`;
         link.href = webpDataUrl;
         link.click();
-
         this.onMensagem.emit({
           severity: 'success',
           summary: 'Sucesso',
           detail: 'Imagem WEBP gerada com sucesso!',
         });
       })
-      .catch((error: any) => {
+      .catch((error) => {
+        element.style.overflowX = originalOverflow;
+        element.style.width = '';
         console.error('Erro ao gerar imagem:', error);
         this.onMensagem.emit({
           severity: 'error',
           summary: 'Erro',
-          detail: 'Falha ao gerar imagem. Tente novamente.',
+          detail: 'Falha ao gerar imagem. Verifique o console.',
         });
       });
   }

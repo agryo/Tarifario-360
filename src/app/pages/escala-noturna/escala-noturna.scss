@@ -1,5 +1,39 @@
 :host {
   display: block;
+
+  // Cores dos dias da semana (tema claro)
+  --cor-dom: #ff9800;
+  --cor-seg: #9c27b0;
+  --cor-ter: #00bcd4;
+  --cor-qua: #3f51b5;
+  --cor-qui: #795548;
+  --cor-sex: #607d8b;
+  --cor-sab: #e91e63;
+  --cor-folga: #fff176;
+
+  // Cores dos turnos
+  --cor-inicia: #c8e6c9;
+  --cor-termina: #ffcdd2;
+  --cor-equipe-dia: #f4f4f4;
+  --cor-equipe-dia-text: #000;
+}
+
+:host-context(.my-app-dark) {
+  // Tema escuro - cores mais claras e vibrantes
+  --cor-dom: #ffb74d;
+  --cor-seg: #ba68c8;
+  --cor-ter: #4dd0e1;
+  --cor-qua: #5c6bc0;
+  --cor-qui: #8d6e63;
+  --cor-sex: #78909c;
+  --cor-sab: #f06292;
+  --cor-folga: #fff59d;
+
+  // Cores dos turnos no escuro (mais claras para contraste)
+  --cor-inicia: #81c784;
+  --cor-termina: #e57373;
+  --cor-equipe-dia: #adadad;
+  --cor-equipe-dia-text: #050505;
 }
 
 .escala-container {
@@ -48,42 +82,51 @@
       padding: 4px;
       text-align: center;
       vertical-align: top;
+      overflow: visible;
+    }
+
+    td {
+      position: relative; // as setas serão posicionadas em relação à célula
     }
 
     th {
       background-color: var(--surface-ground);
       font-weight: bold;
+      color: #000 !important;
     }
 
-    .color-folga {
-      background-color: var(--red-100);
+    // Cores dos cabeçalhos e datas
+    th.color-0,
+    .data-label.color-0 {
+      background-color: var(--cor-dom) !important;
     }
-    .color-0 {
-      background-color: var(--yellow-100);
+    th.color-1,
+    .data-label.color-1 {
+      background-color: var(--cor-seg) !important;
     }
-    .color-1 {
-      background-color: var(--green-100);
+    th.color-2,
+    .data-label.color-2 {
+      background-color: var(--cor-ter) !important;
     }
-    .color-2 {
-      background-color: var(--blue-100);
+    th.color-3,
+    .data-label.color-3 {
+      background-color: var(--cor-qua) !important;
     }
-    .color-3 {
-      background-color: var(--gray-200);
+    th.color-4,
+    .data-label.color-4 {
+      background-color: var(--cor-qui) !important;
     }
-    .color-4 {
-      background-color: var(--pink-100);
+    th.color-5,
+    .data-label.color-5 {
+      background-color: var(--cor-sex) !important;
     }
-    .color-5 {
-      background-color: var(--cyan-100);
+    th.color-6,
+    .data-label.color-6 {
+      background-color: var(--cor-sab) !important;
     }
-    .color-6 {
-      background-color: var(--red-200);
-    }
-
-    .cell-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
+    th.color-folga,
+    .data-label.color-folga {
+      background-color: var(--cor-folga) !important;
     }
 
     .data-label {
@@ -91,6 +134,13 @@
       padding: 2px;
       border-bottom: 1px solid var(--surface-border);
       margin-bottom: 4px;
+      color: #000 !important;
+    }
+
+    .cell-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
     }
 
     .dia-container {
@@ -103,34 +153,63 @@
       flex: 1;
       padding: 2px;
       border-radius: 4px;
-      background-color: var(--surface-ground);
       min-width: 50px;
+      // sem position relative (a seta fica na célula)
     }
 
     .turno-madruga {
-      background-color: var(--blue-50);
+      background-color: var(--cor-inicia) !important;
+      color: #000 !important;
     }
     .equipe-dia {
-      background-color: var(--green-50);
+      background-color: var(--cor-equipe-dia) !important;
+      color: var(--cor-equipe-dia-text) !important;
+      font-weight: 600;
+      border-left: 1px dashed var(--surface-border);
+      border-right: 1px dashed var(--surface-border);
     }
     .turno-noite {
-      background-color: var(--orange-50);
+      background-color: var(--cor-termina) !important;
+      color: #000 !important;
     }
 
     .seta-fluxo,
     .seta-saida {
-      font-size: 1.2rem;
-      color: var(--primary-color);
-      display: inline-block;
-      margin-right: 2px;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      background: #1b5e20 !important;
+      color: white !important;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      z-index: 10;
+      border: 2px solid white;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    .seta-fluxo {
+      left: -8px; // posicionada sobre a borda esquerda da célula
+    }
+
+    .seta-saida {
+      right: -8px; // posicionada sobre a borda direita da célula
     }
 
     .folga-aviso {
       display: block;
       font-size: 0.7rem;
-      color: var(--red-500);
+      color: #b71c1c !important;
       font-weight: bold;
       margin-top: 2px;
+      background: rgba(255, 255, 255, 0.8) !important;
+      padding: 2px 4px;
+      border: 1px solid #b71c1c;
+      border-radius: 4px;
     }
   }
 }
