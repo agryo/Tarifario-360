@@ -1,14 +1,14 @@
+// orcamento-oficial.scss
 :host {
   display: block;
 }
 
-// Largura máxima personalizada
 .max-w-1100 {
   max-width: 1100px;
   margin: 0 auto;
 }
 
-// Estilos do cabeçalho do documento (tela)
+// Estilos do cabeçalho do documento (já existem)
 .header-doc {
   display: flex;
   justify-content: space-between;
@@ -41,7 +41,127 @@
   line-height: 1.2;
 }
 
-// Evita que dropdowns dentro da tabela sejam cortados
+// ===== NOVOS ESTILOS PARA O HTML PURO =====
+// (copiados do orcamento-impressao.styles.ts, mas sem @media print se preferir)
+
+.titulo-orcamento {
+  text-align: center;
+  text-transform: uppercase;
+  margin: 10px 0;
+  color: #075e54;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+h2,
+h3 {
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 12px 0 5px 0;
+}
+
+p,
+span,
+div {
+  font-size: 10pt;
+  line-height: 1.3;
+}
+
+.tabela-orcamento {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 5px 0;
+  border: 1px solid #ddd;
+}
+
+.tabela-orcamento th {
+  background: #f4f4f4;
+  color: #333;
+  border: 1px solid #ddd;
+  padding: 6px;
+  font-size: 10px;
+  font-weight: bold;
+  text-align: left;
+}
+
+.tabela-orcamento td {
+  border: 1px solid #ddd;
+  padding: 6px;
+  vertical-align: top;
+}
+
+.tabela-orcamento th:nth-child(1) {
+  width: 5%;
+}
+.tabela-orcamento th:nth-child(2) {
+  width: 25%;
+}
+.tabela-orcamento th:nth-child(3) {
+  width: 25%;
+}
+.tabela-orcamento th:nth-child(4) {
+  width: 15%;
+}
+.tabela-orcamento th:nth-child(5) {
+  width: 15%;
+}
+.tabela-orcamento th:nth-child(6) {
+  width: 15%;
+}
+
+.alinhar-direita {
+  text-align: right;
+}
+
+.alinhar-centro {
+  text-align: center;
+}
+
+.negrito {
+  font-weight: bold;
+}
+
+.descricao-extra {
+  font-size: 9px;
+  font-style: italic;
+  color: #666;
+  margin-top: 2px;
+}
+
+.extra {
+  color: #d32f2f;
+  display: block;
+  font-size: 9px;
+}
+
+.nota {
+  text-align: left;
+  font-style: italic;
+  padding: 8px;
+  background: #f9f9f9;
+}
+
+.total-row td {
+  font-weight: bold;
+  font-size: 11px;
+  background: #e7f3f0;
+}
+
+.rodape-assinaturas {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 60px;
+}
+
+.assinatura {
+  width: 45%;
+  text-align: center;
+  border-top: 1px solid #333;
+  padding-top: 8px;
+  font-size: 10px;
+}
+
+// Evita que dropdowns dentro da tabela sejam cortados (já existia)
 :host ::ng-deep .p-datatable .p-datatable-wrapper {
   overflow: visible !important;
 }
@@ -58,5 +178,69 @@
     width: 100%;
     margin: 0;
     padding: 5mm;
+  }
+}
+
+// Modo Escuro (complemento)
+:host-context(.my-app-dark) {
+  #documento-impressao {
+    background: var(--surface-card);
+    color: var(--text-color);
+  }
+
+  #documento-impressao .header-doc {
+    border-bottom-color: var(--primary-color);
+  }
+
+  #documento-impressao .hotel-info-doc h1 {
+    color: var(--primary-color);
+  }
+
+  #documento-impressao .hotel-info-doc p {
+    color: var(--text-secondary-color);
+  }
+
+  #documento-impressao .titulo-orcamento {
+    color: var(--primary-color);
+  }
+
+  #documento-impressao h2,
+  #documento-impressao h3 {
+    color: var(--primary-color);
+  }
+
+  #documento-impressao .tabela-orcamento {
+    border-color: var(--surface-border);
+  }
+
+  #documento-impressao .tabela-orcamento th {
+    background: var(--surface-ground);
+    color: var(--text-color);
+    border-color: var(--surface-border);
+  }
+
+  #documento-impressao .tabela-orcamento td {
+    border-color: var(--surface-border);
+    color: var(--text-color);
+  }
+
+  #documento-impressao .descricao-extra {
+    color: var(--text-secondary-color);
+  }
+  #documento-impressao .extra {
+    color: var(--red-500);
+  }
+
+  #documento-impressao .nota {
+    background: var(--surface-ground);
+  }
+
+  #documento-impressao .total-row td {
+    background: var(--surface-highlight);
+  }
+
+  #documento-impressao .assinatura {
+    border-top-color: var(--surface-border);
+    color: var(--text-color);
   }
 }

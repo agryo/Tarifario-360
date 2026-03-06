@@ -3,155 +3,172 @@ export const ImpressaoOrcamentoCSS = /* css */ `
   @media print {
     @page {
       size: A4;
-      margin: 10mm !important;
+      margin: 10mm;
     }
-    .no-print { display: none !important; }
   }
 
-  .documento {
-    font-family: Arial, sans-serif !important;
-    color: #000 !important;
-    background: white !important;
-    width: 100% !important;
-    padding: 0 !important;
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: white;
+  }
+
+  #documento-impressao {
+    font-family: Arial, sans-serif;
+    color: #000;
+    background: white;
+    width: 100%;
+    padding: 0;
   }
 
   /* CABEÇALHO */
-  .documento .header-doc {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    border-bottom: 2px solid #075e54 !important;
-    padding-bottom: 5px !important;
-    margin-bottom: 10px !important;
+  #documento-impressao .header-doc {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #075e54;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
   }
 
-  .documento .logo-container img {
-    max-width: 80px !important;
-    height: auto !important;
+  #documento-impressao .logo-container img {
+    max-width: 80px;
+    height: auto;
   }
 
-  .documento .hotel-info-doc {
-    text-align: right !important;
+  #documento-impressao .hotel-info-doc {
+    text-align: right;
   }
 
-  .documento .hotel-info-doc h1 {
-    margin: 0 !important;
-    color: #075e54 !important;
-    font-size: 15px !important;
-    font-weight: bold !important;
+  #documento-impressao .hotel-info-doc h1 {
+    margin: 0;
+    color: #075e54;
+    font-size: 15px;
+    font-weight: bold;
   }
 
-  .documento .hotel-info-doc p {
-    margin: 0 !important;
-    font-size: 9px !important;
-    color: #555 !important;
-    line-height: 1.2 !important;
+  #documento-impressao .hotel-info-doc p {
+    margin: 0;
+    font-size: 10pt;
+    color: #555;
+    line-height: 1.2;
   }
 
   /* TÍTULO CENTRAL */
-  .documento .text-2xl, 
-  .documento .doc-title {
-    text-align: center !important;
-    text-transform: uppercase !important;
-    margin: 10px 0 !important;
-    color: #075e54 !important;
-    font-size: 20px !important;
-    font-weight: bold !important;
-    display: block !important;
+  #documento-impressao .titulo-orcamento {
+    text-align: center;
+    text-transform: uppercase;
+    margin: 10px 0;
+    padding: 10px;
+    color: #075e54;
+    font-size: 20px;
+    font-weight: bold;
   }
 
   /* SEÇÕES */
-  .documento h2 {
-    font-size: 11pt !important;
-    font-weight: bold !important;
-    color: #075e54 !important;
-    margin: 12px 0 5px 0 !important;
+  #documento-impressao h2,
+  #documento-impressao h3 {
+    font-size: 11pt;
+    font-weight: bold;
+    color: #075e54;
+    margin: 12px 0 5px 0;
   }
 
-  .documento p, 
-  .documento span, 
-  .documento div {
-    font-size: 10pt !important;
-    line-height: 1.3 !important;
+  #documento-impressao p,
+  #documento-impressao div {
+    font-size: 10pt;
+    line-height: 1.3;
+    margin: 0 0 8px 0;
   }
 
-  /* TABELA - FORÇANDO ESTILOS */
-  .documento table,
-  .documento .p-datatable-table {
-    width: 100% !important;
-    border-collapse: collapse !important;
-    margin: 5px 0 !important;
-    border: 1px solid #ddd !important;
+  /* TABELA */
+  #documento-impressao .tabela-orcamento {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 5px 0;
+    border: 1px solid #ddd;
+    table-layout: fixed; /* Garante que as larguras sejam respeitadas */
   }
 
-  .documento th,
-  .documento .p-datatable-thead > tr > th {
-    background: #f4f4f4 !important;
-    color: #333 !important;
-    border: 1px solid #ddd !important;
-    padding: 6px !important;
-    font-size: 10px !important;
-    font-weight: bold !important;
-    text-align: left !important;
+  #documento-impressao .tabela-orcamento th,
+  #documento-impressao .tabela-orcamento td {
+    border: 1px solid #ddd;
+    padding: 6px;
+    font-size: 10px;
+    vertical-align: top;
   }
 
-  .documento td,
-  .documento .p-datatable-tbody > tr > td {
-    border: 1px solid #ddd !important;
-    padding: 6px !important;
-    font-size: 10px !important;
-    vertical-align: top !important;
-    color: #000 !important;
-    background: transparent !important;
+  #documento-impressao .tabela-orcamento th {
+    background: #f4f4f4;
+    color: #333;
+    font-weight: bold;
+    text-align: left;
   }
 
-  /* Larguras das colunas (ajustadas conforme modelo) */
-  .documento th:nth-child(1) { width: 5%; }
-  .documento th:nth-child(2) { width: 25%; }
-  .documento th:nth-child(3) { width: 25%; }
-  .documento th:nth-child(4) { width: 15%; }
-  .documento th:nth-child(5) { width: 15%; }
-  .documento th:nth-child(6) { width: 15%; }
+  /* Larguras das colunas */
+  #documento-impressao .tabela-orcamento th:nth-child(1) { width: 4% }  /* Qtd */
+  #documento-impressao .tabela-orcamento th:nth-child(2) { width: 24%; } /* Acomodação */
+  #documento-impressao .tabela-orcamento th:nth-child(3) { width: 28%; } /* Serviços */
+  #documento-impressao .tabela-orcamento th:nth-child(4) { width: 12%; } /* Vlr. Diária */
+  #documento-impressao .tabela-orcamento th:nth-child(5) { width: 20%; } /* Diárias */
+  #documento-impressao .tabela-orcamento th:nth-child(6) { width: 12%; } /* Total */
 
-  /* Alinhamento dos números à direita */
-  .documento td:nth-child(4),
-  .documento td:nth-child(5),
-  .documento td:nth-child(6) {
-    text-align: right !important;
+  /* Alinhamento */
+  #documento-impressao .alinhar-direita {
+    text-align: right;
   }
 
-  /* Linha da observação (colspan) */
-  .documento td[colspan="6"] {
-    text-align: left !important;
-    font-style: italic !important;
-    background: transparent !important;
-    border: 1px solid #ddd !important;
+  #documento-impressao .alinhar-centro {
+    text-align: center;
+  }
+
+  /* Descrição extra (cargo) */
+  #documento-impressao .descricao-extra {
+    font-size: 9px;
+    font-style: italic;
+    color: #666;
+    margin-top: 2px;
+  }
+
+  /* Horas extras */
+  #documento-impressao .extra {
+    color: #d32f2f;
+    display: block;
+    font-size: 9px;
+  }
+
+  /* Linha de observação */
+  #documento-impressao .nota {
+    text-align: left;
+    font-style: italic;
+    padding: 8px;
+    background: #f9f9f9;
   }
 
   /* Linha do total */
-  .documento tr.font-bold td,
-  .documento .p-datatable-tfoot tr.font-bold td {
-    font-weight: bold !important;
-    font-size: 11px !important;
-    border: 1px solid #ddd !important;
-    background: transparent !important;
+  #documento-impressao .total-row td {
+    font-weight: bold;
+    font-size: 10px; /* igual ao restante da tabela */
+    background: #e7f3f0;
   }
 
   /* RODAPÉ DE ASSINATURAS */
-  .documento .flex.justify-content-between.mt-4 {
-    display: flex !important;
-    justify-content: space-between !important;
-    margin-top: 30px !important;
+  #documento-impressao .rodape-assinaturas {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 60px;
   }
 
-  .documento .w-5 { width: 45% !important; }
-  .documento .text-center { text-align: center !important; }
-  .documento .border-top-1 { border-top: 1px solid #333 !important; }
-  .documento .pt-2 { padding-top: 8px !important; }
-
-  /* Remove ícones extras do PrimeNG */
-  .p-column-title, .p-sortable-column-icon {
-    display: none !important;
+  #documento-impressao .assinatura {
+    width: 45%;
+    text-align: center;
+    border-top: 1px solid #333;
+    padding-top: 8x;
+    font-size: 10px;
   }
 `;
