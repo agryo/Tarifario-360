@@ -114,12 +114,15 @@ export class EscalaNoturnaComponent implements OnInit {
 
       const diaMes = `${atual.getDate().toString().padStart(2, '0')}/${['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'][atual.getMonth()]}`;
 
-      html += `<td><div class="cell-wrapper">`;
+      html += `<td class="${hojeFolga ? 'color-folga' : `color-${sem}`}"><div class="cell-wrapper">`;
       html += `<span class="data-label ${hojeFolga ? 'color-folga' : `color-${sem}`}">${diaMes}</span>`;
       html += `<div class="dia-container">`;
 
       // Turno madruga
       html += `<div class="coluna turno-madruga">`;
+      if (qMadruga === ultimoNoite && ultimoNoite !== '') {
+        html += `<div class="seta-fluxo">➔</div>`;
+      }
       html += `<strong>${qMadruga}</strong><br><small>00h-06h</small>`;
       if (hojeFolga) {
         const quemFolgaHoje = qNoite === p1 ? p2 : p1;
@@ -141,15 +144,6 @@ export class EscalaNoturnaComponent implements OnInit {
           html += `<span class="folga-aviso">Folga: ${p1}</span>`;
         }
       }
-      html += `</div>`;
-
-      html += `</div>`; // fecha dia-container
-
-      // SETAS (agora fora do dia-container, mas dentro da célula)
-      if (qMadruga === ultimoNoite && ultimoNoite !== '') {
-        html += `<div class="seta-fluxo">➔</div>`;
-      }
-
       if (sem === 6) {
         const amanha = new Date(atual);
         amanha.setDate(amanha.getDate() + 1);
@@ -164,8 +158,7 @@ export class EscalaNoturnaComponent implements OnInit {
           }
         }
       }
-
-      html += `</div></td>`; // fecha cell-wrapper e td
+      html += `</div>`;
 
       ultimoNoite = qNoite;
 

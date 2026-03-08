@@ -1,215 +1,237 @@
-:host {
-  display: block;
+/* ==========================================================================
+   Variáveis de Tema para a Escala Noturna
+   ========================================================================== */
 
-  // Cores dos dias da semana (tema claro)
-  --cor-dom: #ff9800;
-  --cor-seg: #9c27b0;
-  --cor-ter: #00bcd4;
-  --cor-qua: #3f51b5;
-  --cor-qui: #795548;
-  --cor-sex: #607d8b;
-  --cor-sab: #e91e63;
-  --cor-folga: #fff176;
-
-  // Cores dos turnos
-  --cor-inicia: #c8e6c9;
-  --cor-termina: #ffcdd2;
-  --cor-equipe-dia: #f4f4f4;
-  --cor-equipe-dia-text: #000;
+/* Cores de Texto Fixas para Cabeçalho/Data */
+:root,
+html.my-app-dark {
+  --escala-header-text: #ffffff;
+  --escala-folga-header-text: #000000;
 }
 
-:host-context(.my-app-dark) {
-  // Tema escuro - cores mais claras e vibrantes
-  --cor-dom: #ffb74d;
-  --cor-seg: #ba68c8;
-  --cor-ter: #4dd0e1;
-  --cor-qua: #5c6bc0;
-  --cor-qui: #8d6e63;
-  --cor-sex: #78909c;
-  --cor-sab: #f06292;
-  --cor-folga: #fff59d;
+/* Tema Claro (Padrão) */
+:root {
+  --escala-bg: #ffffff;
+  --escala-border: #000000;
+  --escala-cell-text: #212529;
+  --escala-folga-aviso-bg: #ffc107;
+  --escala-folga-aviso-text: #000;
+  --escala-seta-color: #28a745;
 
-  // Cores dos turnos no escuro (mais claras para contraste)
-  --cor-inicia: #81c784;
-  --cor-termina: #e57373;
-  --cor-equipe-dia: #adadad;
-  --cor-equipe-dia-text: #050505;
+  /* Cores de Fundo (do CSS antigo) */
+  --escala-dia-0-bg: #ff9800; /* Dom */
+  --escala-dia-1-bg: #9c27b0; /* Seg */
+  --escala-dia-2-bg: #00bcd4; /* Ter */
+  --escala-dia-3-bg: #3f51b5; /* Qua */
+  --escala-dia-4-bg: #795548; /* Qui */
+  --escala-dia-5-bg: #607d8b; /* Sex */
+  --escala-dia-6-bg: #e91e63; /* Sab */
+  --escala-folga-bg: #fff9c4; /* Amarelo Mais Claro */
+
+  /* Cores de Fundo dos Turnos */
+  --escala-turno-madruga-bg: #c8e6c9; /* Verde claro */
+  --escala-turno-noite-bg: #ffcdd2; /* Vermelho claro */
+  --escala-equipe-dia-bg: #f5f5f5; /* Cinza claro */
 }
 
-.escala-container {
-  max-width: 1500px;
-  margin: 0 auto;
+/* Tema Escuro */
+html.my-app-dark {
+  --escala-bg: #1e1e1e;
+  --escala-border: #ffffff;
+  --escala-cell-text: #f8f9fa;
+  --escala-folga-aviso-bg: #ffc107;
+  --escala-folga-aviso-text: #000;
+  --escala-seta-color: #4caf50;
+
+  /* Cores de Fundo (versões escuras) */
+  --escala-dia-0-bg: #663d00; /* Dom */
+  --escala-dia-1-bg: #4d1358; /* Seg */
+  --escala-dia-2-bg: #005f6a; /* Ter */
+  --escala-dia-3-bg: #20295a; /* Qua */
+  --escala-dia-4-bg: #402d25; /* Qui */
+  --escala-dia-5-bg: #303f46; /* Sex */
+  --escala-dia-6-bg: #740f31; /* Sab */
+  --escala-folga-bg: #998f3a; /* Amarelo Escuro */
+
+  /* Cores de Fundo dos Turnos (versões escuras) */
+  --escala-turno-madruga-bg: #2e4b30; /* Verde escuro */
+  --escala-turno-noite-bg: #5c3333; /* Vermelho escuro */
+  --escala-equipe-dia-bg: #424242; /* Cinza escuro */
 }
 
-.escala-titulo {
-  background-color: var(--surface-card);
-  color: var(--text-color);
-}
-
-.main-bar {
-  border: 2px solid var(--primary-color);
-  border-radius: 8px;
-  background-color: var(--surface-card);
-  padding: 1rem;
-
-  > div {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .p-button {
-    margin: 0 0.25rem;
-  }
-}
-
+/* ==========================================================================
+   Estilos da Tabela de Escala
+   ========================================================================== */
 .tabela-escala {
   overflow-x: auto;
+  background-color: var(--escala-bg);
   padding: 1rem;
   border-radius: 8px;
-  border: 1px solid var(--surface-border);
-  background-color: var(--surface-card);
+  border: 2.5px solid var(--escala-border);
 
   table {
     width: 100%;
     border-collapse: collapse;
-    font-family: 'Segoe UI', sans-serif;
-    font-size: 12px;
-    color: var(--text-color);
+    min-width: 1200px;
 
-    th,
-    td {
-      border: 1px solid var(--surface-border);
-      padding: 4px;
+    thead th {
+      color: var(--escala-header-text);
+      padding: 0.75rem;
       text-align: center;
+      font-weight: bold;
+      border: 2.5px solid var(--escala-border);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    tbody td {
+      border: 2.5px solid var(--escala-border);
+      padding: 0;
       vertical-align: top;
-      overflow: visible;
+      position: relative;
     }
+  }
 
-    td {
-      position: relative; // as setas serão posicionadas em relação à célula
-    }
+  /* Cor de texto para dias de folga (fixa) */
+  th.color-folga,
+  .data-label.color-folga {
+    color: var(--escala-folga-header-text) !important;
+    text-shadow: none;
+  }
 
-    th {
-      background-color: var(--surface-ground);
-      font-weight: bold;
-      color: #000 !important;
-    }
+  /* Cores de fundo baseadas na classe do dia */
+  th.color-folga,
+  td.color-folga {
+    background-color: var(--escala-folga-bg) !important;
+  }
+  th.color-0,
+  td.color-0 {
+    background-color: var(--escala-dia-0-bg);
+  }
+  th.color-1,
+  td.color-1 {
+    background-color: var(--escala-dia-1-bg);
+  }
+  th.color-2,
+  td.color-2 {
+    background-color: var(--escala-dia-2-bg);
+  }
+  th.color-3,
+  td.color-3 {
+    background-color: var(--escala-dia-3-bg);
+  }
+  th.color-4,
+  td.color-4 {
+    background-color: var(--escala-dia-4-bg);
+  }
+  th.color-5,
+  td.color-5 {
+    background-color: var(--escala-dia-5-bg);
+  }
+  th.color-6,
+  td.color-6 {
+    background-color: var(--escala-dia-6-bg);
+  }
 
-    // Cores dos cabeçalhos e datas
-    th.color-0,
-    .data-label.color-0 {
-      background-color: var(--cor-dom) !important;
-    }
-    th.color-1,
-    .data-label.color-1 {
-      background-color: var(--cor-seg) !important;
-    }
-    th.color-2,
-    .data-label.color-2 {
-      background-color: var(--cor-ter) !important;
-    }
-    th.color-3,
-    .data-label.color-3 {
-      background-color: var(--cor-qua) !important;
-    }
-    th.color-4,
-    .data-label.color-4 {
-      background-color: var(--cor-qui) !important;
-    }
-    th.color-5,
-    .data-label.color-5 {
-      background-color: var(--cor-sex) !important;
-    }
-    th.color-6,
-    .data-label.color-6 {
-      background-color: var(--cor-sab) !important;
-    }
-    th.color-folga,
-    .data-label.color-folga {
-      background-color: var(--cor-folga) !important;
-    }
+  /* Estrutura interna da célula */
+  .cell-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+  }
 
-    .data-label {
-      font-weight: bold;
-      padding: 2px;
-      border-bottom: 1px solid var(--surface-border);
-      margin-bottom: 4px;
-      color: #000 !important;
-    }
+  .data-label {
+    display: block;
+    width: 100%;
+    padding: 8px 0;
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-align: center;
+    color: var(--escala-header-text);
+    border-bottom: 2.5px solid var(--escala-border);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+  }
 
-    .cell-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-    }
+  .dia-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: stretch;
+    text-align: center;
+    min-height: 110px;
+  }
 
-    .dia-container {
-      display: flex;
-      justify-content: space-between;
-      gap: 2px;
-    }
+  /* Colunas de turno dentro da célula */
+  .coluna {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    padding: 12px 4px; /* Mais padding vertical */
 
-    .coluna {
-      flex: 1;
-      padding: 2px;
-      border-radius: 4px;
-      min-width: 50px;
-      // sem position relative (a seta fica na célula)
+    strong {
+      font-size: 1.1rem;
+      margin-bottom: auto; /* Empurra strong para cima */
     }
-
-    .turno-madruga {
-      background-color: var(--cor-inicia) !important;
-      color: #000 !important;
-    }
-    .equipe-dia {
-      background-color: var(--cor-equipe-dia) !important;
-      color: var(--cor-equipe-dia-text) !important;
-      font-weight: 600;
-      border-left: 1px dashed var(--surface-border);
-      border-right: 1px dashed var(--surface-border);
-    }
-    .turno-noite {
-      background-color: var(--cor-termina) !important;
-      color: #000 !important;
-    }
-
-    .seta-fluxo,
-    .seta-saida {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 16px;
-      height: 16px;
-      background: #1b5e20 !important;
-      color: white !important;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      z-index: 10;
-      border: 2px solid white;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    }
-
-    .seta-fluxo {
-      left: -8px; // posicionada sobre a borda esquerda da célula
-    }
-
-    .seta-saida {
-      right: -8px; // posicionada sobre a borda direita da célula
-    }
-
-    .folga-aviso {
-      display: block;
+    small {
       font-size: 0.7rem;
-      color: #b71c1c !important;
-      font-weight: bold;
-      margin-top: 2px;
-      background: rgba(255, 255, 255, 0.8) !important;
-      padding: 2px 4px;
-      border: 1px solid #b71c1c;
-      border-radius: 4px;
+      opacity: 0.8;
+      margin-top: auto; /* Empurra small para baixo */
     }
+  }
+
+  /* Força as cores de fundo dos turnos a terem prioridade */
+  .turno-madruga {
+    background-color: var(--escala-turno-madruga-bg) !important;
+    color: #000000 !important;
+  }
+  .turno-noite {
+    background-color: var(--escala-turno-noite-bg) !important;
+    color: #000000 !important;
+  }
+  .equipe-dia {
+    font-weight: bold;
+    background-color: var(--escala-equipe-dia-bg) !important;
+    color: #000000 !important;
+    border-left: 2px dashed var(--escala-border);
+    border-right: 2px dashed var(--escala-border);
+  }
+
+  .folga-aviso {
+    position: absolute;
+    bottom: 2px;
+    font-size: 0.65rem;
+    font-weight: bold;
+    padding: 1px 3px;
+    border-radius: 3px;
+    background-color: var(--escala-folga-aviso-bg);
+    color: var(--escala-folga-aviso-text);
+  }
+
+  /* Setas de fluxo */
+  .seta-fluxo,
+  .seta-saida {
+    position: absolute;
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--escala-seta-color);
+    z-index: 2;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+  }
+
+  .seta-fluxo {
+    left: -14px;
+    top: 60%;
+    transform: translateY(-50%);
+  }
+
+  .seta-saida {
+    right: -14px;
+    top: 60%;
+    transform: translateY(-50%);
   }
 }
