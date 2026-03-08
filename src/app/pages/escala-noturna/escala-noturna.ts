@@ -179,7 +179,7 @@ export class EscalaNoturnaComponent implements OnInit {
   }
 
   imprimir() {
-    const elemento = document.querySelector('.tabela-escala') as HTMLElement;
+    const elemento = document.querySelector('.tabela-area') as HTMLElement;
     console.log('Elemento para impressão:', elemento);
     console.log('Conteúdo:', elemento?.innerHTML);
     if (elemento) {
