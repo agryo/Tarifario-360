@@ -1,24 +1,9 @@
 /* ==========================================================================
-   Variáveis de Tema para a Escala Noturna
+   VARIÁVEIS DE TEMA - FIDELIDADE AO MODELO ORIGINAL
    ========================================================================== */
 
-/* Cores de Texto Fixas para Cabeçalho/Data */
-:root,
-html.my-app-dark {
-  --escala-header-text: #ffffff;
-  --escala-folga-header-text: #000000;
-}
-
-/* Tema Claro (Padrão) */
 :root {
-  --escala-bg: #ffffff;
-  --escala-border: #000000;
-  --escala-cell-text: #212529;
-  --escala-folga-aviso-bg: #ffc107;
-  --escala-folga-aviso-text: #000;
-  --escala-seta-color: #28a745;
-
-  /* Cores de Fundo (do CSS antigo) */
+  /* Cores dos Dias (Fixas conforme modelo) */
   --escala-dia-0-bg: #ff9800; /* Dom */
   --escala-dia-1-bg: #9c27b0; /* Seg */
   --escala-dia-2-bg: #00bcd4; /* Ter */
@@ -26,212 +11,202 @@ html.my-app-dark {
   --escala-dia-4-bg: #795548; /* Qui */
   --escala-dia-5-bg: #607d8b; /* Sex */
   --escala-dia-6-bg: #e91e63; /* Sab */
-  --escala-folga-bg: #fff9c4; /* Amarelo Mais Claro */
+  --escala-folga-bg: #fff176;
 
-  /* Cores de Fundo dos Turnos */
-  --escala-turno-madruga-bg: #c8e6c9; /* Verde claro */
-  --escala-turno-noite-bg: #ffcdd2; /* Vermelho claro */
-  --escala-equipe-dia-bg: #f5f5f5; /* Cinza claro */
+  /* Turnos (Cores Pastel) */
+  --escala-turno-madruga-bg: #c8e6c9;
+  --escala-turno-noite-bg: #ffcdd2;
+
+  /* Modo Claro */
+  --escala-border: #000000;
+  --escala-equipe-dia-bg: #f4f4f4;
+  --escala-equipe-dia-text: #000000;
 }
 
-/* Tema Escuro */
-html.my-app-dark {
-  --escala-bg: #1e1e1e;
-  --escala-border: #ffffff;
-  --escala-cell-text: #f8f9fa;
-  --escala-folga-aviso-bg: #ffc107;
-  --escala-folga-aviso-text: #000;
-  --escala-seta-color: #4caf50;
-
-  /* Cores de Fundo (versões escuras) */
-  --escala-dia-0-bg: #663d00; /* Dom */
-  --escala-dia-1-bg: #4d1358; /* Seg */
-  --escala-dia-2-bg: #005f6a; /* Ter */
-  --escala-dia-3-bg: #20295a; /* Qua */
-  --escala-dia-4-bg: #402d25; /* Qui */
-  --escala-dia-5-bg: #303f46; /* Sex */
-  --escala-dia-6-bg: #740f31; /* Sab */
-  --escala-folga-bg: #998f3a; /* Amarelo Escuro */
-
-  /* Cores de Fundo dos Turnos (versões escuras) */
-  --escala-turno-madruga-bg: #2e4b30; /* Verde escuro */
-  --escala-turno-noite-bg: #5c3333; /* Vermelho escuro */
-  --escala-equipe-dia-bg: #424242; /* Cinza escuro */
+/* Ajustes para Modo Escuro do PrimeNG */
+:host-context(.p-dark),
+:host-context(.dark-mode) {
+  --escala-border: #444444;
+  --escala-equipe-dia-bg: #adadad;
+  --escala-equipe-dia-text: #050505;
 }
 
 /* ==========================================================================
-   Estilos da Tabela de Escala
+   ESTRUTURA DA TABELA
    ========================================================================== */
+
 .tabela-escala {
-  overflow-x: auto;
-  background-color: var(--escala-bg);
-  padding: 1rem;
-  border-radius: 8px;
-  border: 2.5px solid var(--escala-border);
+  width: 100%;
+  overflow-x: visible;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 
   table {
     width: 100%;
+    min-width: 1100px;
     border-collapse: collapse;
-    min-width: 1200px;
+    table-layout: fixed;
+    border: 3px solid var(--escala-border) !important;
+    background-color: var(--p-surface-card);
+  }
 
-    thead th {
-      color: var(--escala-header-text);
-      padding: 0.75rem;
-      text-align: center;
-      font-weight: bold;
-      border: 2.5px solid var(--escala-border);
-      position: sticky;
-      top: 0;
-      z-index: 1;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+  th,
+  td {
+    border: 2.5px solid var(--escala-border) !important;
+    padding: 0;
+    vertical-align: top;
+    position: relative;
+  }
+
+  th {
+    padding: 15px !important;
+    color: #ffffff !important;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 14px;
+    /* Força a cor de fundo no header */
+    &.color-folga {
+      color: #333 !important;
+      background-color: var(--escala-folga-bg) !important;
     }
-
-    tbody td {
-      border: 2.5px solid var(--escala-border);
-      padding: 0;
-      vertical-align: top;
-      position: relative;
+    &.color-0 {
+      background-color: var(--escala-dia-0-bg) !important;
+    }
+    &.color-1 {
+      background-color: var(--escala-dia-1-bg) !important;
+    }
+    &.color-2 {
+      background-color: var(--escala-dia-2-bg) !important;
+    }
+    &.color-3 {
+      background-color: var(--escala-dia-3-bg) !important;
+    }
+    &.color-4 {
+      background-color: var(--escala-dia-4-bg) !important;
+    }
+    &.color-5 {
+      background-color: var(--escala-dia-5-bg) !important;
+    }
+    &.color-6 {
+      background-color: var(--escala-dia-6-bg) !important;
     }
   }
 
-  /* Cor de texto para dias de folga (fixa) */
-  th.color-folga,
-  .data-label.color-folga {
-    color: var(--escala-folga-header-text) !important;
-    text-shadow: none;
+  /* Rótulo da Data */
+  .data-label {
+    display: block;
+    padding: 10px 0;
+    width: 100%;
+    font-weight: 800;
+    text-align: center;
+    border-bottom: 2.5px solid var(--escala-border);
+    color: #ffffff !important;
+
+    &.color-folga {
+      color: #333 !important;
+      background-color: var(--escala-folga-bg) !important;
+    }
+    &.color-0 {
+      background-color: var(--escala-dia-0-bg) !important;
+    }
+    &.color-1 {
+      background-color: var(--escala-dia-1-bg) !important;
+    }
+    &.color-2 {
+      background-color: var(--escala-dia-2-bg) !important;
+    }
+    &.color-3 {
+      background-color: var(--escala-dia-3-bg) !important;
+    }
+    &.color-4 {
+      background-color: var(--escala-dia-4-bg) !important;
+    }
+    &.color-5 {
+      background-color: var(--escala-dia-5-bg) !important;
+    }
+    &.color-6 {
+      background-color: var(--escala-dia-6-bg) !important;
+    }
   }
 
-  /* Cores de fundo baseadas na classe do dia */
-  th.color-folga,
-  td.color-folga {
-    background-color: var(--escala-folga-bg) !important;
-  }
-  th.color-0,
-  td.color-0 {
-    background-color: var(--escala-dia-0-bg);
-  }
-  th.color-1,
-  td.color-1 {
-    background-color: var(--escala-dia-1-bg);
-  }
-  th.color-2,
-  td.color-2 {
-    background-color: var(--escala-dia-2-bg);
-  }
-  th.color-3,
-  td.color-3 {
-    background-color: var(--escala-dia-3-bg);
-  }
-  th.color-4,
-  td.color-4 {
-    background-color: var(--escala-dia-4-bg);
-  }
-  th.color-5,
-  td.color-5 {
-    background-color: var(--escala-dia-5-bg);
-  }
-  th.color-6,
-  td.color-6 {
-    background-color: var(--escala-dia-6-bg);
-  }
-
-  /* Estrutura interna da célula */
   .cell-wrapper {
     display: flex;
     flex-direction: column;
     height: 100%;
-    position: relative;
-  }
-
-  .data-label {
-    display: block;
-    width: 100%;
-    padding: 8px 0;
-    font-size: 0.9rem;
-    font-weight: bold;
-    text-align: center;
-    color: var(--escala-header-text);
-    border-bottom: 2.5px solid var(--escala-border);
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
   }
 
   .dia-container {
     display: flex;
-    justify-content: space-around;
-    align-items: stretch;
-    text-align: center;
-    min-height: 110px;
+    flex: 1;
+    min-height: 125px;
+    margin-top: -1px;
   }
 
-  /* Colunas de turno dentro da célula */
+  /* Colunas de Turno */
   .coluna {
     flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    padding: 8px 5px;
+    font-size: 0.95em;
+    text-align: center;
     position: relative;
-    padding: 12px 4px; /* Mais padding vertical */
-
-    strong {
-      font-size: 1.1rem;
-      margin-bottom: auto; /* Empurra strong para cima */
-    }
-    small {
-      font-size: 0.7rem;
-      opacity: 0.8;
-      margin-top: auto; /* Empurra small para baixo */
-    }
+    color: #000000 !important; /* Texto preto para contraste nas cores pastel */
   }
 
-  /* Força as cores de fundo dos turnos a terem prioridade */
   .turno-madruga {
     background-color: var(--escala-turno-madruga-bg) !important;
-    color: #000000 !important;
   }
+
   .turno-noite {
     background-color: var(--escala-turno-noite-bg) !important;
-    color: #000000 !important;
   }
+
   .equipe-dia {
-    font-weight: bold;
     background-color: var(--escala-equipe-dia-bg) !important;
-    color: #000000 !important;
-    border-left: 2px dashed var(--escala-border);
-    border-right: 2px dashed var(--escala-border);
+    color: var(--escala-equipe-dia-text) !important;
+    font-weight: 700;
+    border-left: 2.5px dashed var(--escala-border);
+    border-right: 2.5px dashed var(--escala-border);
   }
 
-  .folga-aviso {
-    position: absolute;
-    bottom: 2px;
-    font-size: 0.65rem;
-    font-weight: bold;
-    padding: 1px 3px;
-    border-radius: 3px;
-    background-color: var(--escala-folga-aviso-bg);
-    color: var(--escala-folga-aviso-text);
-  }
-
-  /* Setas de fluxo */
+  /* Setas de Fluxo (Círculo Verde do Original) */
   .seta-fluxo,
   .seta-saida {
     position: absolute;
-    font-size: 2rem;
-    font-weight: bold;
-    color: var(--escala-seta-color);
-    z-index: 2;
-    text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+    top: 40%;
+    background: #1b5e20 !important;
+    color: #ffffff !important;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    border: 2px solid #ffffff;
+    font-size: 12px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   }
 
   .seta-fluxo {
-    left: -14px;
-    top: 60%;
-    transform: translateY(-50%);
+    left: -10px;
+  }
+  .seta-saida {
+    right: -10px;
   }
 
-  .seta-saida {
-    right: -14px;
-    top: 60%;
-    transform: translateY(-50%);
+  /* Aviso de Folga dentro da célula */
+  .folga-aviso {
+    font-size: 10px;
+    color: #b71c1c !important;
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: -10px;
+    background: rgba(255, 255, 255, 0.85) !important;
+    padding: 2px 5px;
+    border: 1.5px solid #b71c1c;
+    border-radius: 4px;
   }
 }

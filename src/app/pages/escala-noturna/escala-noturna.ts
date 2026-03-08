@@ -194,7 +194,7 @@ export class EscalaNoturnaComponent implements OnInit {
   }
 
   exportarImagem() {
-    const element = document.querySelector('.tabela-escala') as HTMLElement;
+    const element = document.querySelector('.tabela-area') as HTMLElement;
     if (!element) {
       this.onMensagem.emit({
         severity: 'warn',

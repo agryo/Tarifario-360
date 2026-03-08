@@ -50,7 +50,9 @@
   </div>
 
   <!-- Tabela gerada -->
-  <div class="tabela-area surface-card p-3 border-round" *ngIf="tabelaHTML">
-    <div [innerHTML]="tabelaHTML" class="tabela-escala"></div>
+  <div class="tabela-area surface-card p-3 border-round shadow-2" *ngIf="tabelaHTML">
+    <div class="tabela-scroll-wrapper">
+      <div [innerHTML]="tabelaHTML" class="tabela-escala"></div>
+    </div>
   </div>
 </div>
