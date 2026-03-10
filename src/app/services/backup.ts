@@ -25,7 +25,6 @@ export class BackupService {
       categorias: this.tarifaService.getCategorias(),
       promocoes: this.tarifaService.getPromocoes(),
       orcamentosOficiais: this.orcamentoOficialService.listarOrcamentos(),
-      orcamentosRapidos: this.orcamentoRapidoService.getHistorico(),
       escalaConfig: this.escalaService.getConfiguracao(),
       comodidades: this.tarifaService.getComodidades(),
       temporadas: [],

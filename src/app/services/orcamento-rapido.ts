@@ -118,7 +118,7 @@ export class OrcamentoRapidoService {
       valorTotal: request.incluirCafe ? valorFinalComCafe : valorFinalSemCafe,
     };
 
-    this.salvarHistorico(orcamento);
+    // this.salvarHistorico(orcamento);
     return { orcamento, textoWhatsApp };
   }
 
@@ -252,17 +252,6 @@ export class OrcamentoRapidoService {
     texto += `*Deseja garantir sua reserva agora?*`;
 
     return texto;
-  }
-
-  private salvarHistorico(orcamento: OrcamentoRapido): void {
-    const historico = this.getHistorico();
-    historico.unshift(orcamento);
-    if (historico.length > 50) historico.pop();
-    this.storage.set(this.STORAGE_KEY, historico);
-  }
-
-  getHistorico(): OrcamentoRapido[] {
-    return this.storage.get<OrcamentoRapido[]>(this.STORAGE_KEY) || [];
   }
 
   importarDados(historico: OrcamentoRapido[]): void {
