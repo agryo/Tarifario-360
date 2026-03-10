@@ -1,7 +1,11 @@
 import { Injectable } from '@angular/core';
 import { StorageService } from './storage';
 import { TarifaService } from './tarifa';
-import { OrcamentoRapido, OrcamentoRapidoRequest } from '../models/orcamento-rapido.model';
+import {
+  OrcamentoRapido,
+  OrcamentoRapidoRequest,
+  OrcamentoRapidoResultado,
+} from '../models/orcamento-rapido.model';
 
 @Injectable({
   providedIn: 'root',
@@ -14,7 +18,7 @@ export class OrcamentoRapidoService {
     private tarifaService: TarifaService,
   ) {}
 
-  gerarOrcamento(request: OrcamentoRapidoRequest): OrcamentoRapido {
+  gerarOrcamento(request: OrcamentoRapidoRequest): OrcamentoRapidoResultado {
     const categoria = this.tarifaService.getCategoria(request.categoriaId);
     if (!categoria) throw new Error('Categoria não encontrada');
 
@@ -112,11 +116,10 @@ export class OrcamentoRapidoService {
       valorDiaria: (somaComCafe / numeroNoites) * request.quantidade, // média por noite
       tipoTemporada,
       valorTotal: request.incluirCafe ? valorFinalComCafe : valorFinalSemCafe,
-      textoWhatsApp,
     };
 
     this.salvarHistorico(orcamento);
-    return orcamento;
+    return { orcamento, textoWhatsApp };
   }
 
   private isAltaTemporada(data: Date, altaInicio: string, altaFim: string): boolean {

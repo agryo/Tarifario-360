@@ -7,6 +7,7 @@ export interface EscalaConfig {
   p2: string;
   folgas: number[]; // dias da semana (0=domingo, 6=sábado)
   quemFolgaPrimeiro: 'p1' | 'p2';
+  dataInicioFolgas: string; // Data de início das folgas (formato ISO)
 }
 
 @Injectable({
@@ -23,6 +24,7 @@ export class EscalaService {
       p2: 'Alex',
       folgas: [0, 6],
       quemFolgaPrimeiro: 'p1',
+      dataInicioFolgas: new Date().toISOString().split('T')[0], // Hoje por padrão
     };
     return this.storage.get<EscalaConfig>(this.STORAGE_KEY) || padrao;
   }

@@ -83,11 +83,20 @@ export class EscalaNoturnaComponent implements OnInit {
     const p2 = this.escalaConfig.p2 || 'P2';
     const diasFolga = this.escalaConfig.folgas;
     const quemFolgaPrimeiro = this.escalaConfig.quemFolgaPrimeiro;
+    const dataInicioFolgas = new Date(this.escalaConfig.dataInicioFolgas);
 
     const inicio = new Date(this.dataInicio);
     const fim = new Date(this.dataFim);
     inicio.setHours(0, 0, 0, 0);
     fim.setHours(0, 0, 0, 0);
+
+    // Calcular o número de semanas desde a data de início das folgas
+    const diffTime = inicio.getTime() - dataInicioFolgas.getTime();
+    const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
+    let cicloInicial = diffWeeks % 2;
+    if (quemFolgaPrimeiro === 'p2') {
+      cicloInicial = (cicloInicial + 1) % 2;
+    }
 
     let html = '<table><thead><tr>';
     const diasNomes = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
@@ -98,7 +107,7 @@ export class EscalaNoturnaComponent implements OnInit {
     html += '</tr></thead><tbody><tr>';
 
     let atual = new Date(inicio);
-    let ciclo = quemFolgaPrimeiro === 'p1' ? 1 : 0;
+    let ciclo = cicloInicial;
     let folgaAnterior = false;
     let ultimoNoite = '';
 
@@ -106,11 +115,11 @@ export class EscalaNoturnaComponent implements OnInit {
       const sem = atual.getDay();
       const hojeFolga = diasFolga.includes(sem);
 
-      if (!hojeFolga && folgaAnterior) ciclo++;
+      if (!hojeFolga && folgaAnterior) ciclo = (ciclo + 1) % 2;
       folgaAnterior = hojeFolga;
 
-      const qNoite = hojeFolga ? (ciclo % 2 === 0 ? p2 : p1) : p1;
-      const qMadruga = hojeFolga ? (ciclo % 2 === 0 ? p2 : p1) : p2;
+      const qNoite = hojeFolga ? (ciclo === 0 ? p2 : p1) : p1;
+      const qMadruga = hojeFolga ? (ciclo === 0 ? p2 : p1) : p2;
 
       const diaMes = `${atual.getDate().toString().padStart(2, '0')}/${['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'][atual.getMonth()]}`;
 
@@ -151,8 +160,8 @@ export class EscalaNoturnaComponent implements OnInit {
           const proxSem = amanha.getDay();
           const proxFolga = diasFolga.includes(proxSem);
           let proxCiclo = ciclo;
-          if (!proxFolga && folgaAnterior) proxCiclo++;
-          const proxMadruga = proxFolga ? (proxCiclo % 2 === 0 ? p2 : p1) : p2;
+          if (!proxFolga && folgaAnterior) proxCiclo = (proxCiclo + 1) % 2;
+          const proxMadruga = proxFolga ? (proxCiclo === 0 ? p2 : p1) : p2;
           if (proxMadruga === qNoite) {
             html += `<div class="seta-saida">➔</div>`;
           }

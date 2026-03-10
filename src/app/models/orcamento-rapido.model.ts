@@ -9,7 +9,6 @@ export interface OrcamentoRapido {
   valorDiaria: number;
   tipoTemporada: 'alta' | 'baixa' | 'misto';
   valorTotal: number;
-  textoWhatsApp: string;
 }
 
 export interface OrcamentoRapidoRequest {
@@ -20,4 +19,9 @@ export interface OrcamentoRapidoRequest {
   incluirCafe?: boolean;
   incluirAlmoco?: boolean;
   incluirJantar?: boolean;
+}
+
+export interface OrcamentoRapidoResultado {
+  orcamento: OrcamentoRapido;
+  textoWhatsApp: string;
 }

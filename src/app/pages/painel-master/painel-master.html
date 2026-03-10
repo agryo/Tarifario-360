@@ -627,6 +627,15 @@
       </div>
 
       <div class="field">
+        <label>Data de Início das Folgas</label>
+        <input type="date" pInputText [(ngModel)]="escalaConfig.dataInicioFolgas" class="w-full" />
+        <small class="text-secondary"
+          >A partir desta data, as folgas não mudam mais. Define o marco para o revezamento
+          fixo.</small
+        >
+      </div>
+
+      <div class="field">
         <label>Dias de Folga Fixa</label>
         <div class="flex flex-wrap gap-2">
           <div *ngFor="let dia of diasSemana; let i = index" class="field-checkbox">

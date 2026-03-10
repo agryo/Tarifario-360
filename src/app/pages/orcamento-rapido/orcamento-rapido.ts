@@ -87,14 +87,14 @@ export class OrcamentoRapidoComponent implements OnInit {
     }
 
     try {
-      const orcamento = this.orcamentoService.gerarOrcamento({
+      const resultado = this.orcamentoService.gerarOrcamento({
         categoriaId: this.categoriaId,
         dataCheckin: this.dataCheckin,
         dataCheckout: this.dataCheckout,
         quantidade: 1, // fixo
         incluirCafe: true, // fixo
       });
-      this.textoOrcamento = orcamento.textoWhatsApp;
+      this.textoOrcamento = resultado.textoWhatsApp;
     } catch (error) {
       this.onMensagem.emit({
         severity: 'error',
