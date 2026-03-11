@@ -28,6 +28,7 @@ O **Tarifário 360** é uma aplicação web desenvolvida para otimizar a rotina 
 ## 📦 Instalação e Configuração
 
 Para instruções detalhadas sobre como preparar o ambiente (Node.js, Angular CLI) e executar o projeto em sua máquina, consulte nosso guia dedicado:
+_Senha Padrão:_ 1234
 
 👉 **[Guia de Instalação e Configuração](./INSTALLATION.md)**
 
