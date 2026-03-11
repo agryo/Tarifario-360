@@ -1,8 +1,6 @@
 import { Injectable } from '@angular/core';
 import { TarifaService } from './tarifa';
-import { EscalaService, EscalaConfig } from './escala';
-import { OrcamentoOficialService } from './orcamento-oficial';
-import { OrcamentoRapidoService } from './orcamento-rapido';
+import { EscalaService } from './escala';
 import { BackupData } from '../models/backup.model';
 
 @Injectable({ providedIn: 'root' })
@@ -12,8 +10,6 @@ export class BackupService {
   constructor(
     private tarifaService: TarifaService,
     private escalaService: EscalaService,
-    private orcamentoOficialService: OrcamentoOficialService,
-    private orcamentoRapidoService: OrcamentoRapidoService,
   ) {}
 
   // Exportar todos os dados
@@ -23,19 +19,8 @@ export class BackupService {
       dataExportacao: new Date(),
       configuracaoGeral: this.tarifaService.getConfiguracao(),
       categorias: this.tarifaService.getCategorias(),
-      promocoes: this.tarifaService.getPromocoes(),
-      orcamentosOficiais: this.orcamentoOficialService.listarOrcamentos(),
       escalaConfig: this.escalaService.getConfiguracao(),
-      comodidades: this.tarifaService.getComodidades(),
-      temporadas: [],
-      tarifas: [],
-      assinatura: '', // será preenchida depois
     };
-
-    // Cria uma cópia sem a assinatura para calcular
-    const backupSemAssinatura = { ...backup };
-    delete backupSemAssinatura.assinatura;
-    backup.assinatura = this.gerarAssinatura(backupSemAssinatura);
 
     return backup;
   }
@@ -43,10 +28,6 @@ export class BackupService {
   // Importar dados (substitui todos)
   importarDados(backup: BackupData): { sucesso: boolean; mensagem: string } {
     try {
-      if (!this.validarAssinatura(backup)) {
-        return { sucesso: false, mensagem: 'Backup inválido ou corrompido.' };
-      }
-
       // Substitui configurações gerais
       if (backup.configuracaoGeral) {
         this.tarifaService.salvarConfiguracao(backup.configuracaoGeral);
@@ -55,19 +36,6 @@ export class BackupService {
       // Substitui categorias completamente
       if (backup.categorias) {
         this.tarifaService.setCategorias(backup.categorias);
-      }
-
-      // Substitui promoções completamente
-      if (backup.promocoes) {
-        this.tarifaService.setPromocoes(backup.promocoes);
-      }
-
-      // Orçamentos (já substituem via importarDados)
-      if (backup.orcamentosOficiais) {
-        this.orcamentoOficialService.importarDados(backup.orcamentosOficiais);
-      }
-      if (backup.orcamentosRapidos) {
-        this.orcamentoRapidoService.importarDados(backup.orcamentosRapidos);
       }
 
       // Escala (substituição)
@@ -107,19 +75,5 @@ export class BackupService {
       reader.onerror = () => reject('Erro ao ler arquivo');
       reader.readAsText(arquivo);
     });
-  }
-
-  private gerarAssinatura(dados: any): string {
-    const str = JSON.stringify(dados) + this.VERSAO;
-    // Converte para UTF-8 antes de usar btoa (para suportar acentos e emojis)
-    return btoa(unescape(encodeURIComponent(str)));
-  }
-
-  private validarAssinatura(backup: BackupData): boolean {
-    const assinatura = backup.assinatura;
-    backup.assinatura = undefined;
-    const calculada = this.gerarAssinatura(backup);
-    backup.assinatura = assinatura;
-    return assinatura === calculada;
   }
 }
