@@ -46,6 +46,8 @@ ng serve
 
 Após a compilação, acesse `http://localhost:4200/` no seu navegador. A aplicação recarregará automaticamente se você modificar qualquer arquivo fonte.
 
+**Senha Padrão:** 1234
+
 ### 5. Build para Produção
 
 Para gerar os arquivos otimizados para implantação (produção), execute:
