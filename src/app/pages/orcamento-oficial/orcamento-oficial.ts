@@ -484,7 +484,9 @@ export class OrcamentoOficialComponent implements OnInit {
   imprimir() {
     const elemento = document.getElementById('documento-impressao');
     if (elemento) {
-      this.impressaoService.imprimirElemento(elemento, 'Orçamento Oficial', ImpressaoOrcamentoCSS);
+      const tituloImpressao = this.cliente ? `Orçamento - ${this.cliente}` : 'Orçamento Oficial';
+
+      this.impressaoService.imprimirElemento(elemento, tituloImpressao, ImpressaoOrcamentoCSS);
     } else {
       this.mostrarMensagem('error', 'Erro', 'Elemento de impressão não encontrado.');
     }
