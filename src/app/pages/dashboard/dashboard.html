@@ -90,9 +90,13 @@
     <div class="grid">
       <!-- Orçamento Rápido -->
       <div class="col-12 md:col-6 lg:col-4">
-        <p-card styleClass="module-card" header="⚡ Orçamento Rápido" subheader="WhatsApp">
+        <p-card
+          styleClass="module-card"
+          header="⚡ Orçamento Rápido"
+          [subheader]="'Festividade Atual: ' + (config?.festividade || 'Não definida')"
+        >
           <p class="module-description">
-            Gere orçamentos instantâneos com emojis para enviar pelo WhatsApp
+            Gere orçamentos para a festividade atual para enviar pelo WhatsApp
           </p>
           <div class="module-features">
             <span><i class="pi pi-check-circle text-success mr-2"></i>Alta/Baixa automático</span>
@@ -114,7 +118,7 @@
       <div class="col-12 md:col-6 lg:col-4">
         <p-card styleClass="module-card" header="📋 Tabela de Opções" subheader="Comparativo">
           <p class="module-description">
-            Compare múltiplas opções de quartos para oferecer ao cliente
+            Selecione múltiplas opções de quartos para oferecer ao cliente
           </p>
           <div class="module-features">
             <span><i class="pi pi-check-circle text-success mr-2"></i>Filtros inteligentes</span>
