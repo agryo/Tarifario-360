@@ -5,52 +5,49 @@ import * as CryptoJS from 'crypto-js';
   providedIn: 'root',
 })
 export class CriptografiaService {
-  // Chave secreta para criptografia (em produção, viria de variável de ambiente)
-  private readonly SECRET_KEY = 'Tarifario360-Secret-Key-2026';
-
   constructor() {}
 
   /**
-   * Gera um hash SHA256 da senha (não reversível, para armazenamento)
-   */
-  hashSenha(senha: string): string {
-    return CryptoJS.SHA256(senha).toString();
-  }
-
-  /**
-   * Verifica se a senha corresponde ao hash armazenado
-   */
-  verificarSenha(senha: string, hash: string): boolean {
-    const hashCalculado = this.hashSenha(senha);
-    return hashCalculado === hash;
-  }
-
-  /**
-   * Criptografa um texto (para dados sensíveis que precisam ser recuperados)
-   */
-  criptografar(texto: string): string {
-    return CryptoJS.AES.encrypt(texto, this.SECRET_KEY).toString();
-  }
-
-  /**
-   * Descriptografa um texto
-   */
-  descriptografar(textoCriptografado: string): string {
-    const bytes = CryptoJS.AES.decrypt(textoCriptografado, this.SECRET_KEY);
-    return bytes.toString(CryptoJS.enc.Utf8);
-  }
-
-  /**
-   * Gera um salt aleatório
+   * Gera um salt aleatório para ser usado no hash da senha.
+   * @returns O salt gerado.
    */
   gerarSalt(): string {
-    return CryptoJS.lib.WordArray.random(16).toString();
+    return CryptoJS.lib.WordArray.random(128 / 8).toString();
   }
 
   /**
-   * Hash com salt (mais seguro)
+   * Gera um hash SHA256 para uma senha usando um salt.
+   * @param senha A senha em texto plano.
+   * @param salt O salt para usar no hash.
+   * @returns O hash da senha.
    */
-  hashComSalt(senha: string, salt: string): string {
-    return CryptoJS.SHA256(senha + salt).toString();
+  hashSenha(senha: string, salt: string): string {
+    return CryptoJS.SHA256(salt + senha).toString();
+  }
+
+  /**
+   * Verifica se uma senha em texto plano corresponde a um hash existente.
+   * Lida com hashes antigos (sem salt) para migração.
+   * @param senha A senha em texto plano para verificar.
+   * @param hash O hash armazenado.
+   * @param salt O salt usado para criar o hash (opcional para compatibilidade com versões anteriores).
+   * @returns True se a senha corresponder, caso contrário, false.
+   */
+  verificarSenha(senha: string, hash: string, salt?: string): boolean {
+    if (salt) {
+      // Novo sistema com salt
+      return this.hashSenha(senha, salt) === hash;
+    }
+    // Sistema antigo sem salt (para migração)
+    return CryptoJS.SHA256(senha).toString() === hash;
+  }
+
+  /**
+   * Gera um hash SHA256 para uma string de dados (para verificação de integridade).
+   * @param dados A string para gerar o hash.
+   * @returns O hash SHA256 gerado.
+   */
+  gerarHash(dados: string): string {
+    return CryptoJS.SHA256(dados).toString();
   }
 }

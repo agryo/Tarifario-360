@@ -112,11 +112,11 @@ export const ImpressaoOrcamentoCSS = /* css */ `
 
   /* Larguras das colunas */
   #documento-impressao .tabela-orcamento th:nth-child(1) { width: 4% }  /* Qtd */
-  #documento-impressao .tabela-orcamento th:nth-child(2) { width: 24%; } /* Acomodação */
+  #documento-impressao .tabela-orcamento th:nth-child(2) { width: 28%; } /* Acomodação */
   #documento-impressao .tabela-orcamento th:nth-child(3) { width: 28%; } /* Serviços */
-  #documento-impressao .tabela-orcamento th:nth-child(4) { width: 12%; } /* Vlr. Diária */
+  #documento-impressao .tabela-orcamento th:nth-child(4) { width: 10%; } /* Vlr. Diária */
   #documento-impressao .tabela-orcamento th:nth-child(5) { width: 20%; } /* Diárias */
-  #documento-impressao .tabela-orcamento th:nth-child(6) { width: 12%; } /* Total */
+  #documento-impressao .tabela-orcamento th:nth-child(6) { width: 10%; } /* Total */
 
   /* Alinhamento */
   #documento-impressao .alinhar-direita {

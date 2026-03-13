@@ -147,6 +147,9 @@ export class TarifaService {
   }
 
   private getConfiguracaoPadrao(): ConfiguracaoGeral {
+    // Gera um salt e hash para a senha padrão inicial.
+    const salt = this.criptografia.gerarSalt();
+    const hash = this.criptografia.hashSenha('1234', salt);
     return {
       festividade: '🎊 Evento Especial',
       valorAlmocoExtra: 45,
@@ -175,8 +178,8 @@ export class TarifaService {
       promocaoTexto: 'Pagamento integral via Pix ou Dinheiro',
       promocaoSomenteAlta: true,
       promocaoMsgBaixa: false,
-      senhaHash: this.criptografia.hashSenha('1234'),
-      senhaSalt: '',
+      senhaHash: hash,
+      senhaSalt: salt,
       orcTitulo: 'Orçamento de Hospedagem',
       orcConfigTitulo: '1. Configuração de Acomodação e Valores',
       orcConfigDescricao:

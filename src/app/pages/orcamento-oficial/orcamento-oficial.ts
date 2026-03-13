@@ -422,6 +422,7 @@ export class OrcamentoOficialComponent implements OnInit {
       return;
     }
     const orcamento = {
+      tipo: 'orcamento-oficial-snapshot', // Identificador para validação na importação
       cliente: this.cliente,
       temporada: this.temporada,
       dataCheckin: this.dataCheckin,
@@ -449,6 +450,12 @@ export class OrcamentoOficialComponent implements OnInit {
     reader.onload = (e) => {
       try {
         const dados = JSON.parse(e.target?.result as string);
+
+        // Validação para garantir que é um arquivo de orçamento deste módulo
+        if (dados.tipo !== 'orcamento-oficial-snapshot' || !dados.itens || !dados.cliente) {
+          throw new Error('Este não é um arquivo de orçamento oficial válido.');
+        }
+
         this.cliente = dados.cliente || '';
         this.temporada = dados.temporada || 'auto';
         this.dataCheckin = new Date(dados.dataCheckin);
@@ -456,10 +463,19 @@ export class OrcamentoOficialComponent implements OnInit {
         this.horaEntrada = dados.horaEntrada || DateUtils.HORA_CHECKIN;
         this.horaSaida = dados.horaSaida || DateUtils.HORA_CHECKOUT;
         this.itens = dados.itens || [];
+
         this.onDataChange(); // Recalcula tudo e ajusta datas
-        this.mostrarMensagem('success', 'Importado', 'Orçamento carregado.');
-      } catch {
-        this.mostrarMensagem('error', 'Erro', 'Arquivo inválido.');
+        this.mostrarMensagem('success', 'Importado', 'Orçamento carregado com sucesso.');
+      } catch (error: any) {
+        this.mostrarMensagem(
+          'error',
+          'Erro na Importação',
+          error.message || 'Arquivo inválido ou corrompido.',
+        );
+      } finally {
+        // Limpa o valor do input para permitir que o evento (change) seja disparado
+        // novamente se o mesmo arquivo for selecionado.
+        event.target.value = null;
       }
     };
     reader.readAsText(file);

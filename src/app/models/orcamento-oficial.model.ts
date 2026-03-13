@@ -1,6 +1,7 @@
 import { ItemOrcamento } from './item-orcamento.model';
 
 export interface OrcamentoOficial {
+  tipo: 'orcamento';
   id: string;
   titulo: string;
   cliente: string;

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { TarifaService } from './tarifa';
 import { EscalaService } from './escala';
+import { CriptografiaService } from './criptografia';
 import { BackupData } from '../models/backup.model';
 
 @Injectable({ providedIn: 'root' })
@@ -10,16 +11,23 @@ export class BackupService {
   constructor(
     private tarifaService: TarifaService,
     private escalaService: EscalaService,
+    private criptografia: CriptografiaService,
   ) {}
 
   // Exportar todos os dados
   exportarDados(): BackupData {
-    const backup: BackupData = {
+    const dados: Omit<BackupData, 'assinatura'> = {
+      tipo: 'backup',
       versao: this.VERSAO,
       dataExportacao: new Date(),
       configuracaoGeral: this.tarifaService.getConfiguracao(),
       categorias: this.tarifaService.getCategorias(),
       escalaConfig: this.escalaService.getConfiguracao(),
+    };
+
+    const backup: BackupData = {
+      ...dados,
+      assinatura: this.criptografia.gerarHash(JSON.stringify(dados)),
     };
 
     return backup;
@@ -28,6 +36,34 @@ export class BackupService {
   // Importar dados (substitui todos)
   importarDados(backup: BackupData): { sucesso: boolean; mensagem: string } {
     try {
+      // 0. Verifica o tipo do arquivo
+      if (backup.tipo !== 'backup') {
+        return {
+          sucesso: false,
+          mensagem: 'Arquivo inválido. Este não é um arquivo de backup do sistema.',
+        };
+      }
+
+      // 1. Verifica a assinatura de integridade
+      const { assinatura, ...dadosParaVerificar } = backup;
+
+      if (!assinatura) {
+        return {
+          sucesso: false,
+          mensagem:
+            'Arquivo de backup inválido ou de uma versão antiga (sem assinatura de segurança).',
+        };
+      }
+
+      const hashCalculado = this.criptografia.gerarHash(JSON.stringify(dadosParaVerificar));
+
+      if (hashCalculado !== assinatura) {
+        return {
+          sucesso: false,
+          mensagem: 'Assinatura do backup inválida. O arquivo pode estar corrompido ou modificado.',
+        };
+      }
+
       // Substitui configurações gerais
       if (backup.configuracaoGeral) {
         this.tarifaService.salvarConfiguracao(backup.configuracaoGeral);

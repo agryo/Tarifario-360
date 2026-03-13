@@ -1,4 +1,5 @@
 {
+  "tipo": "orcamento-oficial-snapshot",
   "cliente": "América Futebol Clube",
   "temporada": "auto",
   "dataCheckin": "2026-03-27T03:00:00.000Z",
@@ -10,8 +11,8 @@
       "quantidade": 1,
       "categoriaId": "mlvclyzd2t71edgb5eh",
       "categoriaNome": "Standard Promocional",
-      "camasDescricao": "(1 Solteiro)",
-      "descricao": "Presidencia",
+      "camasDescricao": "(1 Cama Solteiro)",
+      "descricao": "Presidência",
       "comCafe": true,
       "comAlmoco": true,
       "comJanta": true,
@@ -20,18 +21,18 @@
       "total": 358.0952380952381,
       "_subtotalAcomodacao": 130,
       "_subtotalRefeicoes": 160,
+      "_subtotalSemExtra": 290,
       "_extraCharge": 68.0952380952381,
       "_totalItem": 358.0952380952381,
       "qtdAlmoco": 2,
       "qtdJanta": 2,
-      "qtdLanche": 2,
-      "_subtotalSemExtra": 290
+      "qtdLanche": 2
     },
     {
       "quantidade": 1,
       "categoriaId": "mlvclyzdzxelnckxb1q",
       "categoriaNome": "Standard Plus",
-      "camasDescricao": "(2 Solteiro)",
+      "camasDescricao": "(2 Camas Solteiro)",
       "descricao": "Comissão Técnica",
       "comCafe": true,
       "comAlmoco": true,
@@ -41,18 +42,18 @@
       "total": 621.7142857142858,
       "_subtotalAcomodacao": 198,
       "_subtotalRefeicoes": 320,
+      "_subtotalSemExtra": 518,
       "_extraCharge": 103.71428571428572,
       "_totalItem": 621.7142857142858,
       "qtdAlmoco": 2,
       "qtdJanta": 2,
-      "qtdLanche": 2,
-      "_subtotalSemExtra": 518
+      "qtdLanche": 2
     },
     {
       "quantidade": 6,
       "categoriaId": "mlvclyzdgi6htn73gm",
       "categoriaNome": "Standard Triplo",
-      "camasDescricao": "(3 Solteiro)",
+      "camasDescricao": "(3 Camas Solteiro)",
       "descricao": "Jogadores",
       "comCafe": true,
       "comAlmoco": true,
@@ -62,12 +63,12 @@
       "total": 5394.285714285714,
       "_subtotalAcomodacao": 1650,
       "_subtotalRefeicoes": 2880,
+      "_subtotalSemExtra": 4530,
       "_extraCharge": 864.2857142857142,
       "_totalItem": 5394.285714285714,
       "qtdAlmoco": 2,
       "qtdJanta": 2,
-      "qtdLanche": 2,
-      "_subtotalSemExtra": 4530
+      "qtdLanche": 2
     }
   ],
   "totalGeral": 6374.095238095238

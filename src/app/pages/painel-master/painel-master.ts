@@ -26,7 +26,7 @@ import { CriptografiaService } from '../../services/criptografia';
 import { EscalaService, EscalaConfig } from '../../services/escala';
 import { BackupService } from '../../services/backup';
 import { CategoriaQuarto } from '../../models/categoria-quarto.model';
-import { ConfiguracaoGeral } from '../../models/tarifa.model';
+import { ConfiguracaoGeral, Promocao } from '../../models/tarifa.model';
 import { DateUtils } from '../../utils/date-utils';
 
 registerLocaleData(localePt);
@@ -77,11 +77,11 @@ export class PainelMasterComponent implements OnInit {
 
   categorias: CategoriaQuarto[] = [];
   categoriaDialog: boolean = false;
-  categoriaEdit: any = {};
+  categoriaEdit: CategoriaQuarto = {} as CategoriaQuarto;
 
-  promocoes: any[] = [];
+  promocoes: Promocao[] = [];
   promocaoDialog: boolean = false;
-  promocaoEdit: any = {};
+  promocaoEdit: Promocao = {} as Promocao;
 
   mostrarSenhaAtual: boolean = false;
   mostrarNovaSenha: boolean = false;
@@ -116,11 +116,11 @@ export class PainelMasterComponent implements OnInit {
     this.abrirDialogCategoria();
   }
 
-  editarUH(categoria: any) {
+  editarUH(categoria: CategoriaQuarto) {
     this.abrirDialogCategoria(categoria);
   }
 
-  abrirDialogCategoria(categoria?: any) {
+  abrirDialogCategoria(categoria?: CategoriaQuarto) {
     this.categoriaEdit = categoria
       ? { ...categoria }
       : {
@@ -151,15 +151,6 @@ export class PainelMasterComponent implements OnInit {
       });
       return;
     }
-
-    this.categoriaEdit.precoAltaCafe = this.categoriaEdit.precoAltaCafe || 0;
-    this.categoriaEdit.precoAltaSemCafe = this.categoriaEdit.precoAltaSemCafe || 0;
-    this.categoriaEdit.precoBaixaCafe = this.categoriaEdit.precoBaixaCafe || 0;
-    this.categoriaEdit.precoBaixaSemCafe = this.categoriaEdit.precoBaixaSemCafe || 0;
-    this.categoriaEdit.camasCasal = this.categoriaEdit.camasCasal ?? 1;
-    this.categoriaEdit.camasSolteiro = this.categoriaEdit.camasSolteiro ?? 0;
-    this.categoriaEdit.numeros = this.categoriaEdit.numeros || [];
-    this.categoriaEdit.comodidadesSelecionadas = this.categoriaEdit.comodidadesSelecionadas || [];
 
     this.tarifaService.salvarCategoria(this.categoriaEdit);
     this.carregarDados();
@@ -209,14 +200,14 @@ export class PainelMasterComponent implements OnInit {
   }
 
   // ===== PROMOÇÕES =====
-  abrirDialogPromocao(promocao?: any) {
+  abrirDialogPromocao(promocao?: Promocao) {
     this.promocaoEdit = promocao
       ? { ...promocao }
       : {
           id: '',
           nome: '',
           desconto: 0,
-          diasMinimos: 1,
+          diasMinimos: 0,
           aplicaAlta: true,
           mensagemBaixa: '',
         };
@@ -224,12 +215,38 @@ export class PainelMasterComponent implements OnInit {
   }
 
   salvarPromocao() {
+    if (!this.promocaoEdit.nome || !this.promocaoEdit.desconto) {
+      this.onMensagem.emit({
+        severity: 'warn',
+        summary: 'Atenção',
+        detail: 'O nome e o desconto da promoção são obrigatórios.',
+      });
+      return;
+    }
+    this.tarifaService.salvarPromocao(this.promocaoEdit);
+    this.carregarDados();
     this.onMensagem.emit({ severity: 'success', summary: 'Sucesso', detail: 'Promoção salva' });
     this.promocaoDialog = false;
   }
 
-  excluirPromocao(promocao: any) {
-    this.onMensagem.emit({ severity: 'info', summary: 'Excluído', detail: 'Promoção removida' });
+  excluirPromocao(promocao: Promocao) {
+    this.confirmationService.confirm({
+      message: `Tem certeza que deseja excluir a promoção "${promocao.nome}"?`,
+      header: 'Confirmar Exclusão',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Sim, Excluir',
+      rejectLabel: 'Cancelar',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => {
+        this.tarifaService.excluirPromocao(promocao.id);
+        this.carregarDados();
+        this.onMensagem.emit({
+          severity: 'info',
+          summary: 'Excluído',
+          detail: `Promoção "${promocao.nome}" removida com sucesso`,
+        });
+      },
+    });
   }
 
   onPromocaoSomenteAltaChange() {
@@ -258,10 +275,12 @@ export class PainelMasterComponent implements OnInit {
       return;
     }
 
+    // Verifica a senha atual se uma já estiver configurada
     if (this.config.senhaHash) {
       const senhaAtualCorreta = this.criptografia.verificarSenha(
         this.senhaAtualInput,
         this.config.senhaHash,
+        this.config.senhaSalt, // Passa o salt; o serviço lida se for undefined
       );
       if (!senhaAtualCorreta) {
         this.onMensagem.emit({
@@ -274,9 +293,14 @@ export class PainelMasterComponent implements OnInit {
     }
 
     if (this.novaSenhaInput) {
-      this.config.senhaHash = this.criptografia.hashSenha(this.novaSenhaInput);
+      // Gera um novo salt e hash para a nova senha
+      const salt = this.criptografia.gerarSalt();
+      this.config.senhaSalt = salt;
+      this.config.senhaHash = this.criptografia.hashSenha(this.novaSenhaInput, salt);
     } else {
-      this.config.senhaHash = ''; // senha vazia = removida
+      // Remove a senha
+      this.config.senhaHash = '';
+      this.config.senhaSalt = '';
     }
 
     this.tarifaService.salvarConfiguracao(this.config);
@@ -284,9 +308,10 @@ export class PainelMasterComponent implements OnInit {
     this.onMensagem.emit({
       severity: 'success',
       summary: 'Sucesso',
-      detail: this.novaSenhaInput ? 'Senha alterada com sucesso' : 'Senha removida',
+      detail: this.novaSenhaInput ? 'Senha alterada com sucesso' : 'Senha removida com sucesso',
     });
 
+    // Limpa os campos de senha
     this.senhaAtualInput = '';
     this.novaSenhaInput = '';
     this.confirmarSenhaInput = '';
@@ -350,8 +375,17 @@ export class PainelMasterComponent implements OnInit {
         } else {
           this.onMensagem.emit({ severity: 'error', summary: 'Erro', detail: resultado.mensagem });
         }
-      } catch {
-        this.onMensagem.emit({ severity: 'error', summary: 'Erro', detail: 'Arquivo inválido' });
+      } catch (error) {
+        console.error('Erro ao importar backup:', error);
+        this.onMensagem.emit({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Arquivo de backup inválido ou corrompido',
+        });
+      } finally {
+        // Limpa o valor do input para permitir que o evento (change) seja disparado
+        // novamente se o mesmo arquivo for selecionado.
+        event.target.value = null;
       }
     };
     reader.readAsText(file);

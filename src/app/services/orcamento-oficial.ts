@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { StorageService } from './storage';
+import { CriptografiaService } from './criptografia';
 import { OrcamentoOficial, OrcamentoOficialCompleto } from '../models/orcamento-oficial.model';
 import { ItemOrcamento, ItemDiaria } from '../models/item-orcamento.model';
 
@@ -9,10 +10,14 @@ import { ItemOrcamento, ItemDiaria } from '../models/item-orcamento.model';
 export class OrcamentoOficialService {
   private readonly STORAGE_KEY = 'orcamentos_oficiais';
 
-  constructor(private storage: StorageService) {}
+  constructor(
+    private storage: StorageService,
+    private criptografia: CriptografiaService,
+  ) {}
 
   criarOrcamento(titulo: string, cliente: string): OrcamentoOficial {
     const orcamento: OrcamentoOficial = {
+      tipo: 'orcamento',
       id: this.storage.generateId(),
       titulo,
       cliente,
@@ -26,6 +31,17 @@ export class OrcamentoOficialService {
   }
 
   salvarOrcamento(orcamento: OrcamentoOficial): void {
+    // Adiciona uma camada de validação para garantir que apenas orçamentos válidos sejam salvos.
+    // Isso impede que um arquivo de backup, por exemplo, seja salvo como um orçamento.
+    if (
+      !orcamento ||
+      orcamento.tipo !== 'orcamento' ||
+      !orcamento.id ||
+      !orcamento.titulo ||
+      !Array.isArray(orcamento.itens)
+    ) {
+      throw new Error('Dados inválidos. O objeto a ser salvo não é um orçamento válido.');
+    }
     const orcamentos = this.listarOrcamentos();
     const index = orcamentos.findIndex((o) => o.id === orcamento.id);
 
@@ -80,30 +96,69 @@ export class OrcamentoOficialService {
     return orcamento;
   }
 
-  gerarAssinatura(orcamento: OrcamentoOficial): string {
-    // Simplificado - em produção use algo mais robusto
-    const dados = {
-      id: orcamento.id,
-      total: this.calcularTotais(orcamento).total,
-      data: orcamento.dataGeracao,
-    };
-    return btoa(JSON.stringify(dados));
-  }
-
   exportarParaJSON(orcamento: OrcamentoOficial): string {
-    return JSON.stringify(orcamento, null, 2);
+    // Garante que o orçamento tenha a assinatura mais recente antes de exportar
+    const { assinatura, ...dados } = orcamento;
+    const orcamentoComAssinatura: OrcamentoOficial = {
+      ...dados,
+      assinatura: this.criptografia.gerarHash(JSON.stringify(dados)),
+    };
+    return JSON.stringify(orcamentoComAssinatura, null, 2);
   }
 
-  importarDeJSON(json: string): OrcamentoOficial | null {
+  importarDeJSON(json: string): {
+    sucesso: boolean;
+    orcamento: OrcamentoOficial | null;
+    mensagem: string;
+  } {
     try {
       const orcamento = JSON.parse(json) as OrcamentoOficial;
-      // Validar se é um orçamento válido
-      if (!orcamento.id || !orcamento.titulo || !orcamento.itens) {
-        throw new Error('JSON inválido');
+
+      // 0. Validação do tipo de arquivo
+      if (orcamento.tipo !== 'orcamento') {
+        return {
+          sucesso: false,
+          orcamento: null,
+          mensagem: 'Arquivo inválido. Este não é um arquivo de orçamento.',
+        };
       }
-      return orcamento;
-    } catch {
-      return null;
+
+      // 1. Validação de estrutura
+      if (!orcamento.id || !orcamento.titulo || !orcamento.itens) {
+        return {
+          sucesso: false,
+          orcamento: null,
+          mensagem: 'Estrutura do JSON do orçamento é inválida.',
+        };
+      }
+
+      // 2. Validação da assinatura de segurança
+      const { assinatura, ...dadosParaVerificar } = orcamento;
+      if (!assinatura) {
+        return {
+          sucesso: false,
+          orcamento: null,
+          mensagem: 'Arquivo de orçamento inválido ou antigo (sem assinatura).',
+        };
+      }
+
+      const hashCalculado = this.criptografia.gerarHash(JSON.stringify(dadosParaVerificar));
+      if (hashCalculado !== assinatura) {
+        return {
+          sucesso: false,
+          orcamento: null,
+          mensagem: 'Assinatura do orçamento inválida. O arquivo pode estar corrompido.',
+        };
+      }
+
+      return { sucesso: true, orcamento: orcamento, mensagem: 'Orçamento importado com sucesso!' };
+    } catch (error: any) {
+      console.error('Erro ao importar orçamento de JSON:', error.message);
+      return {
+        sucesso: false,
+        orcamento: null,
+        mensagem: 'Arquivo de orçamento inválido ou corrompido.',
+      };
     }
   }
 

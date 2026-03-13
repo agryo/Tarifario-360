@@ -1,6 +1,7 @@
 {
+  "tipo": "backup",
   "versao": "2.0.0",
-  "dataExportacao": "2026-03-11T02:19:38.043Z",
+  "dataExportacao": "2026-03-13T02:52:11.191Z",
   "configuracaoGeral": {
     "festividade": "Festa da Padroeira 2026",
     "valorAlmocoExtra": 30,
@@ -23,11 +24,11 @@
     "jantarInicio": "18:00",
     "jantarFim": "20:00",
     "jantarAtivo": true,
-    "promocaoAtiva": false,
+    "promocaoAtiva": true,
     "promocaoDesconto": 15,
     "promocaoMinDiarias": 3,
     "promocaoTexto": "o período do *Festa da Padroeira 2026* no pagamento *total via PIX*",
-    "promocaoSomenteAlta": false,
+    "promocaoSomenteAlta": true,
     "promocaoMsgBaixa": false,
     "orcTitulo": "Orçamento de Hospedagem",
     "orcConfigTitulo": "1. Configuração de Acomodação e Valores",
@@ -43,8 +44,8 @@
     "horarioJantar": "19:00 - 21:00",
     "senhaMaster": "",
     "moeda": "BRL",
-    "senhaHash": "",
-    "senhaSalt": ""
+    "senhaHash": "d1952e4514dba0de0fd8f2b0b6b0f63dc411f9576c3f739222dac4c19571a1b5",
+    "senhaSalt": "1ba03b99ceda63e874dfb4fff0bc33a5"
   },
   "categorias": [
     {
@@ -299,5 +300,6 @@
     ],
     "quemFolgaPrimeiro": "p1",
     "dataInicioFolgas": "2026-01-05"
-  }
+  },
+  "assinatura": "2a4c622049d04af866c7891a2cef5a7ade0e21506e1e3fef904a4a37774db938"
 }

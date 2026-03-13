@@ -101,7 +101,13 @@ export class Dashboard implements OnInit {
   }
 
   verificarSenha() {
-    if (this.criptografia.verificarSenha(this.senhaInput, this.config.senhaHash)) {
+    if (
+      this.criptografia.verificarSenha(
+        this.senhaInput,
+        this.config.senhaHash,
+        this.config.senhaSalt,
+      )
+    ) {
       this.senhaDialogVisible = false;
       this.abrirModalConfiguracoes();
     } else {
