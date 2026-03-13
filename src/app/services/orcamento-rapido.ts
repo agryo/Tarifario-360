@@ -6,6 +6,9 @@ import {
   OrcamentoRapidoRequest,
   OrcamentoRapidoResultado,
 } from '../models/orcamento-rapido.model';
+import { DadosGeracaoTexto } from '../models/dados-geracao-texto.model';
+import { CategoriaQuarto } from '../models/categoria-quarto.model';
+import { MensagemUtils } from '../utils/mensagem-utils';
 
 @Injectable({
   providedIn: 'root',
@@ -134,7 +137,7 @@ export class OrcamentoRapidoService {
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   }
 
-  private gerarTextoWhatsApp(categoria: any, dados: any): string {
+  private gerarTextoWhatsApp(categoria: CategoriaQuarto, dados: DadosGeracaoTexto): string {
     const {
       request,
       numeroNoites,
@@ -179,8 +182,8 @@ export class OrcamentoRapidoService {
     let capacidadeExibida = categoria.capacidadeMaxima;
     // Se for uma categoria claramente de solteiro (camasSolteiro > 0 e camasCasal === 0) e capacidade 1?
     if (
-      categoria.camasCasal === 0 &&
-      categoria.camasSolteiro > 0 &&
+      (categoria.camasCasal ?? 0) === 0 &&
+      (categoria.camasSolteiro ?? 0) > 0 &&
       categoria.capacidadeMaxima === 1
     ) {
       capacidadeExibida = 1;
@@ -237,20 +240,7 @@ export class OrcamentoRapidoService {
     texto += `📤 *Check-out:* até as 11h\n\n`;
 
     // Horários das refeições (igual ao JS)
-    const horarios = [];
-    if (config.cafeAtivo)
-      horarios.push(`*- Café da manhã:* ${config.cafeInicio} às ${config.cafeFim}`);
-    if (config.almocoAtivo)
-      horarios.push(`*- Almoço:* ${config.almocoInicio} às ${config.almocoFim} (opcional)`);
-    if (config.lancheTardeAtivo)
-      horarios.push(
-        `*- Lanche da Tarde:* ${config.lancheTardeInicio} às ${config.lancheTardeFim} (opcional)`,
-      );
-    if (config.jantarAtivo)
-      horarios.push(`*- Lanche à Noite:* ${config.jantarInicio} às ${config.jantarFim} (opcional)`);
-    if (horarios.length) {
-      texto += `⏰ *Horários das Refeições:*\n${horarios.join('\n')}\n\n`;
-    }
+    texto += MensagemUtils.formatarHorariosRefeicoes(config);
 
     texto += `⚠️ _Valores sujeitos a disponibilidade no ato da reserva._\n\n`;
     texto += `*Deseja garantir sua reserva agora?*`;

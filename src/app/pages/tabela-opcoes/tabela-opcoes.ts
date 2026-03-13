@@ -13,6 +13,8 @@ import { TooltipModule } from 'primeng/tooltip';
 // Services
 import { TarifaService } from '../../services/tarifa';
 import { DateUtils } from '../../utils/date-utils';
+import { ConfiguracaoGeral } from '../../models/tarifa.model';
+import { MensagemUtils } from '../../utils/mensagem-utils';
 
 registerLocaleData(localePt);
 
@@ -53,7 +55,7 @@ export class TabelaOpcoesComponent implements OnInit {
   @Output() onVoltar = new EventEmitter<void>();
 
   categorias: CategoriaComSelecao[] = [];
-  config: any = {
+  config: ConfiguracaoGeral = {
     valorAlmocoExtra: 45,
     altaInicio: '2025-12-15',
     altaFim: '2026-03-15',
@@ -75,7 +77,7 @@ export class TabelaOpcoesComponent implements OnInit {
     promocaoTexto: 'Pagamento integral via Pix ou Dinheiro',
     promocaoSomenteAlta: true,
     promocaoMsgBaixa: false,
-  };
+  } as ConfiguracaoGeral;
 
   dataCheckin: Date = DateUtils.hoje();
   dataCheckout: Date = DateUtils.amanha();
@@ -191,7 +193,7 @@ export class TabelaOpcoesComponent implements OnInit {
       texto += `✅ *Todas as opções acima possuem:* ${comuns.join(', ')}.\n\n`;
     }
 
-    texto += this.formatarHorarios();
+    texto += MensagemUtils.formatarHorariosRefeicoes(this.config);
     texto += this.aplicarPromocao(selecionados, resultados, noites, d1, d2);
     texto += `\n⚠️ _Valores sujeitos a disponibilidade no ato da reserva._\n\nDeseja garantir sua reserva?`;
 
@@ -263,26 +265,6 @@ export class TabelaOpcoesComponent implements OnInit {
       .filter((list) => list.length > 0);
     if (comodidadesList.length === 0) return [];
     return comodidadesList.reduce((acc, curr) => acc.filter((c) => curr.includes(c)));
-  }
-
-  private formatarHorarios(): string {
-    const horarios = [];
-    if (this.config.cafeAtivo)
-      horarios.push(`*- Café da manhã:* ${this.config.cafeInicio} às ${this.config.cafeFim}`);
-    if (this.config.almocoAtivo)
-      horarios.push(
-        `*- Almoço:* ${this.config.almocoInicio} às ${this.config.almocoFim} (opcional)`,
-      );
-    if (this.config.lancheTardeAtivo)
-      horarios.push(
-        `*- Lanche da Tarde:* ${this.config.lancheTardeInicio} às ${this.config.lancheTardeFim} (opcional)`,
-      );
-    if (this.config.jantarAtivo)
-      horarios.push(
-        `*- Lanche à Noite:* ${this.config.jantarInicio} às ${this.config.jantarFim} (opcional)`,
-      );
-    if (horarios.length === 0) return '';
-    return `⏰ *Horários das Refeições:*\n${horarios.join('\n')}\n\n`;
   }
 
   private aplicarPromocao(
