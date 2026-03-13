@@ -63,6 +63,9 @@ export class TabelaOpcoesComponent implements OnInit {
     almocoInicio: '12:00',
     almocoFim: '14:00',
     almocoAtivo: true,
+    lancheTardeInicio: '15:00',
+    lancheTardeFim: '17:00',
+    lancheTardeAtivo: true,
     jantarInicio: '19:00',
     jantarFim: '21:00',
     jantarAtivo: true,
@@ -269,6 +272,10 @@ export class TabelaOpcoesComponent implements OnInit {
     if (this.config.almocoAtivo)
       horarios.push(
         `*- Almoço:* ${this.config.almocoInicio} às ${this.config.almocoFim} (opcional)`,
+      );
+    if (this.config.lancheTardeAtivo)
+      horarios.push(
+        `*- Lanche da Tarde:* ${this.config.lancheTardeInicio} às ${this.config.lancheTardeFim} (opcional)`,
       );
     if (this.config.jantarAtivo)
       horarios.push(
