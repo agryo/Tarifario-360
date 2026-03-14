@@ -27,7 +27,7 @@ import { CriptografiaService } from '../../services/criptografia';
 import { EscalaService, EscalaConfig } from '../../services/escala';
 import { BackupService } from '../../services/backup';
 import { CategoriaQuarto } from '../../models/categoria-quarto.model';
-import { ConfiguracaoGeral, Promocao } from '../../models/tarifa.model';
+import { ConfiguracaoGeral } from '../../models/tarifa.model';
 import { DateUtils } from '../../utils/date-utils';
 
 registerLocaleData(localePt);
@@ -63,30 +63,18 @@ export class PainelMasterComponent implements OnInit {
   @Output() onSalvo = new EventEmitter<void>();
   @Output() onMensagem = new EventEmitter<{ severity: string; summary: string; detail: string }>();
 
-  config!: ConfiguracaoGeral; // Agora tipado
+  config!: ConfiguracaoGeral;
   // Propriedades para os datepickers do PrimeNG
   altaInicioDate: Date | null = null;
   altaFimDate: Date | null = null;
 
-  diasSemana = [
-    { nome: 'DOM', valor: 0 },
-    { nome: 'SEG', valor: 1 },
-    { nome: 'TER', valor: 2 },
-    { nome: 'QUA', valor: 3 },
-    { nome: 'QUI', valor: 4 },
-    { nome: 'SEX', valor: 5 },
-    { nome: 'SÁB', valor: 6 },
-  ];
-
+  // Disponibiliza a constante para ser usada no template HTML
+  diasSemana = DateUtils.DIAS_SEMANA;
   escalaConfig!: EscalaConfig;
 
   categorias: CategoriaQuarto[] = [];
   categoriaDialog: boolean = false;
   categoriaEdit: CategoriaQuarto = {} as CategoriaQuarto;
-
-  promocoes: Promocao[] = [];
-  promocaoDialog: boolean = false;
-  promocaoEdit: Promocao = {} as Promocao;
 
   mostrarSenhaAtual: boolean = false;
   mostrarNovaSenha: boolean = false;
@@ -113,7 +101,6 @@ export class PainelMasterComponent implements OnInit {
   carregarDados() {
     this.config = this.tarifaService.getConfiguracao();
     this.categorias = this.tarifaService.getCategorias();
-    this.promocoes = this.tarifaService.getPromocoes();
 
     // Converte as datas de string para Date para os p-datepicker
     if (this.config.altaInicio) {
@@ -175,7 +162,7 @@ export class PainelMasterComponent implements OnInit {
     });
   }
 
-  excluirUH(categoria: any) {
+  excluirUH(categoria: CategoriaQuarto) {
     this.confirmationService.confirm({
       message: `Tem certeza que deseja excluir a UH "${categoria.nome}"?`,
       header: 'Confirmar Exclusão',
@@ -210,56 +197,6 @@ export class PainelMasterComponent implements OnInit {
       .split(',')
       .map((item: string) => item.trim())
       .filter((item: string) => item);
-  }
-
-  // ===== PROMOÇÕES =====
-  abrirDialogPromocao(promocao?: Promocao) {
-    this.promocaoEdit = promocao
-      ? { ...promocao }
-      : {
-          id: '',
-          nome: '',
-          desconto: 0,
-          diasMinimos: 0,
-          aplicaAlta: true,
-          mensagemBaixa: '',
-        };
-    this.promocaoDialog = true;
-  }
-
-  salvarPromocao() {
-    if (!this.promocaoEdit.nome || !this.promocaoEdit.desconto) {
-      this.onMensagem.emit({
-        severity: 'warn',
-        summary: 'Atenção',
-        detail: 'O nome e o desconto da promoção são obrigatórios.',
-      });
-      return;
-    }
-    this.tarifaService.salvarPromocao(this.promocaoEdit);
-    this.carregarDados();
-    this.onMensagem.emit({ severity: 'success', summary: 'Sucesso', detail: 'Promoção salva' });
-    this.promocaoDialog = false;
-  }
-
-  excluirPromocao(promocao: Promocao) {
-    this.confirmationService.confirm({
-      message: `Tem certeza que deseja excluir a promoção "${promocao.nome}"?`,
-      header: 'Confirmar Exclusão',
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Sim, Excluir',
-      rejectLabel: 'Cancelar',
-      acceptButtonStyleClass: 'p-button-danger',
-      accept: () => {
-        this.tarifaService.excluirPromocao(promocao.id);
-        this.carregarDados();
-        this.onMensagem.emit({
-          severity: 'info',
-          summary: 'Excluído',
-          detail: `Promoção "${promocao.nome}" removida com sucesso`,
-        });
-      },
-    });
   }
 
   onPromocaoSomenteAltaChange() {

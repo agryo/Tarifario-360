@@ -1,4 +1,15 @@
 export class DateUtils {
+  // ===== DIAS DA SEMANA =====
+  public static readonly DIAS_SEMANA = [
+    { nome: 'DOM', valor: 0 },
+    { nome: 'SEG', valor: 1 },
+    { nome: 'TER', valor: 2 },
+    { nome: 'QUA', valor: 3 },
+    { nome: 'QUI', valor: 4 },
+    { nome: 'SEX', valor: 5 },
+    { nome: 'SÁB', valor: 6 },
+  ];
+
   // ===== CONSTANTES =====
   static readonly HORA_CHECKIN = '14:00';
   static readonly HORA_CHECKOUT = '11:00';
