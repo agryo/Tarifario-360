@@ -1,6 +1,10 @@
 :host {
   display: block;
   padding: 0;
+
+  ::ng-deep .p-dialog-content {
+    padding: 1rem; /* Reduzir o padding interno para telas menores */
+  }
 }
 
 .sub-th {
