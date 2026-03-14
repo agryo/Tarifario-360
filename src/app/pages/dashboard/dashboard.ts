@@ -13,8 +13,8 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { InputTextModule } from 'primeng/inputtext';
 
 // Services
-import { MessageService } from 'primeng/api';
-import { ConfirmationService } from 'primeng/api';
+import { MessageService, ConfirmationService } from 'primeng/api';
+import { PrimeNG } from 'primeng/config';
 import { TarifaService } from '../../services/tarifa';
 import { CriptografiaService } from '../../services/criptografia';
 
@@ -78,10 +78,53 @@ export class Dashboard implements OnInit {
     private messageService: MessageService,
     private confirmationService: ConfirmationService,
     private criptografia: CriptografiaService,
+    private primeng: PrimeNG,
   ) {}
 
   ngOnInit() {
+    this.configurarIdiomaPrimeNG();
     this.carregarResumos();
+  }
+
+  configurarIdiomaPrimeNG() {
+    this.primeng.setTranslation({
+      firstDayOfWeek: 0,
+      dayNames: ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'],
+      dayNamesShort: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'], // Usado em contextos com mais espaço.
+      dayNamesMin: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'], // Usado nos cabeçalhos do calendário.
+      monthNames: [
+        'Janeiro',
+        'Fevereiro',
+        'Março',
+        'Abril',
+        'Maio',
+        'Junho',
+        'Julho',
+        'Agosto',
+        'Setembro',
+        'Outubro',
+        'Novembro',
+        'Dezembro',
+      ],
+      monthNamesShort: [
+        'Jan',
+        'Fev',
+        'Mar',
+        'Abr',
+        'Mai',
+        'Jun',
+        'Jul',
+        'Ago',
+        'Set',
+        'Out',
+        'Nov',
+        'Dez',
+      ],
+      today: 'Hoje',
+      clear: 'Limpar',
+      accept: 'Sim',
+      reject: 'Não',
+    });
   }
 
   carregarResumos() {

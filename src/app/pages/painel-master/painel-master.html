@@ -76,27 +76,28 @@
         <div class="col-12 md:col-3">
           <div class="field">
             <label>Início Alta Temporada</label>
-            <input
-              type="date"
-              pInputText
-              [(ngModel)]="config.altaInicio"
-              (ngModelChange)="onAltaInicioChange()"
-              [min]="hoje"
+            <p-datepicker
+              [(ngModel)]="altaInicioDate"
+              (onSelect)="onAltaInicioChange()"
+              dateFormat="dd/mm/yy"
+              [showIcon]="true"
               class="w-full"
-            />
+              appendTo="body"
+            ></p-datepicker>
           </div>
         </div>
         <div class="col-12 md:col-3">
           <div class="field">
             <label>Fim Alta Temporada</label>
-            <input
-              type="date"
-              pInputText
-              [(ngModel)]="config.altaFim"
-              (ngModelChange)="onAltaFimChange()"
-              [min]="hoje"
+            <p-datepicker
+              [(ngModel)]="altaFimDate"
+              (onSelect)="onAltaFimChange()"
+              [minDate]="altaInicioDate"
+              dateFormat="dd/mm/yy"
+              [showIcon]="true"
               class="w-full"
-            />
+              appendTo="body"
+            ></p-datepicker>
           </div>
         </div>
       </div>

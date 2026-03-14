@@ -18,6 +18,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { AccordionModule } from 'primeng/accordion';
 import { DividerModule } from 'primeng/divider';
 import { FieldsetModule } from 'primeng/fieldset';
+import { DatePickerModule } from 'primeng/datepicker';
 
 // Services
 import { ConfirmationService } from 'primeng/api';
@@ -51,6 +52,7 @@ registerLocaleData(localePt);
     AccordionModule,
     DividerModule,
     FieldsetModule,
+    DatePickerModule,
   ],
   providers: [ConfirmationService, { provide: LOCALE_ID, useValue: 'pt-BR' }],
   templateUrl: './painel-master.html',
@@ -62,6 +64,9 @@ export class PainelMasterComponent implements OnInit {
   @Output() onMensagem = new EventEmitter<{ severity: string; summary: string; detail: string }>();
 
   config!: ConfiguracaoGeral; // Agora tipado
+  // Propriedades para os datepickers do PrimeNG
+  altaInicioDate: Date | null = null;
+  altaFimDate: Date | null = null;
 
   diasSemana = [
     { nome: 'DOM', valor: 0 },
@@ -90,7 +95,7 @@ export class PainelMasterComponent implements OnInit {
   novaSenhaInput: string = '';
   confirmarSenhaInput: string = '';
 
-  hoje: string = DateUtils.formatarDataISO(DateUtils.hoje()); // Para o atributo min dos inputs
+  hoje: Date = new Date(); // Para o atributo min dos datepickers
 
   constructor(
     private tarifaService: TarifaService,
@@ -109,6 +114,14 @@ export class PainelMasterComponent implements OnInit {
     this.config = this.tarifaService.getConfiguracao();
     this.categorias = this.tarifaService.getCategorias();
     this.promocoes = this.tarifaService.getPromocoes();
+
+    // Converte as datas de string para Date para os p-datepicker
+    if (this.config.altaInicio) {
+      this.altaInicioDate = new Date(this.config.altaInicio + 'T00:00:00');
+    }
+    if (this.config.altaFim) {
+      this.altaFimDate = new Date(this.config.altaFim + 'T00:00:00');
+    }
   }
 
   // ===== CATEGORIAS =====
@@ -414,6 +427,13 @@ export class PainelMasterComponent implements OnInit {
 
   // ===== AÇÕES GLOBAIS =====
   salvarConfiguracoes() {
+    // Converte as datas de Date para string antes de salvar
+    if (this.altaInicioDate) {
+      this.config.altaInicio = DateUtils.formatarDataISO(this.altaInicioDate);
+    }
+    if (this.altaFimDate) {
+      this.config.altaFim = DateUtils.formatarDataISO(this.altaFimDate);
+    }
     this.tarifaService.salvarConfiguracao(this.config);
     this.escalaService.salvarConfiguracao(this.escalaConfig);
     this.onMensagem.emit({
@@ -427,30 +447,15 @@ export class PainelMasterComponent implements OnInit {
 
   // ===== CONTROLE DE DATAS DA ALTA TEMPORADA =====
   onAltaInicioChange() {
-    // Impede datas passadas
-    if (this.config.altaInicio < this.hoje) {
-      this.config.altaInicio = this.hoje;
-      this.onMensagem.emit({
-        severity: 'warn',
-        summary: 'Atenção',
-        detail: 'A data de início não pode ser anterior a hoje. Ajustada para hoje.',
-      });
+    // Se a data de início for alterada para depois da data de fim, ajusta a data de fim.
+    if (this.altaInicioDate && this.altaFimDate && this.altaFimDate < this.altaInicioDate) {
+      this.altaFimDate = new Date(this.altaInicioDate);
     }
-    const ajustadas = DateUtils.ajustarDatasAltaTemporada(
-      this.config.altaInicio,
-      this.config.altaFim,
-    );
-    this.config.altaInicio = ajustadas.inicio;
-    this.config.altaFim = ajustadas.fim;
   }
 
   onAltaFimChange() {
-    const ajustadas = DateUtils.ajustarDatasAltaTemporada(
-      this.config.altaInicio,
-      this.config.altaFim,
-    );
-    this.config.altaInicio = ajustadas.inicio;
-    this.config.altaFim = ajustadas.fim;
+    // A validação [minDate] no template já impede que a data de fim seja anterior à de início.
+    // A lógica em onAltaInicioChange cuida do ajuste se a data de início ultrapassar a de fim.
   }
 
   fechar() {
