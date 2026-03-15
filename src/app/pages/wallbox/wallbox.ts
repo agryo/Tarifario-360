@@ -46,13 +46,9 @@ export class WallboxComponent implements OnInit {
 
   ngOnInit() {
     const config = this.tarifaService.getConfiguracao();
-    if (config && config.valorKwh !== undefined) {
-      this.tarifaKwh = config.valorKwh;
+    if (config && config.precos.kwh !== undefined) {
+      this.tarifaKwh = config.precos.kwh;
     }
-  }
-
-  calcular() {
-    // Apenas para manter a lógica
   }
 
   limpar() {
@@ -63,6 +59,10 @@ export class WallboxComponent implements OnInit {
       summary: 'Limpo',
       detail: 'Campos limpos com sucesso.',
     });
+  }
+
+  get totalCalculado(): number {
+    return (this.consumo || 0) * this.tarifaKwh;
   }
 
   copiarWhatsApp() {
@@ -78,9 +78,8 @@ export class WallboxComponent implements OnInit {
     const agora = new Date();
     const dataFim = DateUtils.formatarDataBR(agora);
     const horaFim = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    const total = this.consumo * this.tarifaKwh;
 
-    const texto = `🔋 *Recarga Veículo Elétrico*\n\n📅 ${dataFim} às ${horaFim}\n⚡ ${this.consumo} kWh\n💲 ${this.tarifaKwh.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}/kWh\n💰 *TOTAL: ${total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}*`;
+    const texto = `🔋 *Recarga Veículo Elétrico*\n\n📅 ${dataFim} às ${horaFim}\n⚡ ${this.consumo} kWh\n💲 ${this.tarifaKwh.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}/kWh\n💰 *TOTAL: ${this.totalCalculado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}*`;
 
     navigator.clipboard.writeText(texto).then(() => {
       this.onMensagem.emit({

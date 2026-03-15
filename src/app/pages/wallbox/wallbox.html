@@ -33,7 +33,6 @@
           styleClass="w-full text-center"
           mode="decimal"
           [maxFractionDigits]="2"
-          (onInput)="calcular()"
         >
         </p-inputNumber>
         <small class="text-secondary block mt-1"
@@ -65,7 +64,7 @@
   <div *ngIf="consumo && consumo > 0" class="detalhes-calculo surface-ground p-2 border-round mb-3">
     <div class="flex justify-content-between py-1">
       <span class="text-sm">Energia:</span>
-      <strong class="text-sm">{{ consumo * tarifaKwh | currency: 'BRL' }}</strong>
+      <strong class="text-sm">{{ totalCalculado | currency: 'BRL' }}</strong>
     </div>
   </div>
 
@@ -73,7 +72,7 @@
   <div class="resultado-area surface-card p-1 border-round text-center mb-4">
     <span class="text-secondary block mb-2">Valor a Cobrar</span>
     <div [class.text-green-600]="consumo && consumo > 0" class="text-4xl font-bold">
-      {{ (consumo || 0) * tarifaKwh | currency: 'BRL' }}
+      {{ totalCalculado | currency: 'BRL' }}
     </div>
   </div>
 

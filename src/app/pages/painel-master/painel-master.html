@@ -29,7 +29,7 @@
           <div class="field">
             <label>Valor Almoço (R$)</label>
             <p-inputNumber
-              [(ngModel)]="config.valorAlmocoExtra"
+              [(ngModel)]="config.precos.refeicoes.almoco"
               mode="currency"
               currency="BRL"
               styleClass="w-full"
@@ -40,7 +40,7 @@
           <div class="field">
             <label>Valor Janta (R$)</label>
             <p-inputNumber
-              [(ngModel)]="config.valorJantaExtra"
+              [(ngModel)]="config.precos.refeicoes.janta"
               mode="currency"
               currency="BRL"
               styleClass="w-full"
@@ -51,7 +51,7 @@
           <div class="field">
             <label>Valor Lanche (R$)</label>
             <p-inputNumber
-              [(ngModel)]="config.valorLancheExtra"
+              [(ngModel)]="config.precos.refeicoes.lanche"
               mode="currency"
               currency="BRL"
               styleClass="w-full"
@@ -62,7 +62,7 @@
           <div class="field">
             <label>Valor kWh (R$)</label>
             <p-inputNumber
-              [(ngModel)]="config.valorKwh"
+              [(ngModel)]="config.precos.kwh"
               mode="currency"
               currency="BRL"
               styleClass="w-full"
@@ -91,7 +91,6 @@
             <label>Fim Alta Temporada</label>
             <p-datepicker
               [(ngModel)]="altaFimDate"
-              (onSelect)="onAltaFimChange()"
               [minDate]="altaInicioDate"
               dateFormat="dd/mm/yy"
               [showIcon]="true"
@@ -202,7 +201,7 @@
         <div class="col-12">
           <div class="field-checkbox mb-3">
             <p-checkbox
-              [(ngModel)]="config.promocaoAtiva"
+              [(ngModel)]="config.promocao.ativa"
               [binary]="true"
               inputId="promoAtiva"
             ></p-checkbox>
@@ -219,11 +218,11 @@
           <div class="field">
             <label>Desconto (%)</label>
             <p-inputNumber
-              [(ngModel)]="config.promocaoDesconto"
+              [(ngModel)]="config.promocao.desconto"
               [min]="0"
               [max]="100"
               styleClass="w-full"
-              [disabled]="!config.promocaoAtiva"
+              [disabled]="!config.promocao.ativa"
             ></p-inputNumber>
           </div>
         </div>
@@ -232,10 +231,10 @@
           <div class="field">
             <label>Mínimo de Diárias</label>
             <p-inputNumber
-              [(ngModel)]="config.promocaoMinDiarias"
+              [(ngModel)]="config.promocao.minDiarias"
               [min]="0"
               styleClass="w-full"
-              [disabled]="!config.promocaoAtiva"
+              [disabled]="!config.promocao.ativa"
             ></p-inputNumber>
           </div>
         </div>
@@ -246,10 +245,10 @@
             <input
               type="text"
               pInputText
-              [(ngModel)]="config.promocaoTexto"
+              [(ngModel)]="config.promocao.texto"
               class="w-full"
               placeholder="Ex: Pagamento integral via Pix ou Dinheiro"
-              [disabled]="!config.promocaoAtiva"
+              [disabled]="!config.promocao.ativa"
             />
           </div>
         </div>
@@ -259,10 +258,10 @@
             <div class="col-12 md:col-4">
               <div class="field-checkbox">
                 <p-checkbox
-                  [(ngModel)]="config.promocaoSomenteAlta"
+                  [(ngModel)]="config.promocao.somenteAlta"
                   [binary]="true"
                   inputId="promoSomenteAlta"
-                  [disabled]="!config.promocaoAtiva"
+                  [disabled]="!config.promocao.ativa"
                   (onChange)="onPromocaoSomenteAltaChange()"
                 ></p-checkbox>
                 <label for="promoSomenteAlta" class="ml-2">SOMENTE NA ALTA TEMPORADA</label>
@@ -276,10 +275,10 @@
             <div class="col-12 md:col-4">
               <div class="field-checkbox">
                 <p-checkbox
-                  [(ngModel)]="config.promocaoMsgBaixa"
+                  [(ngModel)]="config.promocao.msgBaixa"
                   [binary]="true"
                   inputId="promoMsgBaixa"
-                  [disabled]="!config.promocaoAtiva || !config.promocaoSomenteAlta"
+                  [disabled]="!config.promocao.ativa || !config.promocao.somenteAlta"
                 ></p-checkbox>
                 <label for="promoMsgBaixa" class="ml-2">MENSAGEM NA BAIXA</label>
               </div>
@@ -300,13 +299,18 @@
           <div class="field">
             <label>Horário Café</label>
             <div class="flex gap-2">
-              <input type="time" pInputText [(ngModel)]="config.cafeInicio" class="w-full" />
+              <input
+                type="time"
+                pInputText
+                [(ngModel)]="config.horarios.cafe.inicio"
+                class="w-full"
+              />
               <span class="p-2">às</span>
-              <input type="time" pInputText [(ngModel)]="config.cafeFim" class="w-full" />
+              <input type="time" pInputText [(ngModel)]="config.horarios.cafe.fim" class="w-full" />
             </div>
             <div class="field-checkbox mt-1">
               <p-checkbox
-                [(ngModel)]="config.cafeAtivo"
+                [(ngModel)]="config.horarios.cafe.ativo"
                 [binary]="true"
                 inputId="cafeAtivo"
               ></p-checkbox>
@@ -319,13 +323,23 @@
           <div class="field">
             <label>Horário Almoço</label>
             <div class="flex gap-2">
-              <input type="time" pInputText [(ngModel)]="config.almocoInicio" class="w-full" />
+              <input
+                type="time"
+                pInputText
+                [(ngModel)]="config.horarios.almoco.inicio"
+                class="w-full"
+              />
               <span class="p-2">às</span>
-              <input type="time" pInputText [(ngModel)]="config.almocoFim" class="w-full" />
+              <input
+                type="time"
+                pInputText
+                [(ngModel)]="config.horarios.almoco.fim"
+                class="w-full"
+              />
             </div>
             <div class="field-checkbox mt-1">
               <p-checkbox
-                [(ngModel)]="config.almocoAtivo"
+                [(ngModel)]="config.horarios.almoco.ativo"
                 [binary]="true"
                 inputId="almocoAtivo"
               ></p-checkbox>
@@ -338,13 +352,23 @@
           <div class="field">
             <label>Lanche da Tarde</label>
             <div class="flex gap-2">
-              <input type="time" pInputText [(ngModel)]="config.lancheTardeInicio" class="w-full" />
+              <input
+                type="time"
+                pInputText
+                [(ngModel)]="config.horarios.lanche.inicio"
+                class="w-full"
+              />
               <span class="p-2">às</span>
-              <input type="time" pInputText [(ngModel)]="config.lancheTardeFim" class="w-full" />
+              <input
+                type="time"
+                pInputText
+                [(ngModel)]="config.horarios.lanche.fim"
+                class="w-full"
+              />
             </div>
             <div class="field-checkbox mt-1">
               <p-checkbox
-                [(ngModel)]="config.lancheTardeAtivo"
+                [(ngModel)]="config.horarios.lanche.ativo"
                 [binary]="true"
                 inputId="lancheTardeAtivo"
               ></p-checkbox>
@@ -357,13 +381,23 @@
           <div class="field">
             <label>Jantar</label>
             <div class="flex gap-2">
-              <input type="time" pInputText [(ngModel)]="config.jantarInicio" class="w-full" />
+              <input
+                type="time"
+                pInputText
+                [(ngModel)]="config.horarios.jantar.inicio"
+                class="w-full"
+              />
               <span class="p-2">às</span>
-              <input type="time" pInputText [(ngModel)]="config.jantarFim" class="w-full" />
+              <input
+                type="time"
+                pInputText
+                [(ngModel)]="config.horarios.jantar.fim"
+                class="w-full"
+              />
             </div>
             <div class="field-checkbox mt-1">
               <p-checkbox
-                [(ngModel)]="config.jantarAtivo"
+                [(ngModel)]="config.horarios.jantar.ativo"
                 [binary]="true"
                 inputId="jantarAtivo"
               ></p-checkbox>
@@ -487,7 +521,7 @@
               id="orcTitulo"
               type="text"
               pInputText
-              [(ngModel)]="config.orcTitulo"
+              [(ngModel)]="config.orcamento.textos.titulo"
               class="w-full"
             />
           </div>
@@ -499,7 +533,7 @@
               id="orcConfigTitulo"
               type="text"
               pInputText
-              [(ngModel)]="config.orcConfigTitulo"
+              [(ngModel)]="config.orcamento.textos.configTitulo"
               class="w-full"
             />
           </div>
@@ -511,7 +545,7 @@
             <textarea
               id="orcConfigDescricao"
               pInputTextarea
-              [(ngModel)]="config.orcConfigDescricao"
+              [(ngModel)]="config.orcamento.textos.configDescricao"
               rows="2"
               class="w-full"
             ></textarea>
@@ -524,7 +558,7 @@
             <textarea
               id="orcNotaRefeicoes"
               pInputTextarea
-              [(ngModel)]="config.orcNotaRefeicoes"
+              [(ngModel)]="config.orcamento.textos.notaRefeicoes"
               rows="2"
               class="w-full"
             ></textarea>
@@ -537,7 +571,7 @@
             <textarea
               id="orcCronograma"
               pInputTextarea
-              [(ngModel)]="config.orcCronograma"
+              [(ngModel)]="config.orcamento.textos.cronograma"
               rows="3"
               class="w-full"
             ></textarea>
@@ -550,7 +584,7 @@
             <textarea
               id="orcPagamento"
               pInputTextarea
-              [(ngModel)]="config.orcPagamento"
+              [(ngModel)]="config.orcamento.textos.pagamento"
               rows="3"
               class="w-full"
             ></textarea>
@@ -563,7 +597,7 @@
             <textarea
               id="orcObservacoes"
               pInputTextarea
-              [(ngModel)]="config.orcObservacoes"
+              [(ngModel)]="config.orcamento.textos.observacoes"
               rows="3"
               class="w-full"
             ></textarea>
@@ -577,7 +611,7 @@
               id="orcRodape"
               type="text"
               pInputText
-              [(ngModel)]="config.orcRodape"
+              [(ngModel)]="config.orcamento.textos.rodape"
               class="w-full"
             />
           </div>
@@ -588,7 +622,7 @@
             <label for="orcSinalPercentual">Percentual de Sinal (%)</label>
             <p-inputNumber
               id="orcSinalPercentual"
-              [(ngModel)]="config.orcSinalPercentual"
+              [(ngModel)]="config.orcamento.sinalPercentual"
               [min]="0"
               [max]="100"
               styleClass="w-full"
@@ -750,7 +784,7 @@
             <div class="flex align-items-center gap-3 mb-3">
               <i
                 [class]="
-                  config.senhaHash
+                  config.seguranca.senhaHash
                     ? 'pi pi-check-circle text-success'
                     : 'pi pi-exclamation-circle text-warning'
                 "
@@ -758,11 +792,11 @@
               ></i>
               <div>
                 <h3 class="text-lg font-bold mb-1">
-                  {{ config.senhaHash ? 'Senha Ativa' : 'Sem Senha' }}
+                  {{ config.seguranca.senhaHash ? 'Senha Ativa' : 'Sem Senha' }}
                 </h3>
                 <p class="text-secondary">
                   Acesso ao painel
-                  {{ config.senhaHash ? 'protegido por senha' : 'livre (sem proteção)' }}
+                  {{ config.seguranca.senhaHash ? 'protegido por senha' : 'livre (sem proteção)' }}
                 </p>
               </div>
             </div>

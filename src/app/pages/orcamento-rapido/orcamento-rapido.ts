@@ -12,6 +12,7 @@ import { DatePicker } from 'primeng/datepicker';
 import { TarifaService } from '../../services/tarifa';
 import { OrcamentoRapidoService } from '../../services/orcamento-rapido';
 import { DateUtils } from '../../utils/date-utils';
+import { ConfiguracaoGeral } from '../../models/tarifa.model';
 
 registerLocaleData(localePt);
 
@@ -28,15 +29,7 @@ export class OrcamentoRapidoComponent implements OnInit {
   @Output() onVoltar = new EventEmitter<void>();
 
   categorias: any[] = [];
-  config: any = {
-    festividade: 'Evento',
-    altaInicio: '2025-12-15',
-    altaFim: '2026-03-15',
-    promocaoAtiva: false,
-    promocaoDesconto: 15,
-    promocaoMinDiarias: 3,
-    promocaoSomenteAlta: true,
-  };
+  config!: ConfiguracaoGeral;
 
   categoriaId: string | null = null;
   dataCheckin: Date = DateUtils.hoje();
@@ -59,10 +52,7 @@ export class OrcamentoRapidoComponent implements OnInit {
 
   carregarDados() {
     this.categorias = this.tarifaService.getCategorias();
-    const savedConfig = this.tarifaService.getConfiguracao();
-    if (savedConfig) {
-      this.config = { ...this.config, ...savedConfig };
-    }
+    this.config = this.tarifaService.getConfiguracao();
     if (this.categorias.length) {
       this.categoriaId = this.categorias[0].id;
     }

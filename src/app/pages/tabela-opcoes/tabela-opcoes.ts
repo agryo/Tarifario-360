@@ -55,29 +55,7 @@ export class TabelaOpcoesComponent implements OnInit {
   @Output() onVoltar = new EventEmitter<void>();
 
   categorias: CategoriaComSelecao[] = [];
-  config: ConfiguracaoGeral = {
-    valorAlmocoExtra: 45,
-    altaInicio: '2025-12-15',
-    altaFim: '2026-03-15',
-    cafeInicio: '07:00',
-    cafeFim: '10:00',
-    cafeAtivo: true,
-    almocoInicio: '12:00',
-    almocoFim: '14:00',
-    almocoAtivo: true,
-    lancheTardeInicio: '15:00',
-    lancheTardeFim: '17:00',
-    lancheTardeAtivo: true,
-    jantarInicio: '19:00',
-    jantarFim: '21:00',
-    jantarAtivo: true,
-    promocaoAtiva: false,
-    promocaoDesconto: 15,
-    promocaoMinDiarias: 3,
-    promocaoTexto: 'Pagamento integral via Pix ou Dinheiro',
-    promocaoSomenteAlta: true,
-    promocaoMsgBaixa: false,
-  } as ConfiguracaoGeral;
+  config!: ConfiguracaoGeral;
 
   dataCheckin: Date = DateUtils.hoje();
   dataCheckout: Date = DateUtils.amanha();
@@ -94,10 +72,7 @@ export class TabelaOpcoesComponent implements OnInit {
   }
 
   carregarDados() {
-    const savedConfig = this.tarifaService.getConfiguracao();
-    if (savedConfig) {
-      this.config = { ...this.config, ...savedConfig };
-    }
+    this.config = this.tarifaService.getConfiguracao();
     const cats = this.tarifaService.getCategorias();
     this.categorias = cats.map((cat) => ({
       ...cat,
@@ -226,8 +201,8 @@ export class TabelaOpcoesComponent implements OnInit {
     while (current < end) {
       const isAlta = DateUtils.isAltaTemporada(
         current,
-        this.config.altaInicio,
-        this.config.altaFim,
+        this.config.temporada.altaInicio,
+        this.config.temporada.altaFim,
       );
       if (isAlta) {
         diasAlta++;
@@ -274,15 +249,15 @@ export class TabelaOpcoesComponent implements OnInit {
     d1: Date,
     d2: Date,
   ): string {
-    if (!this.config.promocaoAtiva) return '';
+    if (!this.config.promocao.ativa) return '';
 
     const {
-      promocaoDesconto,
-      promocaoMinDiarias,
-      promocaoTexto,
-      promocaoSomenteAlta,
-      promocaoMsgBaixa,
-    } = this.config;
+      desconto: promocaoDesconto,
+      minDiarias: promocaoMinDiarias,
+      texto: promocaoTexto,
+      somenteAlta: promocaoSomenteAlta,
+      msgBaixa: promocaoMsgBaixa,
+    } = this.config.promocao;
     let aplicarPromo = true;
     let exibirApenasMsg = false;
 
@@ -296,7 +271,13 @@ export class TabelaOpcoesComponent implements OnInit {
         const end = new Date(d2);
         end.setHours(0, 0, 0, 0);
         while (current < end) {
-          if (DateUtils.isAltaTemporada(current, this.config.altaInicio, this.config.altaFim)) {
+          if (
+            DateUtils.isAltaTemporada(
+              current,
+              this.config.temporada.altaInicio,
+              this.config.temporada.altaFim,
+            )
+          ) {
             temAlta = true;
             break;
           }

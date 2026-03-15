@@ -265,7 +265,7 @@
     <!-- Título dinâmico -->
     <div
       class="titulo-orcamento"
-      [innerHTML]="config.orcTitulo | placeholders: getPlaceholderVars()"
+      [innerHTML]="config.orcamento.textos.titulo | placeholders: getPlaceholderVars()"
     ></div>
 
     <!-- Proposta -->
@@ -273,8 +273,12 @@
 
     <!-- Seção de Configuração -->
     <div class="secao-configuracao">
-      <h3 [innerHTML]="config.orcConfigTitulo | placeholders: getPlaceholderVars()"></h3>
-      <p [innerHTML]="config.orcConfigDescricao | placeholders: getPlaceholderVars()"></p>
+      <h3
+        [innerHTML]="config.orcamento.textos.configTitulo | placeholders: getPlaceholderVars()"
+      ></h3>
+      <p
+        [innerHTML]="config.orcamento.textos.configDescricao | placeholders: getPlaceholderVars()"
+      ></p>
       <p>
         Proposta para o período de
         <span
@@ -328,11 +332,11 @@
         </tr>
       </tbody>
       <tfoot>
-        <tr *ngIf="config.orcNotaRefeicoes">
+        <tr *ngIf="config.orcamento.textos.notaRefeicoes">
           <td
             colspan="6"
             class="nota"
-            [innerHTML]="config.orcNotaRefeicoes | placeholders: getPlaceholderVars()"
+            [innerHTML]="config.orcamento.textos.notaRefeicoes | placeholders: getPlaceholderVars()"
           ></td>
         </tr>
         <tr class="total-row">
@@ -345,18 +349,18 @@
     <!-- Seções dinâmicas -->
     <div class="secoes">
       <h3>2. Cronograma de Estadia e Logística:</h3>
-      <p [innerHTML]="config.orcCronograma | placeholders: getPlaceholderVars()"></p>
+      <p [innerHTML]="config.orcamento.textos.cronograma | placeholders: getPlaceholderVars()"></p>
       <h3>3. Condições de Pagamento e Prazos:</h3>
-      <p [innerHTML]="config.orcPagamento | placeholders: getPlaceholderVars()"></p>
+      <p [innerHTML]="config.orcamento.textos.pagamento | placeholders: getPlaceholderVars()"></p>
       <h3>4. Observações Gerais:</h3>
-      <p [innerHTML]="config.orcObservacoes | placeholders: getPlaceholderVars()"></p>
+      <p [innerHTML]="config.orcamento.textos.observacoes | placeholders: getPlaceholderVars()"></p>
     </div>
 
     <!-- Rodapé de assinaturas -->
     <div class="rodape-assinaturas">
       <div
         class="assinatura"
-        [innerHTML]="config.orcRodape | placeholders: getPlaceholderVars()"
+        [innerHTML]="config.orcamento.textos.rodape | placeholders: getPlaceholderVars()"
       ></div>
       <div class="assinatura">Aceite do Cliente (Carimbo e Assinatura)</div>
     </div>

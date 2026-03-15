@@ -130,12 +130,12 @@ export class Dashboard implements OnInit {
   carregarResumos() {
     this.totalCategorias = this.tarifaService.getCategorias().length;
     this.config = this.tarifaService.getConfiguracao();
-    this.totalPromocoes = this.config.promocaoAtiva ? 1 : 0;
+    this.totalPromocoes = this.config.promocao?.ativa ? 1 : 0;
   }
 
   // ===== CONTROLE DE ACESSO =====
   abrirConfiguracoes() {
-    if (this.config.senhaHash) {
+    if (this.config.seguranca?.senhaHash) {
       this.senhaInput = '';
       this.senhaDialogVisible = true;
     } else {
@@ -147,8 +147,8 @@ export class Dashboard implements OnInit {
     if (
       this.criptografia.verificarSenha(
         this.senhaInput,
-        this.config.senhaHash,
-        this.config.senhaSalt,
+        this.config.seguranca.senhaHash,
+        this.config.seguranca.senhaSalt,
       )
     ) {
       this.senhaDialogVisible = false;
@@ -174,7 +174,7 @@ export class Dashboard implements OnInit {
   }
 
   get promocaoStatus(): string {
-    return this.config.promocaoAtiva ? 'Ativa' : 'Inativa';
+    return this.config.promocao?.ativa ? 'Ativa' : 'Inativa';
   }
 
   // ===== CONTROLE DOS MÓDULOS =====

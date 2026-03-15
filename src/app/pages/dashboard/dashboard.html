@@ -49,7 +49,7 @@
           </div>
           <div>
             <span class="text-secondary block">Promoções</span>
-            <span class="text-3xl font-bold">{{ config.promocaoAtiva ? 'Sim' : 'Não' }}</span>
+            <span class="text-3xl font-bold">{{ config.promocao?.ativa ? 'Sim' : 'Não' }}</span>
           </div>
         </div>
       </p-card>
@@ -63,7 +63,7 @@
           </div>
           <div>
             <span class="text-secondary block">kWh</span>
-            <span class="text-3xl font-bold">{{ config.valorKwh | currency: 'BRL' }}</span>
+            <span class="text-3xl font-bold">{{ config.precos?.kwh | currency: 'BRL' }}</span>
           </div>
         </div>
       </p-card>
@@ -77,7 +77,9 @@
           </div>
           <div>
             <span class="text-secondary block">Almoço</span>
-            <span class="text-3xl font-bold">{{ config.valorAlmocoExtra | currency: 'BRL' }}</span>
+            <span class="text-3xl font-bold">{{
+              config.precos?.refeicoes?.almoco | currency: 'BRL'
+            }}</span>
           </div>
         </div>
       </p-card>

@@ -129,28 +129,28 @@ export class OrcamentoOficialComponent implements OnInit {
       checkoutDataBr: DateUtils.formatarDataBR(this.dataCheckout),
       noites: noites.toString(),
       totalGeral: this.totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-      valorAlmoco: (this.config.valorAlmocoExtra || 0).toLocaleString('pt-BR', {
+      valorAlmoco: (this.config.precos.refeicoes.almoco || 0).toLocaleString('pt-BR', {
         style: 'currency',
         currency: 'BRL',
       }),
-      valorJanta: (this.config.valorJantaExtra || 0).toLocaleString('pt-BR', {
+      valorJanta: (this.config.precos.refeicoes.janta || 0).toLocaleString('pt-BR', {
         style: 'currency',
         currency: 'BRL',
       }),
-      valorLanche: (this.config.valorLancheExtra || 0).toLocaleString('pt-BR', {
+      valorLanche: (this.config.precos.refeicoes.lanche || 0).toLocaleString('pt-BR', {
         style: 'currency',
         currency: 'BRL',
       }),
-      sinalPercentual: this.config.orcSinalPercentual?.toString() || '50',
+      sinalPercentual: this.config.orcamento.sinalPercentual?.toString() || '50',
       temporada: this.temporada,
       horasExtras: this.horasExtras.toFixed(0),
       mensagemHorasExtras:
         this.horasExtras > 0
           ? `<strong>Horas Extras (Day Use):</strong> Estão contabilizadas ${this.horasExtras.toFixed(0)} horas de prolongamento na estadia após o vencimento da diária.`
           : '',
-      percentualDesconto: this.config.promocaoDesconto?.toString() || '0',
-      minimoDiarias: this.config.promocaoMinDiarias?.toString() || '0',
-      textoPromocao: this.config.promocaoTexto || '',
+      percentualDesconto: this.config.promocao.desconto?.toString() || '0',
+      minimoDiarias: this.config.promocao.minDiarias?.toString() || '0',
+      textoPromocao: this.config.promocao.texto || '',
     };
   }
 
@@ -228,8 +228,8 @@ export class OrcamentoOficialComponent implements OnInit {
       for (let i = 0; i < noites; i++) {
         const isAlta = DateUtils.isAltaTemporada(
           current,
-          this.config.altaInicio,
-          this.config.altaFim,
+          this.config.temporada.altaInicio,
+          this.config.temporada.altaFim,
         );
         const pAltaCafe = Number(cat.precoAltaCafe) || 0;
         const pAltaSemCafe = Number(cat.precoAltaSemCafe) || 0;
@@ -266,14 +266,18 @@ export class OrcamentoOficialComponent implements OnInit {
     }
 
     // Aplicar promoção se ativa
-    if (this.config.promocaoAtiva && noites >= (this.config.promocaoMinDiarias || 1)) {
+    if (this.config.promocao.ativa && noites >= (this.config.promocao.minDiarias || 1)) {
       const isPeriodoAlta =
         this.temporada === 'alta' ||
         (this.temporada === 'auto' &&
-          DateUtils.isAltaTemporada(this.dataCheckin, this.config.altaInicio, this.config.altaFim));
+          DateUtils.isAltaTemporada(
+            this.dataCheckin,
+            this.config.temporada.altaInicio,
+            this.config.temporada.altaFim,
+          ));
 
-      if (!this.config.promocaoSomenteAlta || isPeriodoAlta) {
-        const desconto = totalBaseHospedagem * (this.config.promocaoDesconto / 100);
+      if (!this.config.promocao.somenteAlta || isPeriodoAlta) {
+        const desconto = totalBaseHospedagem * (this.config.promocao.desconto / 100);
         totalBaseHospedagem -= desconto;
       }
     }
@@ -296,27 +300,27 @@ export class OrcamentoOficialComponent implements OnInit {
 
     if (item.comAlmoco) {
       let count = 0;
-      if (arrMin <= this.parseTime(this.config.almocoFim)) count++;
-      if (depMin >= this.parseTime(this.config.almocoInicio)) count++;
+      if (arrMin <= this.parseTime(this.config.horarios.almoco.fim)) count++;
+      if (depMin >= this.parseTime(this.config.horarios.almoco.inicio)) count++;
       count += middleDays;
       qtdAlmoco = count;
-      custoAlmoco = count * (this.config.valorAlmocoExtra || 0) * capacidade;
+      custoAlmoco = count * (this.config.precos.refeicoes.almoco || 0) * capacidade;
     }
     if (item.comJanta) {
       let count = 0;
-      if (arrMin <= this.parseTime(this.config.jantarFim)) count++;
-      if (depMin >= this.parseTime(this.config.jantarInicio)) count++;
+      if (arrMin <= this.parseTime(this.config.horarios.jantar.fim)) count++;
+      if (depMin >= this.parseTime(this.config.horarios.jantar.inicio)) count++;
       count += middleDays;
       qtdJanta = count;
-      custoJanta = count * (this.config.valorJantaExtra || 0) * capacidade;
+      custoJanta = count * (this.config.precos.refeicoes.janta || 0) * capacidade;
     }
     if (item.comLanche) {
       let count = 0;
-      if (arrMin <= this.parseTime(this.config.lancheTardeFim)) count++;
-      if (depMin >= this.parseTime(this.config.lancheTardeInicio)) count++;
+      if (arrMin <= this.parseTime(this.config.horarios.lanche.fim)) count++;
+      if (depMin >= this.parseTime(this.config.horarios.lanche.inicio)) count++;
       count += middleDays;
       qtdLanche = count;
-      custoLanche = count * (this.config.valorLancheExtra || 0) * capacidade;
+      custoLanche = count * (this.config.precos.refeicoes.lanche || 0) * capacidade;
     }
 
     const totalRefeicoes = custoAlmoco + custoJanta + custoLanche;

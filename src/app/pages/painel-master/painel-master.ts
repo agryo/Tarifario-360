@@ -103,11 +103,11 @@ export class PainelMasterComponent implements OnInit {
     this.categorias = this.tarifaService.getCategorias();
 
     // Converte as datas de string para Date para os p-datepicker
-    if (this.config.altaInicio) {
-      this.altaInicioDate = new Date(this.config.altaInicio + 'T00:00:00');
+    if (this.config.temporada.altaInicio) {
+      this.altaInicioDate = new Date(this.config.temporada.altaInicio + 'T00:00:00');
     }
-    if (this.config.altaFim) {
-      this.altaFimDate = new Date(this.config.altaFim + 'T00:00:00');
+    if (this.config.temporada.altaFim) {
+      this.altaFimDate = new Date(this.config.temporada.altaFim + 'T00:00:00');
     }
   }
 
@@ -200,8 +200,8 @@ export class PainelMasterComponent implements OnInit {
   }
 
   onPromocaoSomenteAltaChange() {
-    if (!this.config.promocaoSomenteAlta) {
-      this.config.promocaoMsgBaixa = false;
+    if (!this.config.promocao.somenteAlta) {
+      this.config.promocao.msgBaixa = false;
     }
   }
 
@@ -226,11 +226,11 @@ export class PainelMasterComponent implements OnInit {
     }
 
     // Verifica a senha atual se uma já estiver configurada
-    if (this.config.senhaHash) {
+    if (this.config.seguranca.senhaHash) {
       const senhaAtualCorreta = this.criptografia.verificarSenha(
         this.senhaAtualInput,
-        this.config.senhaHash,
-        this.config.senhaSalt, // Passa o salt; o serviço lida se for undefined
+        this.config.seguranca.senhaHash,
+        this.config.seguranca.senhaSalt, // Passa o salt; o serviço lida se for undefined
       );
       if (!senhaAtualCorreta) {
         this.onMensagem.emit({
@@ -245,12 +245,12 @@ export class PainelMasterComponent implements OnInit {
     if (this.novaSenhaInput) {
       // Gera um novo salt e hash para a nova senha
       const salt = this.criptografia.gerarSalt();
-      this.config.senhaSalt = salt;
-      this.config.senhaHash = this.criptografia.hashSenha(this.novaSenhaInput, salt);
+      this.config.seguranca.senhaSalt = salt;
+      this.config.seguranca.senhaHash = this.criptografia.hashSenha(this.novaSenhaInput, salt);
     } else {
       // Remove a senha
-      this.config.senhaHash = '';
-      this.config.senhaSalt = '';
+      this.config.seguranca.senhaHash = '';
+      this.config.seguranca.senhaSalt = '';
     }
 
     this.tarifaService.salvarConfiguracao(this.config);
@@ -268,7 +268,7 @@ export class PainelMasterComponent implements OnInit {
   }
 
   removerSenha() {
-    if (this.config.senhaHash) {
+    if (this.config.seguranca.senhaHash) {
       this.confirmationService.confirm({
         message: 'Tem certeza que deseja remover a senha de acesso? O painel ficará sem proteção!',
         header: 'Confirmar Remoção',
@@ -277,8 +277,8 @@ export class PainelMasterComponent implements OnInit {
         rejectLabel: 'Cancelar',
         acceptButtonStyleClass: 'p-button-danger',
         accept: () => {
-          this.config.senhaHash = ''; // em vez de delete
-          this.config.senhaSalt = '';
+          this.config.seguranca.senhaHash = ''; // em vez de delete
+          this.config.seguranca.senhaSalt = '';
           this.tarifaService.salvarConfiguracao(this.config);
           this.onMensagem.emit({
             severity: 'success',
@@ -366,10 +366,10 @@ export class PainelMasterComponent implements OnInit {
   salvarConfiguracoes() {
     // Converte as datas de Date para string antes de salvar
     if (this.altaInicioDate) {
-      this.config.altaInicio = DateUtils.formatarDataISO(this.altaInicioDate);
+      this.config.temporada.altaInicio = DateUtils.formatarDataISO(this.altaInicioDate);
     }
     if (this.altaFimDate) {
-      this.config.altaFim = DateUtils.formatarDataISO(this.altaFimDate);
+      this.config.temporada.altaFim = DateUtils.formatarDataISO(this.altaFimDate);
     }
     this.tarifaService.salvarConfiguracao(this.config);
     this.escalaService.salvarConfiguracao(this.escalaConfig);
@@ -384,15 +384,10 @@ export class PainelMasterComponent implements OnInit {
 
   // ===== CONTROLE DE DATAS DA ALTA TEMPORADA =====
   onAltaInicioChange() {
-    // Se a data de início for alterada para depois da data de fim, ajusta a data de fim.
+    // Se a data de início for alterada para depois da data de fim, ajusta a data de fim para ser igual à de início, mantendo um intervalo válido.
     if (this.altaInicioDate && this.altaFimDate && this.altaFimDate < this.altaInicioDate) {
       this.altaFimDate = new Date(this.altaInicioDate);
     }
-  }
-
-  onAltaFimChange() {
-    // A validação [minDate] no template já impede que a data de fim seja anterior à de início.
-    // A lógica em onAltaInicioChange cuida do ajuste se a data de início ultrapassar a de fim.
   }
 
   fechar() {

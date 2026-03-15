@@ -1,49 +1,63 @@
-export interface Promocao {
-  id: string;
-  nome: string;
+export interface ConfigHorario {
+  inicio: string;
+  fim: string;
+  ativo: boolean;
+}
+
+export interface ConfigPromocao {
+  ativa: boolean;
   desconto: number;
-  diasMinimos: number;
-  aplicaAlta: boolean;
-  mensagemBaixa: string;
+  minDiarias: number;
+  texto: string;
+  somenteAlta: boolean;
+  msgBaixa: boolean;
+}
+
+export interface ConfigSeguranca {
+  senhaHash: string;
+  senhaSalt?: string;
+}
+
+export interface ConfigTextosOrcamento {
+  titulo: string;
+  configTitulo: string;
+  configDescricao: string;
+  notaRefeicoes: string;
+  cronograma: string;
+  pagamento: string;
+  observacoes: string;
+  rodape: string;
 }
 
 export interface ConfiguracaoGeral {
+  // Configurações gerais de nível superior
   festividade: string;
-  valorAlmocoExtra: number;
-  valorJantaExtra: number;
-  valorLancheExtra: number;
-  valorKwh: number;
   totalUhs: number;
   comodidadesGlobais: string;
-  altaInicio: string;
-  altaFim: string;
-  cafeInicio: string;
-  cafeFim: string;
-  cafeAtivo: boolean;
-  almocoInicio: string;
-  almocoFim: string;
-  almocoAtivo: boolean;
-  lancheTardeInicio: string;
-  lancheTardeFim: string;
-  lancheTardeAtivo: boolean;
-  jantarInicio: string;
-  jantarFim: string;
-  jantarAtivo: boolean;
-  promocaoAtiva: boolean;
-  promocaoDesconto: number;
-  promocaoMinDiarias: number;
-  promocaoTexto: string;
-  promocaoSomenteAlta: boolean;
-  promocaoMsgBaixa: boolean;
-  senhaHash: string;
-  senhaSalt?: string;
-  orcTitulo: string;
-  orcConfigTitulo: string;
-  orcConfigDescricao: string;
-  orcNotaRefeicoes: string;
-  orcCronograma: string;
-  orcPagamento: string;
-  orcObservacoes: string;
-  orcRodape: string;
-  orcSinalPercentual: number;
+
+  // Seções aninhadas para melhor organização
+  precos: {
+    refeicoes: {
+      almoco: number;
+      janta: number;
+      lanche: number;
+    };
+    kwh: number;
+  };
+  temporada: {
+    altaInicio: string;
+    altaFim: string;
+  };
+  horarios: {
+    cafe: ConfigHorario;
+    almoco: ConfigHorario;
+    lanche: ConfigHorario;
+    jantar: ConfigHorario;
+  };
+  promocao: ConfigPromocao;
+  seguranca: ConfigSeguranca;
+  orcamento: {
+    textos: ConfigTextosOrcamento;
+    sinalPercentual: number;
+  };
 }

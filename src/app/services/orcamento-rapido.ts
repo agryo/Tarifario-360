@@ -38,7 +38,11 @@ export class OrcamentoRapidoService {
     const dataFim = new Date(request.dataCheckout);
 
     while (dataAtual < dataFim) {
-      const isAlta = this.isAltaTemporada(dataAtual, config.altaInicio, config.altaFim);
+      const isAlta = this.isAltaTemporada(
+        dataAtual,
+        config.temporada.altaInicio,
+        config.temporada.altaFim,
+      );
       if (isAlta) {
         diasAlta++;
         somaComCafe += categoria.precoAltaCafe;
@@ -60,12 +64,12 @@ export class OrcamentoRapidoService {
     let valorFinalComCafe = valorTotalComCafe;
     let valorFinalSemCafe = valorTotalSemCafe;
 
-    if (config.promocaoAtiva) {
-      const promoMin = config.promocaoMinDiarias;
-      const promoPct = config.promocaoDesconto;
-      const promoTxt = config.promocaoTexto;
-      const promoSomenteAlta = config.promocaoSomenteAlta;
-      const promoMsgBaixa = config.promocaoMsgBaixa;
+    if (config.promocao.ativa) {
+      const promoMin = config.promocao.minDiarias;
+      const promoPct = config.promocao.desconto;
+      const promoTxt = config.promocao.texto;
+      const promoSomenteAlta = config.promocao.somenteAlta;
+      const promoMsgBaixa = config.promocao.msgBaixa;
 
       let aplicarPromo = true;
       let exibirApenasMsg = false;
@@ -126,7 +130,7 @@ export class OrcamentoRapidoService {
   }
 
   private isAltaTemporada(data: Date, altaInicio: string, altaFim: string): boolean {
-    if (!altaInicio || !altaFim) return false; // se não configurado, assume baixa
+    if (!altaInicio || !altaFim) return false;
     const inicio = new Date(altaInicio);
     const fim = new Date(altaFim);
     return data >= inicio && data <= fim;

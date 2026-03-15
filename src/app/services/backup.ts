@@ -66,7 +66,10 @@ export class BackupService {
 
       // Substitui configurações gerais
       if (backup.configuracaoGeral) {
-        this.tarifaService.salvarConfiguracao(backup.configuracaoGeral);
+        const configMigrada = this.tarifaService.migrarConfiguracaoSeNecessario(
+          backup.configuracaoGeral,
+        );
+        this.tarifaService.salvarConfiguracao(configMigrada);
       }
 
       // Substitui categorias completamente

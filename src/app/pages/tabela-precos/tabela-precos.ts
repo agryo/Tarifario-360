@@ -19,6 +19,7 @@ import { ImpressaoTabelaCSS } from './impressao-styles';
 
 // Models
 import { CategoriaQuarto } from '../../models/categoria-quarto.model';
+import { ConfiguracaoGeral } from '../../models/tarifa.model';
 
 // Registra a localização pt-BR
 registerLocaleData(localePt);
@@ -43,10 +44,7 @@ export class TabelaPrecosComponent implements OnInit {
   temporadaAtual: 'alta' | 'baixa' = 'baixa';
   categorias: CategoriaQuarto[] = [];
   grupos: GrupoUHs[] = [];
-  config: any = {
-    altaInicio: '2025-12-15',
-    altaFim: '2026-03-15',
-  };
+  config!: ConfiguracaoGeral;
 
   constructor(
     private tarifaService: TarifaService,
@@ -62,10 +60,7 @@ export class TabelaPrecosComponent implements OnInit {
   carregarDados() {
     const categoriasRaw = this.tarifaService.getCategorias();
     this.categorias = categoriasRaw.map((cat) => this.normalizarCategoria(cat));
-    const savedConfig = this.tarifaService.getConfiguracao();
-    if (savedConfig) {
-      this.config = { ...this.config, ...savedConfig };
-    }
+    this.config = this.tarifaService.getConfiguracao();
   }
 
   private normalizarCategoria(cat: CategoriaQuarto): CategoriaQuarto {

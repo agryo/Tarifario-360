@@ -1,10 +1,14 @@
+import { EscalaConfig } from '../services/escala';
+import { CategoriaQuarto } from './categoria-quarto.model';
+import { ConfiguracaoGeral } from './tarifa.model';
+
 export interface BackupData {
   tipo: 'backup';
   versao: string;
   dataExportacao: Date;
-  configuracaoGeral: any;
-  categorias: any[];
-  escalaConfig?: any;
+  configuracaoGeral: ConfiguracaoGeral;
+  categorias: CategoriaQuarto[];
+  escalaConfig?: EscalaConfig;
   assinatura?: string;
 }
 

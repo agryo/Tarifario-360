@@ -2,12 +2,11 @@ import { Injectable } from '@angular/core';
 import { StorageService } from './storage';
 import { CriptografiaService } from './criptografia';
 import { CategoriaQuarto } from '../models/categoria-quarto.model';
-import { Promocao, ConfiguracaoGeral } from '../models/tarifa.model';
+import { ConfiguracaoGeral } from '../models/tarifa.model';
 
 @Injectable({ providedIn: 'root' })
 export class TarifaService {
   private readonly STORAGE_CATEGORIAS = 'categorias';
-  private readonly STORAGE_PROMOCOES = 'promocoes';
   private readonly STORAGE_CONFIG = 'config';
   private criptografia: CriptografiaService;
 
@@ -20,15 +19,22 @@ export class TarifaService {
     this.storage.set(this.STORAGE_CATEGORIAS, categorias);
   }
 
-  setPromocoes(promocoes: Promocao[]): void {
-    this.storage.set(this.STORAGE_PROMOCOES, promocoes);
-  }
-
   // ===== CATEGORIAS =====
+  /**
+   * Retorna todas as categorias de quarto (UHs) salvas no storage.
+   * Usado para listar todas as UHs disponíveis no painel de administração e para exportação de backups.
+   * @returns Um array com todas as categorias de quarto. Retorna um array vazio se nenhuma for encontrada.
+   */
   getCategorias(): CategoriaQuarto[] {
     return this.storage.get<CategoriaQuarto[]>(this.STORAGE_CATEGORIAS) || [];
   }
 
+  /**
+   * Busca e retorna uma categoria de quarto específica pelo seu ID.
+   * Essencial para o Orçamento Rápido, onde apenas o ID é usado para buscar os detalhes completos da UH.
+   * @param id O identificador único da categoria a ser encontrada.
+   * @returns O objeto CategoriaQuarto correspondente ao ID, ou null se não for encontrado.
+   */
   getCategoria(id: string): CategoriaQuarto | null {
     return this.getCategorias().find((c) => c.id === id) || null;
   }
@@ -49,41 +55,83 @@ export class TarifaService {
     this.storage.set(this.STORAGE_CATEGORIAS, categorias);
   }
 
-  // ===== PROMOÇÕES =====
-  getPromocoes(): Promocao[] {
-    return this.storage.get<Promocao[]>(this.STORAGE_PROMOCOES) || [];
-  }
-
-  salvarPromocao(promocao: Promocao): void {
-    const promocoes = this.getPromocoes();
-    const index = promocoes.findIndex((p) => p.id === promocao.id);
-    if (index >= 0) promocoes[index] = promocao;
-    else {
-      promocao.id = this.storage.generateId();
-      promocoes.push(promocao);
-    }
-    this.storage.set(this.STORAGE_PROMOCOES, promocoes);
-  }
-
-  excluirPromocao(id: string): void {
-    const promocoes = this.getPromocoes().filter((p) => p.id !== id);
-    this.storage.set(this.STORAGE_PROMOCOES, promocoes);
-  }
-
   // ===== CONFIGURAÇÃO GERAL =====
   getConfiguracao(): ConfiguracaoGeral {
-    const stored = this.storage.get<ConfiguracaoGeral>(this.STORAGE_CONFIG);
-    if (stored) {
-      const defaults = this.getConfiguracaoPadrao();
-      const result = { ...stored };
-      Object.keys(defaults).forEach((key) => {
-        if (result[key as keyof ConfiguracaoGeral] === undefined) {
-          (result as any)[key] = defaults[key as keyof ConfiguracaoGeral];
-        }
-      });
-      return result;
+    let stored = this.storage.get<any>(this.STORAGE_CONFIG);
+    const defaults = this.getConfiguracaoPadrao();
+
+    if (!stored) {
+      return defaults;
     }
-    return this.getConfiguracaoPadrao();
+
+    const migrated = this.migrarConfiguracaoSeNecessario(stored);
+    if (migrated !== stored) {
+      // Se a migração ocorreu, salva a nova estrutura de volta no storage.
+      this.salvarConfiguracao(migrated);
+      stored = migrated;
+    }
+
+    // Garante que novas propriedades adicionadas no futuro sejam incluídas
+    return { ...defaults, ...stored } as ConfiguracaoGeral;
+  }
+
+  /**
+   * Verifica se um objeto de configuração está no formato antigo (plano) e o converte
+   * para a nova estrutura aninhada. Retorna a configuração no formato novo.
+   * @param config A configuração a ser verificada e possivelmente migrada.
+   * @returns A configuração no formato `ConfiguracaoGeral` atualizado.
+   */
+  migrarConfiguracaoSeNecessario(config: any): ConfiguracaoGeral {
+    // A verificação `config.precos === undefined` identifica o formato antigo.
+    if (config && config.precos === undefined && config.valorAlmocoExtra !== undefined) {
+      return {
+        festividade: config.festividade,
+        totalUhs: config.totalUhs,
+        comodidadesGlobais: config.comodidadesGlobais,
+        precos: {
+          refeicoes: {
+            almoco: config.valorAlmocoExtra,
+            janta: config.valorJantaExtra,
+            lanche: config.valorLancheExtra,
+          },
+          kwh: config.valorKwh,
+        },
+        temporada: { altaInicio: config.altaInicio, altaFim: config.altaFim },
+        horarios: {
+          cafe: { inicio: config.cafeInicio, fim: config.cafeFim, ativo: config.cafeAtivo },
+          almoco: { inicio: config.almocoInicio, fim: config.almocoFim, ativo: config.almocoAtivo },
+          lanche: {
+            inicio: config.lancheTardeInicio,
+            fim: config.lancheTardeFim,
+            ativo: config.lancheTardeAtivo,
+          },
+          jantar: { inicio: config.jantarInicio, fim: config.jantarFim, ativo: config.jantarAtivo },
+        },
+        promocao: {
+          ativa: config.promocaoAtiva,
+          desconto: config.promocaoDesconto,
+          minDiarias: config.promocaoMinDiarias,
+          texto: config.promocaoTexto,
+          somenteAlta: config.promocaoSomenteAlta,
+          msgBaixa: config.promocaoMsgBaixa,
+        },
+        seguranca: { senhaHash: config.senhaHash, senhaSalt: config.senhaSalt },
+        orcamento: {
+          textos: {
+            titulo: config.orcTitulo,
+            configTitulo: config.orcConfigTitulo,
+            configDescricao: config.orcConfigDescricao,
+            notaRefeicoes: config.orcNotaRefeicoes,
+            cronograma: config.orcCronograma,
+            pagamento: config.orcPagamento,
+            observacoes: config.orcObservacoes,
+            rodape: config.orcRodape,
+          },
+          sinalPercentual: config.orcSinalPercentual,
+        },
+      };
+    }
+    return config as ConfiguracaoGeral;
   }
 
   salvarConfiguracao(config: ConfiguracaoGeral): void {
@@ -93,13 +141,8 @@ export class TarifaService {
   // ===== LIMPAR CACHE =====
   limparCache(): void {
     this.storage.remove(this.STORAGE_CATEGORIAS);
-    this.storage.remove(this.STORAGE_PROMOCOES);
     this.storage.remove(this.STORAGE_CONFIG);
     this.inicializarDadosPadrao();
-  }
-
-  getComodidades(): any[] {
-    return this.storage.get<any[]>('comodidades') || [];
   }
 
   // ===== DADOS INICIAIS =====
@@ -151,49 +194,70 @@ export class TarifaService {
     const salt = this.criptografia.gerarSalt();
     const hash = this.criptografia.hashSenha('1234', salt);
     return {
+      // Nível superior
       festividade: '🎊 Evento Especial',
-      valorAlmocoExtra: 45,
-      valorJantaExtra: 55,
-      valorLancheExtra: 25,
-      valorKwh: 0.89,
       totalUhs: 50,
       comodidadesGlobais: 'Frigobar, TV, Ar-condicionado, Wi-Fi, Hidro',
-      altaInicio: '2025-12-15',
-      altaFim: '2026-03-15',
-      cafeInicio: '07:00',
-      cafeFim: '10:00',
-      cafeAtivo: true,
-      almocoInicio: '12:00',
-      almocoFim: '14:00',
-      almocoAtivo: true,
-      lancheTardeInicio: '15:00',
-      lancheTardeFim: '17:00',
-      lancheTardeAtivo: true,
-      jantarInicio: '19:00',
-      jantarFim: '21:00',
-      jantarAtivo: true,
-      promocaoAtiva: false,
-      promocaoDesconto: 15,
-      promocaoMinDiarias: 3,
-      promocaoTexto: 'Pagamento integral via Pix ou Dinheiro',
-      promocaoSomenteAlta: true,
-      promocaoMsgBaixa: false,
-      senhaHash: hash,
-      senhaSalt: salt,
-      orcTitulo: 'Orçamento de Hospedagem',
-      orcConfigTitulo: '1. Configuração de Acomodação e Valores',
-      orcConfigDescricao:
-        'A proposta contempla a estadia com café da manhã incluso, além de estrutura de alimentação completa e horas extras de permanência.',
-      orcNotaRefeicoes:
-        'Obs.: As quantidades de refeições descritas na tabela referem-se ao consumo por integrante da acomodação para o período total da estadia.',
-      orcCronograma:
-        'Check-in: {checkinHora} do dia {checkinDataBr}.\nCheck-out: {checkoutHora} do dia {checkoutDataBr}.\n{mensagemHorasExtras}',
-      orcPagamento:
-        'Forma de Pagamento: Sinal de {sinalPercentual}% do valor total ({totalGeral}) no ato da reserva para garantia do bloqueio dos quartos.\nSaldo Restante: Deve ser quitado no momento do check-in ou conforme acordado previamente.\nValidade do Orçamento: Válido apenas para as datas especificadas.\nPrazo de Confirmação: A reserva deve ser confirmada e o sinal pago com no mínimo 10 dias de antecedência ao check-in.',
-      orcObservacoes:
-        'Refeições: O café da manhã é cortesia da casa e já está incluso no valor das diárias.\nAlimentação: Os almoços, lanches da tarde e jantares foram calculados para atender toda a delegação durante o período de permanência.\nValores das refeições: Almoço {valorAlmoco}, Janta {valorJanta}, Lanche {valorLanche} por pessoa.',
-      orcRodape: 'Setor de Reservas - Hotel Plaza',
-      orcSinalPercentual: 50,
+
+      // Seção de Preços
+      precos: {
+        refeicoes: {
+          almoco: 45,
+          janta: 55,
+          lanche: 25,
+        },
+        kwh: 0.89,
+      },
+
+      // Seção de Temporada
+      temporada: {
+        altaInicio: '2025-12-15',
+        altaFim: '2026-03-15',
+      },
+
+      // Seção de Horários
+      horarios: {
+        cafe: { inicio: '07:00', fim: '10:00', ativo: true },
+        almoco: { inicio: '12:00', fim: '14:00', ativo: true },
+        lanche: { inicio: '15:00', fim: '17:00', ativo: true },
+        jantar: { inicio: '19:00', fim: '21:00', ativo: true },
+      },
+
+      // Seção de Promoção
+      promocao: {
+        ativa: false,
+        desconto: 15,
+        minDiarias: 3,
+        texto: 'Pagamento integral via Pix ou Dinheiro',
+        somenteAlta: true,
+        msgBaixa: false,
+      },
+
+      // Seção de Segurança
+      seguranca: {
+        senhaHash: hash,
+        senhaSalt: salt,
+      },
+
+      // Seção de Orçamento
+      orcamento: {
+        textos: {
+          titulo: 'Orçamento de Hospedagem',
+          configTitulo: '1. Configuração de Acomodação e Valores',
+          configDescricao:
+            'A proposta contempla a estadia com café da manhã incluso, além de estrutura de alimentação completa e horas extras de permanência.',
+          notaRefeicoes:
+            'Obs.: As quantidades de refeições descritas na tabela referem-se ao consumo por integrante da acomodação para o período total da estadia.',
+          cronograma:
+            'Check-in: {checkinHora} do dia {checkinDataBr}.\nCheck-out: {checkoutHora} do dia {checkoutDataBr}.\n{mensagemHorasExtras}',
+          pagamento:
+            'Forma de Pagamento: Sinal de {sinalPercentual}% do valor total ({totalGeral}) no ato da reserva para garantia do bloqueio dos quartos.\nSaldo Restante: Deve ser quitado no momento do check-in ou conforme acordado previamente.\nValidade do Orçamento: Válido apenas para as datas especificadas.\nPrazo de Confirmação: A reserva deve ser confirmada e o sinal pago com no mínimo 10 dias de antecedência ao check-in.',
+          observacoes:
+            'Refeições: O café da manhã é cortesia da casa e já está incluso no valor das diárias.\nAlimentação: Os almoços, lanches da tarde e jantares foram calculados para atender toda a delegação durante o período de permanência.\nValores das refeições: Almoço {valorAlmoco}, Janta {valorJanta}, Lanche {valorLanche} por pessoa.',
+          rodape: 'Setor de Reservas - Hotel Plaza',
+        },
+        sinalPercentual: 50,
+      },
     };
   }
 }
