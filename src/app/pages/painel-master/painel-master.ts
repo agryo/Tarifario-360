@@ -268,7 +268,7 @@ export class PainelMasterComponent implements OnInit {
   exportarBackup() {
     const backup = this.backupService.exportarDados();
     this.backupService.downloadBackup(backup);
-    this._exibirMensagem('success', 'Backup exportado', 'Arquivo JSON gerado com sucesso');
+    this._exibirMensagem('success', 'Backup exportado', 'Arquivo gerado com sucesso');
   }
 
   importarBackup(event: Event) {
