@@ -278,7 +278,15 @@ export class PainelMasterComponent implements OnInit {
     const reader = new FileReader();
     reader.onload = (e: ProgressEvent<FileReader>) => {
       try {
-        const backup = JSON.parse(e.target?.result as string);
+        const rawContent = e.target?.result as string;
+
+        // Tenta descriptografar (.btf)
+        const backup = this.criptografia.descriptografarDados(rawContent);
+
+        if (!backup) {
+          throw new Error('Formato de arquivo inválido ou corrompido.');
+        }
+
         const resultado = this.backupService.importarDados(backup);
         if (resultado.sucesso) {
           this._exibirMensagem('success', 'Sucesso', resultado.mensagem);

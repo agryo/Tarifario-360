@@ -5,6 +5,9 @@ import * as CryptoJS from 'crypto-js';
   providedIn: 'root',
 })
 export class CriptografiaService {
+  // Chave secreta para arquivos (Mantenha fixa para garantir compatibilidade entre backups)
+  private readonly FILE_SECRET = 'Trf360_S3cur3_F1l3_K3y_2026';
+
   constructor() {}
 
   /**
@@ -49,5 +52,31 @@ export class CriptografiaService {
    */
   gerarHash(dados: string): string {
     return CryptoJS.SHA256(dados).toString();
+  }
+
+  /**
+   * Criptografa um objeto qualquer em uma string codificada.
+   * @param dados Objeto ou dados a serem criptografados
+   * @returns String criptografada
+   */
+  criptografarDados(dados: any): string {
+    const jsonStr = JSON.stringify(dados);
+    return CryptoJS.AES.encrypt(jsonStr, this.FILE_SECRET).toString();
+  }
+
+  /**
+   * Tenta descriptografar uma string para recuperar o objeto original.
+   * @param dadosCriptografados String criptografada
+   * @returns O objeto original ou null se falhar
+   */
+  descriptografarDados(dadosCriptografados: string): any {
+    try {
+      const bytes = CryptoJS.AES.decrypt(dadosCriptografados, this.FILE_SECRET);
+      const decryptedData = bytes.toString(CryptoJS.enc.Utf8);
+      return JSON.parse(decryptedData);
+    } catch (error) {
+      console.error('Falha ao descriptografar dados:', error);
+      return null;
+    }
   }
 }

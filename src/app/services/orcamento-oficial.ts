@@ -106,13 +106,37 @@ export class OrcamentoOficialService {
     return JSON.stringify(orcamentoComAssinatura, null, 2);
   }
 
+  downloadOrcamento(orcamento: OrcamentoOficial): void {
+    // Garante assinatura antes de criptografar
+    const { assinatura, ...dados } = orcamento;
+    const orcamentoAssinado: OrcamentoOficial = {
+      ...dados,
+      assinatura: this.criptografia.gerarHash(JSON.stringify(dados)),
+    };
+
+    const encryptedData = this.criptografia.criptografarDados(orcamentoAssinado);
+    const blob = new Blob([encryptedData], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    // Usa extensão .ortf (Orçamento Tarifario File) para evitar conflitos
+    link.download = `Orcamento_${orcamento.cliente.replace(/\s+/g, '_')}.ortf`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   importarDeJSON(json: string): {
     sucesso: boolean;
     orcamento: OrcamentoOficial | null;
     mensagem: string;
   } {
     try {
-      const orcamento = JSON.parse(json) as OrcamentoOficial;
+      // Tenta descriptografar (formato .ortf)
+      const orcamento = this.criptografia.descriptografarDados(json);
+
+      if (!orcamento) {
+        throw new Error('Arquivo criptografado inválido.');
+      }
 
       // 0. Validação do tipo de arquivo
       if (orcamento.tipo !== 'orcamento') {

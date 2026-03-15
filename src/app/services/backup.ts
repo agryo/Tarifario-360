@@ -90,12 +90,12 @@ export class BackupService {
   }
 
   downloadBackup(backup: BackupData, nomeArquivo: string = 'backup'): void {
-    const dataStr = JSON.stringify(backup, null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
+    const encryptedData = this.criptografia.criptografarDados(backup);
+    const blob = new Blob([encryptedData], { type: 'application/octet-stream' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${nomeArquivo}_${new Date().toISOString().split('T')[0]}.json`;
+    link.download = `${nomeArquivo}_${new Date().toISOString().split('T')[0]}.btf`;
     link.click();
     URL.revokeObjectURL(url);
   }
@@ -105,7 +105,15 @@ export class BackupService {
       const reader = new FileReader();
       reader.onload = (e) => {
         try {
-          const backup = JSON.parse(e.target?.result as string) as BackupData;
+          const content = e.target?.result as string;
+          // Tenta descriptografar (.btf)
+          const backup = this.criptografia.descriptografarDados(content);
+
+          if (!backup) {
+            reject('Arquivo inválido ou corrompido');
+            return;
+          }
+
           resolve(backup);
         } catch {
           reject('Arquivo inválido');

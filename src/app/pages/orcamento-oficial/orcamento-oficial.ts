@@ -19,6 +19,7 @@ import { ConfirmationService } from 'primeng/api';
 // Services
 import { TarifaService } from '../../services/tarifa';
 import { OrcamentoOficialService } from '../../services/orcamento-oficial';
+import { CriptografiaService } from '../../services/criptografia';
 import { DateUtils } from '../../utils/date-utils';
 import { ImpressaoService } from '../../utils/impressao-service';
 
@@ -107,6 +108,7 @@ export class OrcamentoOficialComponent implements OnInit {
     private messageService: MessageService,
     private confirmationService: ConfirmationService,
     private impressaoService: ImpressaoService,
+    private criptografia: CriptografiaService,
   ) {}
 
   ngOnInit() {
@@ -425,8 +427,9 @@ export class OrcamentoOficialComponent implements OnInit {
       this.mostrarMensagem('warn', 'Atenção', 'Informe o nome do cliente.');
       return;
     }
-    const orcamento = {
+    const dados = {
       tipo: 'orcamento-oficial-snapshot', // Identificador para validação na importação
+      versao: '1.0',
       cliente: this.cliente,
       temporada: this.temporada,
       dataCheckin: this.dataCheckin,
@@ -436,28 +439,53 @@ export class OrcamentoOficialComponent implements OnInit {
       itens: this.itens,
       totalGeral: this.totalGeral,
     };
-    const dataStr = JSON.stringify(orcamento, null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
+
+    const orcamentoAssinado = {
+      ...dados,
+      assinatura: this.criptografia.gerarHash(JSON.stringify(dados)),
+    };
+
+    const encryptedData = this.criptografia.criptografarDados(orcamentoAssinado);
+    const blob = new Blob([encryptedData], { type: 'application/octet-stream' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `orcamento_${this.cliente.replace(/\s/g, '_')}_${new Date().toISOString().split('T')[0]}.json`;
+    link.download = `orcamento_${this.cliente.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.ortf`;
     link.click();
     URL.revokeObjectURL(url);
-    this.mostrarMensagem('success', 'Exportado', 'Arquivo salvo.');
+    this.mostrarMensagem('success', 'Exportado', 'Arquivo .ortf salvo com sucesso.');
   }
 
-  importarOrcamento(event: any) {
-    const file = event.target.files[0];
+  importarOrcamento(event: Event) {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const dados = JSON.parse(e.target?.result as string);
 
-        // Validação para garantir que é um arquivo de orçamento deste módulo
+    const reader = new FileReader();
+    reader.onload = (e: ProgressEvent<FileReader>) => {
+      try {
+        const rawContent = e.target?.result as string;
+        if (!rawContent) {
+          throw new Error('Arquivo vazio.');
+        }
+
+        // Tenta descriptografar (.ortf)
+        const dados = this.criptografia.descriptografarDados(rawContent);
+
+        if (!dados) {
+          throw new Error('Formato de arquivo inválido ou corrompido.');
+        }
+
         if (dados.tipo !== 'orcamento-oficial-snapshot' || !dados.itens || !dados.cliente) {
           throw new Error('Este não é um arquivo de orçamento oficial válido.');
+        }
+
+        if (dados.assinatura) {
+          const { assinatura, ...dadosParaVerificar } = dados;
+          const hashCalculado = this.criptografia.gerarHash(JSON.stringify(dadosParaVerificar));
+          if (hashCalculado !== assinatura) {
+            throw new Error('Assinatura do arquivo inválida. O arquivo pode estar corrompido.');
+          }
         }
 
         this.cliente = dados.cliente || '';
@@ -477,9 +505,7 @@ export class OrcamentoOficialComponent implements OnInit {
           error.message || 'Arquivo inválido ou corrompido.',
         );
       } finally {
-        // Limpa o valor do input para permitir que o evento (change) seja disparado
-        // novamente se o mesmo arquivo for selecionado.
-        event.target.value = null;
+        target.value = '';
       }
     };
     reader.readAsText(file);
