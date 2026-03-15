@@ -74,7 +74,7 @@ export class PainelMasterComponent implements OnInit {
 
   categorias: CategoriaQuarto[] = [];
   categoriaDialog: boolean = false;
-  categoriaEdit: CategoriaQuarto = {} as CategoriaQuarto;
+  categoriaEdit: CategoriaQuarto | null = null;
 
   mostrarSenhaAtual: boolean = false;
   mostrarNovaSenha: boolean = false;
@@ -121,7 +121,7 @@ export class PainelMasterComponent implements OnInit {
   }
 
   abrirDialogCategoria(categoria?: CategoriaQuarto) {
-    this.categoriaEdit = categoria
+    this.categoriaEdit = categoria // Clona para edição
       ? { ...categoria }
       : {
           id: '',
@@ -143,23 +143,15 @@ export class PainelMasterComponent implements OnInit {
   }
 
   salvarCategoria() {
-    if (!this.categoriaEdit.nome) {
-      this.onMensagem.emit({
-        severity: 'warn',
-        summary: 'Atenção',
-        detail: 'O nome da UH é obrigatório',
-      });
+    if (!this.categoriaEdit || !this.categoriaEdit.nome) {
+      this._exibirMensagem('warn', 'Atenção', 'O nome da UH é obrigatório');
       return;
     }
 
     this.tarifaService.salvarCategoria(this.categoriaEdit);
     this.carregarDados();
     this.categoriaDialog = false;
-    this.onMensagem.emit({
-      severity: 'success',
-      summary: 'Sucesso',
-      detail: 'Categoria salva com sucesso',
-    });
+    this._exibirMensagem('success', 'Sucesso', 'Categoria salva com sucesso');
   }
 
   excluirUH(categoria: CategoriaQuarto) {
@@ -173,11 +165,7 @@ export class PainelMasterComponent implements OnInit {
       accept: () => {
         this.tarifaService.excluirCategoria(categoria.id);
         this.carregarDados();
-        this.onMensagem.emit({
-          severity: 'success',
-          summary: 'Excluído',
-          detail: `UH "${categoria.nome}" removida com sucesso`,
-        });
+        this._exibirMensagem('success', 'Excluído', `UH "${categoria.nome}" removida com sucesso`);
       },
     });
   }
@@ -208,20 +196,12 @@ export class PainelMasterComponent implements OnInit {
   // ===== SEGURANÇA =====
   alterarSenha() {
     if (this.novaSenhaInput !== this.confirmarSenhaInput) {
-      this.onMensagem.emit({
-        severity: 'error',
-        summary: 'Erro',
-        detail: 'As senhas não conferem',
-      });
+      this._exibirMensagem('error', 'Erro', 'As senhas não conferem');
       return;
     }
 
     if (this.novaSenhaInput.length < 3 && this.novaSenhaInput.length > 0) {
-      this.onMensagem.emit({
-        severity: 'warn',
-        summary: 'Atenção',
-        detail: 'A senha deve ter pelo menos 3 caracteres',
-      });
+      this._exibirMensagem('warn', 'Atenção', 'A senha deve ter pelo menos 3 caracteres');
       return;
     }
 
@@ -233,11 +213,7 @@ export class PainelMasterComponent implements OnInit {
         this.config.seguranca.senhaSalt, // Passa o salt; o serviço lida se for undefined
       );
       if (!senhaAtualCorreta) {
-        this.onMensagem.emit({
-          severity: 'error',
-          summary: 'Erro',
-          detail: 'Senha atual incorreta',
-        });
+        this._exibirMensagem('error', 'Erro', 'Senha atual incorreta');
         return;
       }
     }
@@ -255,11 +231,11 @@ export class PainelMasterComponent implements OnInit {
 
     this.tarifaService.salvarConfiguracao(this.config);
 
-    this.onMensagem.emit({
-      severity: 'success',
-      summary: 'Sucesso',
-      detail: this.novaSenhaInput ? 'Senha alterada com sucesso' : 'Senha removida com sucesso',
-    });
+    this._exibirMensagem(
+      'success',
+      'Sucesso',
+      this.novaSenhaInput ? 'Senha alterada com sucesso' : 'Senha removida com sucesso',
+    );
 
     // Limpa os campos de senha
     this.senhaAtualInput = '';
@@ -280,19 +256,11 @@ export class PainelMasterComponent implements OnInit {
           this.config.seguranca.senhaHash = ''; // em vez de delete
           this.config.seguranca.senhaSalt = '';
           this.tarifaService.salvarConfiguracao(this.config);
-          this.onMensagem.emit({
-            severity: 'success',
-            summary: 'Senha removida',
-            detail: 'Acesso ao painel agora é livre',
-          });
+          this._exibirMensagem('success', 'Senha removida', 'Acesso ao painel agora é livre');
         },
       });
     } else {
-      this.onMensagem.emit({
-        severity: 'warn',
-        summary: 'Atenção',
-        detail: 'Não há senha configurada',
-      });
+      this._exibirMensagem('warn', 'Atenção', 'Não há senha configurada');
     }
   }
 
@@ -300,42 +268,31 @@ export class PainelMasterComponent implements OnInit {
   exportarBackup() {
     const backup = this.backupService.exportarDados();
     this.backupService.downloadBackup(backup);
-    this.onMensagem.emit({
-      severity: 'success',
-      summary: 'Backup exportado',
-      detail: 'Arquivo JSON gerado com sucesso',
-    });
+    this._exibirMensagem('success', 'Backup exportado', 'Arquivo JSON gerado com sucesso');
   }
 
-  importarBackup(event: any) {
-    const file = event.target.files[0];
+  importarBackup(event: Event) {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = (e: ProgressEvent<FileReader>) => {
       try {
         const backup = JSON.parse(e.target?.result as string);
         const resultado = this.backupService.importarDados(backup);
         if (resultado.sucesso) {
-          this.onMensagem.emit({
-            severity: 'success',
-            summary: 'Sucesso',
-            detail: resultado.mensagem,
-          });
+          this._exibirMensagem('success', 'Sucesso', resultado.mensagem);
           this.carregarDados(); // recarrega todos os dados
         } else {
-          this.onMensagem.emit({ severity: 'error', summary: 'Erro', detail: resultado.mensagem });
+          this._exibirMensagem('error', 'Erro', resultado.mensagem);
         }
       } catch (error) {
         console.error('Erro ao importar backup:', error);
-        this.onMensagem.emit({
-          severity: 'error',
-          summary: 'Erro',
-          detail: 'Arquivo de backup inválido ou corrompido',
-        });
+        this._exibirMensagem('error', 'Erro', 'Arquivo de backup inválido ou corrompido');
       } finally {
         // Limpa o valor do input para permitir que o evento (change) seja disparado
         // novamente se o mesmo arquivo for selecionado.
-        event.target.value = null;
+        target.value = '';
       }
     };
     reader.readAsText(file);
@@ -353,11 +310,11 @@ export class PainelMasterComponent implements OnInit {
       accept: () => {
         this.tarifaService.limparCache();
         this.carregarDados();
-        this.onMensagem.emit({
-          severity: 'success',
-          summary: 'Cache Limpo',
-          detail: 'Todos os dados foram restaurados para as configurações padrão.',
-        });
+        this._exibirMensagem(
+          'success',
+          'Cache Limpo',
+          'Todos os dados foram restaurados para as configurações padrão.',
+        );
       },
     });
   }
@@ -373,11 +330,7 @@ export class PainelMasterComponent implements OnInit {
     }
     this.tarifaService.salvarConfiguracao(this.config);
     this.escalaService.salvarConfiguracao(this.escalaConfig);
-    this.onMensagem.emit({
-      severity: 'success',
-      summary: 'Sucesso',
-      detail: 'Configurações salvas com sucesso',
-    });
+    this._exibirMensagem('success', 'Sucesso', 'Configurações salvas com sucesso');
     this.onSalvo.emit();
     this.onFechar.emit();
   }
@@ -388,6 +341,10 @@ export class PainelMasterComponent implements OnInit {
     if (this.altaInicioDate && this.altaFimDate && this.altaFimDate < this.altaInicioDate) {
       this.altaFimDate = new Date(this.altaInicioDate);
     }
+  }
+
+  private _exibirMensagem(severity: string, summary: string, detail: string) {
+    this.onMensagem.emit({ severity, summary, detail });
   }
 
   fechar() {

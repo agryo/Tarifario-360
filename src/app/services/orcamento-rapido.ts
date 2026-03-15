@@ -162,10 +162,17 @@ export class OrcamentoRapidoService {
       valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
     // ===== TEXTO IGUAL AO JS ORIGINAL =====
-    let texto = `Olá! Segue orçamento para o *${config.festividade}*:\n\n`;
-    texto += `🏨 *Hotel Plaza - Cruzeta/RN*\n`;
+    let texto = `Olá! Segue o orçamento para *${config.festividade}*:\n\n`;
+    texto += `🏨 *Hotel Plaza - Cruzeta/RN*\n\n`;
     texto += `🛌 *Acomodação:* ${categoria.nome}\n`;
     if (categoria.descricao) texto += `✨ _${categoria.descricao}_\n`;
+
+    // Itens inclusos
+    if (categoria.comodidadesSelecionadas?.length) {
+      texto += `✅ *Itens inclusos:* ${categoria.comodidadesSelecionadas.join(', ')}.\n\n`;
+    } else {
+      texto += `\n`;
+    }
 
     // Configuração de camas (igual ao JS)
     const camas: string[] = [];
@@ -196,13 +203,6 @@ export class OrcamentoRapidoService {
       capacidadeExibida === 1 ? `Apenas 1 pessoa` : `Até ${capacidadeExibida} pessoas`;
     texto += `👤 *Capacidade:* ${capacidadeTexto}\n`;
 
-    // Itens inclusos
-    if (categoria.comodidadesSelecionadas?.length) {
-      texto += `✅ *Itens inclusos:* ${categoria.comodidadesSelecionadas.join(', ')}.\n\n`;
-    } else {
-      texto += `\n`;
-    }
-
     // Período (usando toLocaleDateString pt-BR)
     texto += `📅 *Período:* ${request.dataCheckin.toLocaleDateString('pt-BR')} a ${request.dataCheckout.toLocaleDateString('pt-BR')}\n`;
     texto += `🌙 *Duração:* ${numeroNoites} diária(s)\n\n`;
@@ -226,9 +226,12 @@ export class OrcamentoRapidoService {
     texto += `☕ Com café: ${txtDiariaCom}\n`;
     texto += `🍽️ Sem café: ${txtDiariaSem}\n\n`;
 
-    texto += `💵 *VALOR TOTAL DO PACOTE:*\n`;
-    texto += `✅ *COM CAFÉ DA MANHÃ: ${formatarMoeda(valorTotalComCafe)}*\n`;
-    texto += `❌ *SEM CAFÉ DA MANHÃ: ${formatarMoeda(valorTotalSemCafe)}*\n\n`;
+    // Só exibe o valor total do pacote se for mais de uma diária, para evitar redundância.
+    if (numeroNoites > 1) {
+      texto += `💵 *Total para ${numeroNoites} diárias:*\n`;
+      texto += `✅ *Total com café: ${formatarMoeda(valorTotalComCafe)}*\n`;
+      texto += `❌ *Total sem café: ${formatarMoeda(valorTotalSemCafe)}*\n\n`;
+    }
 
     // Promoção
     if (textoPromocao) {

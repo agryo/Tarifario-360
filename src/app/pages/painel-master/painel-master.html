@@ -896,7 +896,7 @@
   [modal]="true"
 >
   <ng-template pTemplate="content">
-    <div class="p-fluid">
+    <div *ngIf="categoriaEdit" class="p-fluid">
       <!-- Nome e Capacidade (já existentes) -->
       <div class="field">
         <label>Nome da UH</label>

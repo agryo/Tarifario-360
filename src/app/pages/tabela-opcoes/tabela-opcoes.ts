@@ -131,7 +131,7 @@ export class TabelaOpcoesComponent implements OnInit {
     let texto = `*ORÇAMENTO DE HOSPEDAGEM*\n\n`;
     texto += `🏨 *Hotel Plaza - Cruzeta/RN*\n\n`;
     texto += `📅 *Período:* ${d1.toLocaleDateString('pt-BR')} a ${d2.toLocaleDateString('pt-BR')}\n`;
-    texto += `🌙 *Duração:* ${noites} diária(s)\n\n--- *OPÇÕES DE ACOMODAÇÃO* ---\n`;
+    texto += `🌙 *Duração:* ${noites} diária(s)\n\n------ *OPÇÕES DE ACOMODAÇÃO* ------\n`;
 
     const resultados: { nome: string; com: number; sem: number }[] = [];
 
@@ -156,16 +156,21 @@ export class TabelaOpcoesComponent implements OnInit {
       texto += `\n🟢 *${cat.nome.toUpperCase()}*\n`;
       if (cat.descricao) texto += `_${cat.descricao}_\n`;
       texto += `🛏️ ${this.formatarCamas(cat)}\n`;
-      texto += `👤 Capacidade: ${capacidadeTexto}\n`;
-      texto += `💰 Diária: ${txtDiariaCom} ☕ Com Café ou ${txtDiariaSem} ❌ Sem Café\n`;
-      texto += `☕ *Total com café:* ${somaCom.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
-      texto += `🍽️ *Total sem café:* ${somaSem.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
+      texto += `👤 Capacidade: ${capacidadeTexto}\n\n`;
+      texto += `💰 *Valor da diária:*\n`;
+      texto += `☕ Com Café: ${txtDiariaCom}\n`;
+      texto += `❌ Sem Café: ${txtDiariaSem}\n`;
+      if (noites > 1) {
+        texto += `\n💵 *Total para ${noites} diárias:*\n`;
+        texto += `☕ *Total com café:* ${somaCom.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
+        texto += `❌ *Total sem café:* ${somaSem.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
+      }
+      texto += `-------------------------------------------------------------`;
     });
 
     const comuns = this.comodidadesComuns(selecionados);
-    texto += `\n----------------------------------\n`;
     if (comuns.length > 0) {
-      texto += `✅ *Todas as opções acima possuem:* ${comuns.join(', ')}.\n\n`;
+      texto += `\n✅ *Todas as opções acima possuem:* ${comuns.join(', ')}.\n\n`;
     }
 
     texto += MensagemUtils.formatarHorariosRefeicoes(this.config);
