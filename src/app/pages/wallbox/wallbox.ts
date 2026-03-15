@@ -79,7 +79,14 @@ export class WallboxComponent implements OnInit {
     const dataFim = DateUtils.formatarDataBR(agora);
     const horaFim = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-    const texto = `🔋 *Recarga Veículo Elétrico*\n\n📅 ${dataFim} às ${horaFim}\n⚡ ${this.consumo} kWh\n💲 ${this.tarifaKwh.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}/kWh\n💰 *TOTAL: ${this.totalCalculado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}*`;
+    let texto = `🔋 *Recarga Veículo Elétrico*\n\n`;
+    texto += `📅 ${dataFim} às ${horaFim}\n`;
+    if (this.tempo) {
+      texto += `⏱️ Tempo de Carga: ${this.tempo}\n`;
+    }
+    texto += `⚡ ${this.consumo} kWh\n`;
+    texto += `💲 ${this.tarifaKwh.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}/kWh\n`;
+    texto += `💰 *TOTAL: ${this.totalCalculado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}*`;
 
     navigator.clipboard.writeText(texto).then(() => {
       this.onMensagem.emit({
