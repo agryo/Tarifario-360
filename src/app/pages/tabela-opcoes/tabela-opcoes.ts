@@ -32,6 +32,7 @@ interface CategoriaComSelecao {
   comodidadesSelecionadas?: string[];
   grupo: 'solteiro' | 'casal';
   selecionado: boolean;
+  ativo: boolean;
 }
 
 @Component({
@@ -128,6 +129,14 @@ export class TabelaOpcoesComponent implements OnInit {
     const d1 = this.dataCheckin;
     const d2 = this.dataCheckout;
 
+    // Calcula dias de alta para a lógica da promoção
+    const { diasAlta } = DateUtils.contarDiasPorTemporada(
+      d1,
+      d2,
+      this.config.temporada.altaInicio,
+      this.config.temporada.altaFim,
+    );
+
     let texto = `*ORÇAMENTO DE HOSPEDAGEM*\n\n`;
     texto += `🏨 *Hotel Plaza - Cruzeta/RN*\n\n`;
     texto += `📅 *Período:* ${d1.toLocaleDateString('pt-BR')} a ${d2.toLocaleDateString('pt-BR')}\n`;
@@ -155,16 +164,17 @@ export class TabelaOpcoesComponent implements OnInit {
 
       texto += `\n🟢 *${cat.nome.toUpperCase()}*\n`;
       if (cat.descricao) texto += `_${cat.descricao}_\n`;
-      texto += `🛏️ ${this.formatarCamas(cat)}\n`;
+      texto += `🛏️ ${MensagemUtils.formatarCamas(cat)}\n`;
       texto += `👤 Capacidade: ${capacidadeTexto}\n\n`;
-      texto += `💰 *Valor da diária:*\n`;
-      texto += `☕ Com Café: ${txtDiariaCom}\n`;
-      texto += `❌ Sem Café: ${txtDiariaSem}\n`;
-      if (noites > 1) {
-        texto += `\n💵 *Total para ${noites} diárias:*\n`;
-        texto += `☕ *Total com café:* ${somaCom.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
-        texto += `❌ *Total sem café:* ${somaSem.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
-      }
+      texto +=
+        MensagemUtils.formatarBlocoDePrecos(
+          diariaMediaCom,
+          diariaMediaSem,
+          somaCom,
+          somaSem,
+          noites,
+          isMisto,
+        ) + '\n';
       texto += `-------------------------------------------------------------`;
     });
 
@@ -173,8 +183,9 @@ export class TabelaOpcoesComponent implements OnInit {
       texto += `\n✅ *Todas as opções acima possuem:* ${comuns.join(', ')}.\n\n`;
     }
 
+    texto += this.aplicarPromocao(resultados, noites, diasAlta);
+
     texto += MensagemUtils.formatarHorariosRefeicoes(this.config);
-    texto += this.aplicarPromocao(selecionados, resultados, noites, d1, d2);
     texto += `\n⚠️ _Valores sujeitos a disponibilidade no ato da reserva._\n\nDeseja garantir sua reserva?`;
 
     this.textoPrevia = texto;
@@ -227,17 +238,6 @@ export class TabelaOpcoesComponent implements OnInit {
     return DateUtils.calcularDiasEntre(checkin, checkout);
   }
 
-  private formatarCamas(cat: CategoriaComSelecao): string {
-    const partes: string[] = [];
-    if (cat.camasCasal && cat.camasCasal > 0) {
-      partes.push(`${cat.camasCasal} Cama${cat.camasCasal > 1 ? 's' : ''} Casal`);
-    }
-    if (cat.camasSolteiro && cat.camasSolteiro > 0) {
-      partes.push(`${cat.camasSolteiro} Cama${cat.camasSolteiro > 1 ? 's' : ''} Solteiro`);
-    }
-    return partes.join(' + ') || 'Configuração sob consulta';
-  }
-
   private comodidadesComuns(selecionados: CategoriaComSelecao[]): string[] {
     if (selecionados.length === 0) return [];
     const comodidadesList = selecionados
@@ -248,71 +248,30 @@ export class TabelaOpcoesComponent implements OnInit {
   }
 
   private aplicarPromocao(
-    selecionados: CategoriaComSelecao[],
     resultados: { nome: string; com: number; sem: number }[],
     noites: number,
-    d1: Date,
-    d2: Date,
+    diasAlta: number,
   ): string {
-    if (!this.config.promocao.ativa) return '';
+    const resultadoPromo = MensagemUtils.processarPromocao(this.config, noites, diasAlta);
 
-    const {
-      desconto: promocaoDesconto,
-      minDiarias: promocaoMinDiarias,
-      texto: promocaoTexto,
-      somenteAlta: promocaoSomenteAlta,
-      msgBaixa: promocaoMsgBaixa,
-    } = this.config.promocao;
-    let aplicarPromo = true;
-    let exibirApenasMsg = false;
+    if (!resultadoPromo.texto) return '';
 
-    if (promocaoSomenteAlta) {
-      let temAlta = false;
-      if (this.temporada === 'alta') temAlta = true;
-      else if (this.temporada === 'baixa') temAlta = false;
-      else {
-        const current = new Date(d1);
-        current.setHours(0, 0, 0, 0);
-        const end = new Date(d2);
-        end.setHours(0, 0, 0, 0);
-        while (current < end) {
-          if (
-            DateUtils.isAltaTemporada(
-              current,
-              this.config.temporada.altaInicio,
-              this.config.temporada.altaFim,
-            )
-          ) {
-            temAlta = true;
-            break;
-          }
-          current.setDate(current.getDate() + 1);
-        }
-      }
-      if (!temAlta) {
-        aplicarPromo = false;
-        if (promocaoMsgBaixa) exibirApenasMsg = true;
-      }
+    let texto = resultadoPromo.texto;
+
+    if (resultadoPromo.aplicada) {
+      texto += '\n'; // Quebra linha após o cabeçalho
+      resultados.forEach((res) => {
+        const finalCom = res.com * (1 - resultadoPromo.desconto);
+        const finalSem = res.sem * (1 - resultadoPromo.desconto);
+        texto += `🟢 *${res.nome}*\n`;
+        texto += `   ✅ C/ Café: *${finalCom.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}*\n`;
+        texto += `   ❌ S/ Café: *${finalSem.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}*\n\n`;
+      });
+      return texto + '\n';
     }
 
-    if (aplicarPromo) {
-      if (noites >= promocaoMinDiarias) {
-        let texto = `🔥 *PROMOÇÃO ESPECIAL ATIVA:*\nGanhe *${promocaoDesconto}% de desconto* para ${promocaoTexto}!\n👇 *Valores com desconto aplicado:*\n`;
-        resultados.forEach((res) => {
-          const finalCom = res.com * (1 - promocaoDesconto / 100);
-          const finalSem = res.sem * (1 - promocaoDesconto / 100);
-          texto += `🔹 *${res.nome}*\n`;
-          texto += `   ✅ C/ Café: *${finalCom.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}*\n`;
-          texto += `   ❌ S/ Café: *${finalSem.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}*\n`;
-        });
-        return texto + '\n';
-      } else {
-        return `🔥 *PROMOÇÃO ESPECIAL:* Reserve *${promocaoMinDiarias} diárias* ou mais e ganhe *${promocaoDesconto}% de desconto* para ${promocaoTexto}!\n\n`;
-      }
-    } else if (exibirApenasMsg) {
-      return `🔥 *PROMOÇÃO ESPECIAL:* Ganhe *${promocaoDesconto}% de desconto* para ${promocaoTexto} (Consulte condições para alta temporada)!\n\n`;
-    }
-    return '';
+    // Caso apenas mensagem informativa (sem aplicar desconto ou min diarias não atingido)
+    return texto + '\n\n';
   }
 
   copiarTexto() {
