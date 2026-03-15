@@ -244,16 +244,14 @@ export class TarifaService {
         textos: {
           titulo: 'Orçamento de Hospedagem',
           configTitulo: '1. Configuração de Acomodação e Valores',
-          configDescricao:
-            'A proposta contempla a estadia com café da manhã incluso, além de estrutura de alimentação completa e horas extras de permanência.',
+          configDescricao: 'A proposta contempla a estadia com café da manhã incluido...',
           notaRefeicoes:
-            'Obs.: As quantidades de refeições descritas na tabela referem-se ao consumo por integrante da acomodação para o período total da estadia.',
+            'Obs.: As quantidades de refeições descritas na tabela referem-se ao consumo...',
           cronograma:
             'Check-in: {checkinHora} do dia {checkinDataBr}.\nCheck-out: {checkoutHora} do dia {checkoutDataBr}.\n{mensagemHorasExtras}',
           pagamento:
-            'Forma de Pagamento: Sinal de {sinalPercentual}% do valor total ({totalGeral}) no ato da reserva para garantia do bloqueio dos quartos.\nSaldo Restante: Deve ser quitado no momento do check-in ou conforme acordado previamente.\nValidade do Orçamento: Válido apenas para as datas especificadas.\nPrazo de Confirmação: A reserva deve ser confirmada e o sinal pago com no mínimo 10 dias de antecedência ao check-in.',
-          observacoes:
-            'Refeições: O café da manhã é cortesia da casa e já está incluso no valor das diárias.\nAlimentação: Os almoços, lanches da tarde e jantares foram calculados para atender toda a delegação durante o período de permanência.\nValores das refeições: Almoço {valorAlmoco}, Janta {valorJanta}, Lanche {valorLanche} por pessoa.',
+            'Forma de Pagamento: Sinal de {sinalPercentual}% do valor total ({totalGeral})...',
+          observacoes: 'Refeições: O café da manhã é cortesia da casa e já está incluso...',
           rodape: 'Setor de Reservas - Hotel Plaza',
         },
         sinalPercentual: 50,
