@@ -2,6 +2,7 @@ import { Component, OnInit, Output, EventEmitter, LOCALE_ID } from '@angular/cor
 import { CommonModule, registerLocaleData } from '@angular/common';
 import localePt from '@angular/common/locales/pt';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 // PrimeNG
 import { ButtonModule } from 'primeng/button';
@@ -9,6 +10,7 @@ import { DialogModule } from 'primeng/dialog';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { TooltipModule } from 'primeng/tooltip';
+import { MessageService } from 'primeng/api';
 
 // Services
 import { TarifaService } from '../../services/tarifa';
@@ -34,15 +36,16 @@ registerLocaleData(localePt);
   styleUrls: ['./wallbox.scss'],
 })
 export class WallboxComponent implements OnInit {
-  @Output() onMensagem = new EventEmitter<{ severity: string; summary: string; detail: string }>();
-  @Output() onVoltar = new EventEmitter<void>(); // Evento para voltar ao dashboard
-
   consumo: number | null = null;
   tempo: string = '';
   tarifaKwh: number = 0.89; // Valor padrão alinhado com o Painel Master
   mostrarAjuda: boolean = false;
 
-  constructor(private tarifaService: TarifaService) {}
+  constructor(
+    private tarifaService: TarifaService,
+    private messageService: MessageService,
+    private router: Router,
+  ) {}
 
   ngOnInit() {
     const config = this.tarifaService.getConfiguracao();
@@ -54,7 +57,7 @@ export class WallboxComponent implements OnInit {
   limpar() {
     this.consumo = null;
     this.tempo = '';
-    this.onMensagem.emit({
+    this.messageService.add({
       severity: 'info',
       summary: 'Limpo',
       detail: 'Campos limpos com sucesso.',
@@ -67,7 +70,7 @@ export class WallboxComponent implements OnInit {
 
   copiarWhatsApp() {
     if (!this.consumo || this.consumo <= 0) {
-      this.onMensagem.emit({
+      this.messageService.add({
         severity: 'warn',
         summary: 'Atenção',
         detail: 'Insira o consumo em kWh antes de gerar a mensagem.',
@@ -89,7 +92,7 @@ export class WallboxComponent implements OnInit {
     texto += `💰 *TOTAL: ${this.totalCalculado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}*`;
 
     navigator.clipboard.writeText(texto).then(() => {
-      this.onMensagem.emit({
+      this.messageService.add({
         severity: 'success',
         summary: 'Copiado!',
         detail: 'Resumo copiado para a área de transferência.',
@@ -98,6 +101,6 @@ export class WallboxComponent implements OnInit {
   }
 
   voltar() {
-    this.onVoltar.emit();
+    this.router.navigate(['/']);
   }
 }

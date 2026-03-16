@@ -1,0 +1,38 @@
+/* Garante que todos os cards tenham a mesma altura na linha */
+.module-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  /* Força o corpo do card a ocupar toda a altura disponível */
+  ::ng-deep .p-card-body {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Empurra o rodapé (botão) para baixo */
+  ::ng-deep .p-card-content {
+    flex-grow: 1;
+  }
+}
+
+.module-description {
+  min-height: 3rem; /* Garante alinhamento mesmo com descrições curtas */
+  color: var(--text-color-secondary);
+  margin-bottom: 1rem;
+}
+
+.module-features {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+
+  span {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    color: var(--text-color);
+  }
+}

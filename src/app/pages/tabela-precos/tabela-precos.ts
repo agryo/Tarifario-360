@@ -2,6 +2,7 @@ import { Component, OnInit, Output, EventEmitter, LOCALE_ID } from '@angular/cor
 import { CommonModule, registerLocaleData } from '@angular/common';
 import localePt from '@angular/common/locales/pt';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 // PrimeNG
 import { ButtonModule } from 'primeng/button';
@@ -34,13 +35,11 @@ interface GrupoUHs {
   selector: 'app-tabela-precos',
   standalone: true,
   imports: [CommonModule, FormsModule, ButtonModule, CardModule, ToastModule, MessageModule],
-  providers: [MessageService, { provide: LOCALE_ID, useValue: 'pt-BR' }],
+  providers: [{ provide: LOCALE_ID, useValue: 'pt-BR' }],
   templateUrl: './tabela-precos.html',
   styleUrls: ['./tabela-precos.scss'],
 })
 export class TabelaPrecosComponent implements OnInit {
-  @Output() onVoltar = new EventEmitter<void>();
-
   temporadaAtual: 'alta' | 'baixa' = 'baixa';
   categorias: CategoriaQuarto[] = [];
   grupos: GrupoUHs[] = [];
@@ -50,6 +49,7 @@ export class TabelaPrecosComponent implements OnInit {
     private tarifaService: TarifaService,
     private messageService: MessageService,
     private impressaoService: ImpressaoService,
+    private router: Router,
   ) {}
 
   ngOnInit() {
@@ -200,6 +200,6 @@ export class TabelaPrecosComponent implements OnInit {
   }
 
   voltar() {
-    this.onVoltar.emit();
+    this.router.navigate(['/']);
   }
 }

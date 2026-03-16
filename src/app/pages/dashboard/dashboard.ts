@@ -21,12 +21,6 @@ import { CriptografiaService } from '../../services/criptografia';
 // Componentes
 import { ThemeToggleComponent } from '../../components/theme-toggle/theme-toggle';
 import { PainelMasterComponent } from '../painel-master/painel-master';
-import { TabelaPrecosComponent } from '../tabela-precos/tabela-precos';
-import { WallboxComponent } from '../wallbox/wallbox';
-import { OrcamentoRapidoComponent } from '../orcamento-rapido/orcamento-rapido';
-import { OrcamentoOficialComponent } from '../orcamento-oficial/orcamento-oficial';
-import { TabelaOpcoesComponent } from '../tabela-opcoes/tabela-opcoes';
-import { EscalaNoturnaComponent } from '../escala-noturna/escala-noturna';
 
 // Registra a localização pt-BR
 registerLocaleData(localePt);
@@ -48,12 +42,6 @@ registerLocaleData(localePt);
     // Meus componentes
     ThemeToggleComponent,
     PainelMasterComponent,
-    TabelaPrecosComponent,
-    WallboxComponent,
-    OrcamentoRapidoComponent,
-    OrcamentoOficialComponent,
-    TabelaOpcoesComponent,
-    EscalaNoturnaComponent,
   ],
   providers: [MessageService, ConfirmationService, { provide: LOCALE_ID, useValue: 'pt-BR' }],
   templateUrl: './dashboard.html',
@@ -64,9 +52,6 @@ export class Dashboard implements OnInit {
   configDialogVisible: boolean = false;
   senhaDialogVisible: boolean = false;
   senhaInput: string = '';
-
-  // Controle do módulo ativo (quando não for null, mostra o módulo no lugar da grid)
-  moduloAtivo: string | null = null;
 
   // Dados para os cards de resumo
   totalCategorias: number = 0;
@@ -171,19 +156,6 @@ export class Dashboard implements OnInit {
   fecharConfiguracoes() {
     this.configDialogVisible = false;
     this.carregarResumos();
-  }
-
-  get promocaoStatus(): string {
-    return this.config.promocao?.ativa ? 'Ativa' : 'Inativa';
-  }
-
-  // ===== CONTROLE DOS MÓDULOS =====
-  abrirModulo(modulo: string) {
-    this.moduloAtivo = modulo;
-  }
-
-  fecharModulo() {
-    this.moduloAtivo = null;
   }
 
   // ===== MENSAGENS VINDAS DO PAINEL MASTER =====

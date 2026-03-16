@@ -2,9 +2,11 @@ import { Component, OnInit, Output, EventEmitter, LOCALE_ID } from '@angular/cor
 import { CommonModule, registerLocaleData } from '@angular/common';
 import localePt from '@angular/common/locales/pt';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 // PrimeNG
 import { ButtonModule } from 'primeng/button';
+import { MessageService } from 'primeng/api';
 import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
 import { CheckboxModule } from 'primeng/checkbox';
@@ -52,9 +54,6 @@ interface CategoriaComSelecao {
   styleUrls: ['./tabela-opcoes.scss'],
 })
 export class TabelaOpcoesComponent implements OnInit {
-  @Output() onMensagem = new EventEmitter<{ severity: string; summary: string; detail: string }>();
-  @Output() onVoltar = new EventEmitter<void>();
-
   categorias: CategoriaComSelecao[] = [];
   config!: ConfiguracaoGeral;
 
@@ -65,7 +64,11 @@ export class TabelaOpcoesComponent implements OnInit {
 
   textoPrevia: string = '';
 
-  constructor(private tarifaService: TarifaService) {}
+  constructor(
+    private tarifaService: TarifaService,
+    private messageService: MessageService,
+    private router: Router,
+  ) {}
 
   ngOnInit() {
     this.carregarDados();
@@ -276,7 +279,7 @@ export class TabelaOpcoesComponent implements OnInit {
 
   copiarTexto() {
     if (!this.textoPrevia || this.textoPrevia === 'Selecione as acomodações...') {
-      this.onMensagem.emit({
+      this.messageService.add({
         severity: 'warn',
         summary: 'Atenção',
         detail: 'Nenhuma opção selecionada.',
@@ -284,7 +287,7 @@ export class TabelaOpcoesComponent implements OnInit {
       return;
     }
     navigator.clipboard.writeText(this.textoPrevia).then(() => {
-      this.onMensagem.emit({
+      this.messageService.add({
         severity: 'success',
         summary: 'Copiado!',
         detail: 'Tabela copiada para a área de transferência.',
@@ -293,6 +296,6 @@ export class TabelaOpcoesComponent implements OnInit {
   }
 
   voltar() {
-    this.onVoltar.emit();
+    this.router.navigate(['/']);
   }
 }

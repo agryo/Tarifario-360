@@ -1,9 +1,11 @@
 import { Component, OnInit, Output, EventEmitter, LOCALE_ID } from '@angular/core';
 import { CommonModule, registerLocaleData } from '@angular/common';
+import { Router } from '@angular/router';
 import localePt from '@angular/common/locales/pt';
 import { FormsModule } from '@angular/forms';
 
 // PrimeNG 21
+import { MessageService } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Select } from 'primeng/select';
 import { DatePicker } from 'primeng/datepicker';
@@ -25,9 +27,6 @@ registerLocaleData(localePt);
   styleUrls: ['./orcamento-rapido.scss'],
 })
 export class OrcamentoRapidoComponent implements OnInit {
-  @Output() onMensagem = new EventEmitter<{ severity: string; summary: string; detail: string }>();
-  @Output() onVoltar = new EventEmitter<void>();
-
   categorias: any[] = [];
   config!: ConfiguracaoGeral;
 
@@ -43,6 +42,8 @@ export class OrcamentoRapidoComponent implements OnInit {
   constructor(
     private tarifaService: TarifaService,
     private orcamentoService: OrcamentoRapidoService,
+    private messageService: MessageService,
+    private router: Router,
   ) {}
 
   ngOnInit() {
@@ -86,7 +87,7 @@ export class OrcamentoRapidoComponent implements OnInit {
       });
       this.textoOrcamento = resultado.textoWhatsApp;
     } catch (error) {
-      this.onMensagem.emit({
+      this.messageService.add({
         severity: 'error',
         summary: 'Erro',
         detail: 'Não foi possível gerar o orçamento.',
@@ -97,7 +98,7 @@ export class OrcamentoRapidoComponent implements OnInit {
   copiarWhatsApp() {
     if (!this.textoOrcamento) return;
     navigator.clipboard.writeText(this.textoOrcamento).then(() => {
-      this.onMensagem.emit({
+      this.messageService.add({
         severity: 'success',
         summary: 'Copiado!',
         detail: 'Orçamento copiado para a área de transferência.',
@@ -110,7 +111,7 @@ export class OrcamentoRapidoComponent implements OnInit {
     this.dataCheckin = DateUtils.hoje();
     this.dataCheckout = DateUtils.amanha();
     this.gerarOrcamento();
-    this.onMensagem.emit({
+    this.messageService.add({
       severity: 'info',
       summary: 'Limpo',
       detail: 'Campos reiniciados.',
@@ -118,6 +119,6 @@ export class OrcamentoRapidoComponent implements OnInit {
   }
 
   voltar() {
-    this.onVoltar.emit();
+    this.router.navigate(['/']);
   }
 }

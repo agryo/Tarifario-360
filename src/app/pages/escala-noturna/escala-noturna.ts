@@ -7,6 +7,7 @@ import {
   LOCALE_ID,
 } from '@angular/core';
 import { CommonModule, registerLocaleData } from '@angular/common';
+import { Router } from '@angular/router';
 import localePt from '@angular/common/locales/pt';
 import { FormsModule } from '@angular/forms';
 import html2canvas from 'html2canvas';
@@ -14,6 +15,7 @@ import html2canvas from 'html2canvas';
 // PrimeNG
 import { ButtonModule } from 'primeng/button';
 import { DatePicker } from 'primeng/datepicker';
+import { MessageService } from 'primeng/api';
 
 // Services
 import { EscalaService, EscalaConfig } from '../../services/escala';
@@ -35,9 +37,6 @@ registerLocaleData(localePt);
   encapsulation: ViewEncapsulation.None,
 })
 export class EscalaNoturnaComponent implements OnInit {
-  @Output() onMensagem = new EventEmitter<{ severity: string; summary: string; detail: string }>();
-  @Output() onVoltar = new EventEmitter<void>();
-
   escalaConfig!: EscalaConfig;
   dataInicio: Date = DateUtils.hoje();
   dataFim: Date = DateUtils.adicionarDias(DateUtils.hoje(), 41);
@@ -46,6 +45,8 @@ export class EscalaNoturnaComponent implements OnInit {
   constructor(
     private escalaService: EscalaService,
     private impressaoService: ImpressaoService,
+    private messageService: MessageService,
+    private router: Router,
   ) {}
 
   ngOnInit() {
@@ -194,7 +195,7 @@ export class EscalaNoturnaComponent implements OnInit {
     if (elemento) {
       this.impressaoService.imprimirElemento(elemento, 'Escala Noturna', ImpressaoEscalaCSS);
     } else {
-      this.onMensagem.emit({
+      this.messageService.add({
         severity: 'error',
         summary: 'Erro',
         detail: 'Tabela não encontrada para impressão.',
@@ -205,7 +206,7 @@ export class EscalaNoturnaComponent implements OnInit {
   exportarImagem() {
     const element = document.querySelector('.tabela-area') as HTMLElement;
     if (!element) {
-      this.onMensagem.emit({
+      this.messageService.add({
         severity: 'warn',
         summary: 'Aviso',
         detail: 'Tabela não encontrada para gerar imagem.',
@@ -219,7 +220,11 @@ export class EscalaNoturnaComponent implements OnInit {
     // Opcional: define uma largura fixa para evitar cortes
     element.style.width = '1500px';
 
-    this.onMensagem.emit({ severity: 'info', summary: 'Processando', detail: 'Gerando imagem...' });
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Processando',
+      detail: 'Gerando imagem...',
+    });
 
     html2canvas(element, {
       scale: 2,
@@ -239,7 +244,7 @@ export class EscalaNoturnaComponent implements OnInit {
         link.download = `escala-equipe-${new Date().toISOString().split('T')[0]}.webp`;
         link.href = webpDataUrl;
         link.click();
-        this.onMensagem.emit({
+        this.messageService.add({
           severity: 'success',
           summary: 'Sucesso',
           detail: 'Imagem WEBP gerada com sucesso!',
@@ -249,7 +254,7 @@ export class EscalaNoturnaComponent implements OnInit {
         element.style.overflowX = originalOverflow;
         element.style.width = '';
         console.error('Erro ao gerar imagem:', error);
-        this.onMensagem.emit({
+        this.messageService.add({
           severity: 'error',
           summary: 'Erro',
           detail: 'Falha ao gerar imagem. Verifique o console.',
@@ -258,6 +263,6 @@ export class EscalaNoturnaComponent implements OnInit {
   }
 
   voltar() {
-    this.onVoltar.emit();
+    this.router.navigate(['/']);
   }
 }

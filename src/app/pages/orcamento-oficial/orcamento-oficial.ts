@@ -1,5 +1,6 @@
 import { Component, OnInit, Output, EventEmitter, LOCALE_ID } from '@angular/core';
 import { CommonModule, registerLocaleData } from '@angular/common';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import localePt from '@angular/common/locales/pt';
 
@@ -82,9 +83,6 @@ type Refeicao = 'comCafe' | 'comAlmoco' | 'comJanta' | 'comLanche';
   styleUrls: ['./orcamento-oficial.scss'],
 })
 export class OrcamentoOficialComponent implements OnInit {
-  @Output() onMensagem = new EventEmitter<{ severity: string; summary: string; detail: string }>();
-  @Output() onVoltar = new EventEmitter<void>();
-
   categorias: CategoriaQuarto[] = [];
   config!: ConfiguracaoGeral;
 
@@ -109,6 +107,7 @@ export class OrcamentoOficialComponent implements OnInit {
     private confirmationService: ConfirmationService,
     private impressaoService: ImpressaoService,
     private criptografia: CriptografiaService,
+    private router: Router,
   ) {}
 
   ngOnInit() {
@@ -158,7 +157,11 @@ export class OrcamentoOficialComponent implements OnInit {
 
   adicionarItem() {
     if (this.categorias.length === 0) {
-      this.mostrarMensagem('warn', 'Atenção', 'Nenhuma categoria cadastrada.');
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atenção',
+        detail: 'Nenhuma categoria cadastrada.',
+      });
       return;
     }
     const novoItem: ItemOrcamento = {
@@ -188,7 +191,11 @@ export class OrcamentoOficialComponent implements OnInit {
       accept: () => {
         this.itens.splice(index, 1);
         this.calcularTotais();
-        this.mostrarMensagem('success', 'Removido', 'Item excluído.');
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Removido',
+          detail: 'Item excluído.',
+        });
       },
     });
   }
@@ -424,7 +431,11 @@ export class OrcamentoOficialComponent implements OnInit {
   // Exportar/Importar
   exportarOrcamento() {
     if (!this.cliente) {
-      this.mostrarMensagem('warn', 'Atenção', 'Informe o nome do cliente.');
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atenção',
+        detail: 'Informe o nome do cliente.',
+      });
       return;
     }
     const dados = {
@@ -453,7 +464,11 @@ export class OrcamentoOficialComponent implements OnInit {
     link.download = `orcamento_${this.cliente.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.ortf`;
     link.click();
     URL.revokeObjectURL(url);
-    this.mostrarMensagem('success', 'Exportado', 'Arquivo .ortf salvo com sucesso.');
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Exportado',
+      detail: 'Arquivo .ortf salvo com sucesso.',
+    });
   }
 
   importarOrcamento(event: Event) {
@@ -497,13 +512,17 @@ export class OrcamentoOficialComponent implements OnInit {
         this.itens = dados.itens || [];
 
         this.onDataChange(); // Recalcula tudo e ajusta datas
-        this.mostrarMensagem('success', 'Importado', 'Orçamento carregado com sucesso.');
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Importado',
+          detail: 'Orçamento carregado com sucesso.',
+        });
       } catch (error: any) {
-        this.mostrarMensagem(
-          'error',
-          'Erro na Importação',
-          error.message || 'Arquivo inválido ou corrompido.',
-        );
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro na Importação',
+          detail: error.message || 'Arquivo inválido ou corrompido.',
+        });
       } finally {
         target.value = '';
       }
@@ -518,15 +537,15 @@ export class OrcamentoOficialComponent implements OnInit {
 
       this.impressaoService.imprimirElemento(elemento, tituloImpressao, ImpressaoOrcamentoCSS);
     } else {
-      this.mostrarMensagem('error', 'Erro', 'Elemento de impressão não encontrado.');
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erro',
+        detail: 'Elemento de impressão não encontrado.',
+      });
     }
   }
 
   voltar() {
-    this.onVoltar.emit();
-  }
-
-  private mostrarMensagem(severity: string, summary: string, detail: string) {
-    this.onMensagem.emit({ severity, summary, detail });
+    this.router.navigate(['/']);
   }
 }
