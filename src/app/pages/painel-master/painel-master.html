@@ -1,1151 +1,1213 @@
-<!-- Toast com posição centralizada -->
 <p-confirmDialog></p-confirmDialog>
 
-<!-- Abas de configuração -->
-<p-tabs value="0">
-  <p-tablist>
-    <p-tab value="0">📋 Tarifário</p-tab>
-    <p-tab value="1">🛏️ UHs</p-tab>
-    <p-tab value="2">🎁 Promoções</p-tab>
-    <p-tab value="3">⏰ Horários</p-tab>
-    <p-tab value="4">📝 Textos do Orçamento</p-tab>
-    <p-tab value="5">🌙 Escala</p-tab>
-    <p-tab value="6">🔐 Segurança</p-tab>
-    <p-tab value="7">💾 Backup</p-tab>
-  </p-tablist>
+<!-- TELA DE SENHA -->
+<div *ngIf="!autenticado" class="p-fluid text-center" style="padding: 2rem">
+  <i
+    class="pi pi-lock"
+    style="font-size: 3rem; color: var(--primary-color); margin-bottom: 1rem"
+  ></i>
+  <h3 class="mb-2">Painel Protegido</h3>
+  <p class="mb-4 text-secondary">Digite a senha mestra para acessar as configurações.</p>
 
-  <p-tabpanels>
-    <!-- ===== TAB 0: TARIFÁRIO ===== -->
-    <p-tabpanel value="0">
-      <!-- Configurações do topo -->
-      <div class="grid mb-3">
-        <div class="col-12 md:col-4">
-          <div class="field">
-            <label>Nome da Festividade (Orçamento Rápido)</label>
-            <input type="text" pInputText [(ngModel)]="config.festividade" class="w-full" />
-          </div>
-        </div>
-        <div class="col-12 md:col-2">
-          <div class="field">
-            <label>Valor Almoço (R$)</label>
-            <p-inputNumber
-              [(ngModel)]="config.precos.refeicoes.almoco"
-              mode="currency"
-              currency="BRL"
-              styleClass="w-full"
-            ></p-inputNumber>
-          </div>
-        </div>
-        <div class="col-12 md:col-2">
-          <div class="field">
-            <label>Valor Janta (R$)</label>
-            <p-inputNumber
-              [(ngModel)]="config.precos.refeicoes.janta"
-              mode="currency"
-              currency="BRL"
-              styleClass="w-full"
-            ></p-inputNumber>
-          </div>
-        </div>
-        <div class="col-12 md:col-2">
-          <div class="field">
-            <label>Valor Lanche (R$)</label>
-            <p-inputNumber
-              [(ngModel)]="config.precos.refeicoes.lanche"
-              mode="currency"
-              currency="BRL"
-              styleClass="w-full"
-            ></p-inputNumber>
-          </div>
-        </div>
-        <div class="col-12 md:col-2">
-          <div class="field">
-            <label>Valor kWh (R$)</label>
-            <p-inputNumber
-              [(ngModel)]="config.precos.kwh"
-              mode="currency"
-              currency="BRL"
-              styleClass="w-full"
-            ></p-inputNumber>
-          </div>
-        </div>
-      </div>
+  <div class="field" style="max-width: 400px; margin: 0 auto">
+    <span class="p-input-icon-left w-full">
+      <input
+        type="password"
+        pInputText
+        [(ngModel)]="senhaInputPainel"
+        placeholder="Senha do sistema"
+        class="w-full"
+        (keyup.enter)="verificarSenhaPainel()"
+        autofocus
+      />
+    </span>
+  </div>
 
-      <!-- Datas da Alta Temporada -->
-      <div class="grid mb-3">
-        <div class="col-12 md:col-3">
-          <div class="field">
-            <label>Início Alta Temporada</label>
-            <p-datepicker
-              [(ngModel)]="altaInicioDate"
-              (onSelect)="onAltaInicioChange()"
-              dateFormat="dd/mm/yy"
-              [showIcon]="true"
-              class="w-full"
-              appendTo="body"
-            ></p-datepicker>
-          </div>
-        </div>
-        <div class="col-12 md:col-3">
-          <div class="field">
-            <label>Fim Alta Temporada</label>
-            <p-datepicker
-              [(ngModel)]="altaFimDate"
-              [minDate]="altaInicioDate"
-              dateFormat="dd/mm/yy"
-              [showIcon]="true"
-              class="w-full"
-              appendTo="body"
-            ></p-datepicker>
-          </div>
-        </div>
-      </div>
-    </p-tabpanel>
-
-    <!-- ===== TAB 1: UHs ===== -->
-    <p-tabpanel value="1">
-      <!-- Qtd. Total de UHs -->
-      <div class="grid mb-3">
-        <div class="col-12 md:col-2">
-          <div class="field">
-            <label>Qtd. Total de UHs</label>
-            <p-inputNumber
-              [(ngModel)]="config.totalUhs"
-              [min]="1"
-              styleClass="w-full"
-            ></p-inputNumber>
-          </div>
-        </div>
-        <!-- Comodidades Globais -->
-        <div class="col-12 md:col-10">
-          <div class="field">
-            <label>Comodidades Globais (Separe por vírgula)</label>
-            <input
-              type="text"
-              pInputText
-              [(ngModel)]="config.comodidadesGlobais"
-              class="w-full"
-              placeholder="Frigobar, TV, Hidro, Ar-condicionado..."
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- Botão Adicionar UH -->
-      <div class="flex justify-content-end mb-3">
-        <p-button
-          label="ADICIONAR NOVA UH"
-          icon="pi pi-plus"
-          styleClass="p-button-success p-button-sm"
-          (click)="adicionarUH()"
-        ></p-button>
-      </div>
-
-      <!-- Tabela de UHs -->
-      <p-table
-        [value]="categorias"
-        styleClass="p-datatable-sm"
-        [scrollable]="true"
-        scrollHeight="300px"
-      >
-        <ng-template pTemplate="header">
-          <tr>
-            <th rowspan="2">UH (Unidade)</th>
-            <th colspan="2">Alta Temporada</th>
-            <th colspan="2">Baixa Temporada</th>
-            <th rowspan="2">Ações</th>
-          </tr>
-          <tr>
-            <th class="sub-th">C/ Café</th>
-            <th class="sub-th">S/ Café</th>
-            <th class="sub-th">C/ Café</th>
-            <th class="sub-th">S/ Café</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-cat>
-          <tr>
-            <td>{{ cat.nome }}</td>
-            <td>{{ cat.precoAltaCafe | currency: 'BRL' }}</td>
-            <td>{{ cat.precoAltaSemCafe | currency: 'BRL' }}</td>
-            <td>{{ cat.precoBaixaCafe | currency: 'BRL' }}</td>
-            <td>{{ cat.precoBaixaSemCafe | currency: 'BRL' }}</td>
-            <td>
-              <div class="flex gap-2">
-                <p-button
-                  icon="pi pi-pencil"
-                  styleClass="p-button-text p-button-sm"
-                  (click)="editarUH(cat)"
-                ></p-button>
-                <p-button
-                  icon="pi pi-trash"
-                  styleClass="p-button-text p-button-danger p-button-sm"
-                  (click)="excluirUH(cat)"
-                ></p-button>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td colspan="6" class="text-center p-3">
-              Nenhuma UH cadastrada. Clique em "ADICIONAR NOVA UH" para começar.
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
-    </p-tabpanel>
-
-    <!-- ===== TAB 2: PROMOÇÕES ===== -->
-    <p-tabpanel value="2">
-      <div class="grid">
-        <div class="col-12">
-          <div class="field-checkbox mb-3">
-            <p-checkbox
-              [(ngModel)]="config.promocao.ativa"
-              [binary]="true"
-              inputId="promoAtiva"
-            ></p-checkbox>
-            <label for="promoAtiva" class="ml-2 font-bold" style="color: #d84315"
-              >ATIVAR PROMOÇÕES</label
-            >
-            <small class="ml-2 text-secondary"
-              >(Liga/Desliga todo o sistema de promoções nos orçamentos)</small
-            >
-          </div>
-        </div>
-
-        <div class="col-12 md:col-3">
-          <div class="field">
-            <label>Desconto (%)</label>
-            <p-inputNumber
-              [(ngModel)]="config.promocao.desconto"
-              [min]="0"
-              [max]="100"
-              styleClass="w-full"
-              [disabled]="!config.promocao.ativa"
-            ></p-inputNumber>
-          </div>
-        </div>
-
-        <div class="col-12 md:col-3">
-          <div class="field">
-            <label>Mínimo de Diárias</label>
-            <p-inputNumber
-              [(ngModel)]="config.promocao.minDiarias"
-              [min]="0"
-              styleClass="w-full"
-              [disabled]="!config.promocao.ativa"
-            ></p-inputNumber>
-          </div>
-        </div>
-
-        <div class="col-12 md:col-6">
-          <div class="field">
-            <label>Condição / Forma de Pagamento</label>
-            <input
-              type="text"
-              pInputText
-              [(ngModel)]="config.promocao.texto"
-              class="w-full"
-              placeholder="Ex: Pagamento integral via Pix ou Dinheiro"
-              [disabled]="!config.promocao.ativa"
-            />
-          </div>
-        </div>
-
-        <div class="col-12">
-          <div class="grid">
-            <div class="col-12 md:col-4">
-              <div class="field-checkbox">
-                <p-checkbox
-                  [(ngModel)]="config.promocao.somenteAlta"
-                  [binary]="true"
-                  inputId="promoSomenteAlta"
-                  [disabled]="!config.promocao.ativa"
-                  (onChange)="onPromocaoSomenteAltaChange()"
-                ></p-checkbox>
-                <label for="promoSomenteAlta" class="ml-2">SOMENTE NA ALTA TEMPORADA</label>
-              </div>
-              <small class="text-secondary block"
-                >Se marcado, o desconto só será aplicado se as datas estiverem na Alta
-                Temporada.</small
-              >
-            </div>
-
-            <div class="col-12 md:col-4">
-              <div class="field-checkbox">
-                <p-checkbox
-                  [(ngModel)]="config.promocao.msgBaixa"
-                  [binary]="true"
-                  inputId="promoMsgBaixa"
-                  [disabled]="!config.promocao.ativa || !config.promocao.somenteAlta"
-                ></p-checkbox>
-                <label for="promoMsgBaixa" class="ml-2">MENSAGEM NA BAIXA</label>
-              </div>
-              <small class="text-secondary block"
-                >Exibe o texto da promoção na Baixa Temporada apenas como informativo, sem aplicar o
-                desconto.</small
-              >
-            </div>
-          </div>
-        </div>
-      </div>
-    </p-tabpanel>
-
-    <!-- ===== TAB 3: HORÁRIOS ===== -->
-    <p-tabpanel value="3">
-      <div class="grid">
-        <div class="col-12 md:col-3">
-          <div class="field">
-            <label>Horário Café</label>
-            <div class="flex gap-2">
-              <input
-                type="time"
-                pInputText
-                [(ngModel)]="config.horarios.cafe.inicio"
-                class="w-full"
-              />
-              <span class="p-2">às</span>
-              <input type="time" pInputText [(ngModel)]="config.horarios.cafe.fim" class="w-full" />
-            </div>
-            <div class="field-checkbox mt-1">
-              <p-checkbox
-                [(ngModel)]="config.horarios.cafe.ativo"
-                [binary]="true"
-                inputId="cafeAtivo"
-              ></p-checkbox>
-              <label for="cafeAtivo" class="ml-2">Exibir nas mensagens</label>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-12 md:col-3">
-          <div class="field">
-            <label>Horário Almoço</label>
-            <div class="flex gap-2">
-              <input
-                type="time"
-                pInputText
-                [(ngModel)]="config.horarios.almoco.inicio"
-                class="w-full"
-              />
-              <span class="p-2">às</span>
-              <input
-                type="time"
-                pInputText
-                [(ngModel)]="config.horarios.almoco.fim"
-                class="w-full"
-              />
-            </div>
-            <div class="field-checkbox mt-1">
-              <p-checkbox
-                [(ngModel)]="config.horarios.almoco.ativo"
-                [binary]="true"
-                inputId="almocoAtivo"
-              ></p-checkbox>
-              <label for="almocoAtivo" class="ml-2">Exibir nas mensagens</label>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-12 md:col-3">
-          <div class="field">
-            <label>Lanche da Tarde</label>
-            <div class="flex gap-2">
-              <input
-                type="time"
-                pInputText
-                [(ngModel)]="config.horarios.lanche.inicio"
-                class="w-full"
-              />
-              <span class="p-2">às</span>
-              <input
-                type="time"
-                pInputText
-                [(ngModel)]="config.horarios.lanche.fim"
-                class="w-full"
-              />
-            </div>
-            <div class="field-checkbox mt-1">
-              <p-checkbox
-                [(ngModel)]="config.horarios.lanche.ativo"
-                [binary]="true"
-                inputId="lancheTardeAtivo"
-              ></p-checkbox>
-              <label for="lancheTardeAtivo" class="ml-2">Exibir nas mensagens</label>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-12 md:col-3">
-          <div class="field">
-            <label>Jantar</label>
-            <div class="flex gap-2">
-              <input
-                type="time"
-                pInputText
-                [(ngModel)]="config.horarios.jantar.inicio"
-                class="w-full"
-              />
-              <span class="p-2">às</span>
-              <input
-                type="time"
-                pInputText
-                [(ngModel)]="config.horarios.jantar.fim"
-                class="w-full"
-              />
-            </div>
-            <div class="field-checkbox mt-1">
-              <p-checkbox
-                [(ngModel)]="config.horarios.jantar.ativo"
-                [binary]="true"
-                inputId="jantarAtivo"
-              ></p-checkbox>
-              <label for="jantarAtivo" class="ml-2">Exibir nas mensagens</label>
-            </div>
-          </div>
-        </div>
-      </div>
-    </p-tabpanel>
-
-    <!-- ===== TAB 4 TEXTOS DO ORÇAMENTO ===== -->
-    <p-tabpanel value="4">
-      <div class="grid">
-        <!-- Caixa de ajuda colapsável com placeholders (Fieldset) -->
-        <div class="col-12">
-          <p-fieldset
-            legend="📌 Placeholders disponíveis e dicas de formatação"
-            [toggleable]="true"
-            [collapsed]="true"
-          >
-            <div class="grid">
-              <div class="col-12 md:col-6">
-                <strong class="text-primary">Placeholders:</strong>
-                <ul class="list-none p-0 m-0 mt-2">
-                  <li>
-                    <code>{{ '{' }}cliente{{ '}' }}</code> – Nome do cliente
-                  </li>
-                  <li>
-                    <code>{{ '{' }}checkinHora{{ '}' }}</code> – Hora de entrada
-                  </li>
-                  <li>
-                    <code>{{ '{' }}checkoutHora{{ '}' }}</code> – Hora de saída
-                  </li>
-                  <li>
-                    <code>{{ '{' }}checkinDataBr{{ '}' }}</code> – Data entrada (pt-BR)
-                  </li>
-                  <li>
-                    <code>{{ '{' }}checkoutDataBr{{ '}' }}</code> – Data saída (pt-BR)
-                  </li>
-                  <li>
-                    <code>{{ '{' }}noites{{ '}' }}</code> – Número de diárias
-                  </li>
-                  <li>
-                    <code>{{ '{' }}totalGeral{{ '}' }}</code> – Valor total
-                  </li>
-                  <li>
-                    <code>{{ '{' }}valorAlmoco{{ '}' }}</code> – Valor do almoço
-                  </li>
-                  <li>
-                    <code>{{ '{' }}valorJanta{{ '}' }}</code> – Valor da janta
-                  </li>
-                  <li>
-                    <code>{{ '{' }}valorLanche{{ '}' }}</code> – Valor do lanche
-                  </li>
-                </ul>
-              </div>
-              <div class="col-12 md:col-6">
-                <strong class="text-primary">Outros placeholders:</strong>
-                <ul class="list-none p-0 m-0 mt-2">
-                  <li>
-                    <code>{{ '{' }}sinalPercentual{{ '}' }}</code> – % de sinal
-                  </li>
-                  <li>
-                    <code>{{ '{' }}horasExtras{{ '}' }}</code> – Horas extras
-                  </li>
-                  <li>
-                    <code>{{ '{' }}mensagemHorasExtras{{ '}' }}</code> – Texto das horas extras
-                  </li>
-                  <li>
-                    <code>{{ '{' }}percentualDesconto{{ '}' }}</code> – % desconto (promoção)
-                  </li>
-                  <li>
-                    <code>{{ '{' }}minimoDiarias{{ '}' }}</code> – Mín. diárias (promoção)
-                  </li>
-                  <li>
-                    <code>{{ '{' }}textoPromocao{{ '}' }}</code> – Texto da promoção
-                  </li>
-                  <li>
-                    <code>{{ '{' }}temporada{{ '}' }}</code> – Temporada selecionada
-                  </li>
-                </ul>
-              </div>
-              <div class="col-12">
-                <p-divider></p-divider>
-                <strong class="text-primary">🎨 Formatação com HTML:</strong>
-                <p class="mt-2">Você pode usar tags HTML para estilizar os textos:</p>
-                <div class="grid">
-                  <div class="col-12 md:col-6">
-                    <ul class="list-none p-0 m-0">
-                      <li>
-                        <code>&lt;strong&gt;negrito&lt;/strong&gt;</code> → <strong>negrito</strong>
-                      </li>
-                      <li><code>&lt;em&gt;itálico&lt;/em&gt;</code> → <em>itálico</em></li>
-                      <li><code>&lt;u&gt;sublinhado&lt;/u&gt;</code> → <u>sublinhado</u></li>
-                    </ul>
-                  </div>
-                  <div class="col-12 md:col-6">
-                    <ul class="list-none p-0 m-0">
-                      <li><code>&lt;br&gt;</code> – quebra de linha</li>
-                      <li><code>&lt;p&gt;...&lt;/p&gt;</code> – novo parágrafo</li>
-                    </ul>
-                  </div>
-                </div>
-                <p class="mt-2">
-                  Ex:
-                  <code
-                    >&lt;strong&gt;Check-in:&lt;/strong&gt; {{ '{' }}checkinHora{{ '}' }} do dia
-                    {{ '{' }}checkinDataBr{{ '}' }}.&lt;br&gt;</code
-                  >
-                </p>
-              </div>
-            </div>
-          </p-fieldset>
-        </div>
-
-        <!-- Campos de texto organizados em grid -->
-        <div class="col-12 md:col-6">
-          <div class="field">
-            <label for="orcTitulo">Título do Orçamento</label>
-            <input
-              id="orcTitulo"
-              type="text"
-              pInputText
-              [(ngModel)]="config.orcamento.textos.titulo"
-              class="w-full"
-            />
-          </div>
-        </div>
-        <div class="col-12 md:col-6">
-          <div class="field">
-            <label for="orcConfigTitulo">1.1 Título da Seção de Configuração</label>
-            <input
-              id="orcConfigTitulo"
-              type="text"
-              pInputText
-              [(ngModel)]="config.orcamento.textos.configTitulo"
-              class="w-full"
-            />
-          </div>
-        </div>
-
-        <div class="col-12">
-          <div class="field">
-            <label for="orcConfigDescricao">1.2 Descrição da Seção de Configuração</label>
-            <textarea
-              id="orcConfigDescricao"
-              pInputTextarea
-              [(ngModel)]="config.orcamento.textos.configDescricao"
-              rows="2"
-              class="w-full"
-            ></textarea>
-          </div>
-        </div>
-
-        <div class="col-12">
-          <div class="field">
-            <label for="orcNotaRefeicoes">Nota após a tabela</label>
-            <textarea
-              id="orcNotaRefeicoes"
-              pInputTextarea
-              [(ngModel)]="config.orcamento.textos.notaRefeicoes"
-              rows="2"
-              class="w-full"
-            ></textarea>
-          </div>
-        </div>
-
-        <div class="col-12">
-          <div class="field">
-            <label for="orcCronograma">2. Cronograma de Estadia e Logística</label>
-            <textarea
-              id="orcCronograma"
-              pInputTextarea
-              [(ngModel)]="config.orcamento.textos.cronograma"
-              rows="3"
-              class="w-full"
-            ></textarea>
-          </div>
-        </div>
-
-        <div class="col-12">
-          <div class="field">
-            <label for="orcPagamento">3. Condições de Pagamento e Prazos</label>
-            <textarea
-              id="orcPagamento"
-              pInputTextarea
-              [(ngModel)]="config.orcamento.textos.pagamento"
-              rows="3"
-              class="w-full"
-            ></textarea>
-          </div>
-        </div>
-
-        <div class="col-12">
-          <div class="field">
-            <label for="orcObservacoes">4. Observações Gerais</label>
-            <textarea
-              id="orcObservacoes"
-              pInputTextarea
-              [(ngModel)]="config.orcamento.textos.observacoes"
-              rows="3"
-              class="w-full"
-            ></textarea>
-          </div>
-        </div>
-
-        <div class="col-12 md:col-6">
-          <div class="field">
-            <label for="orcRodape">Texto do Rodapé (Assinaturas)</label>
-            <input
-              id="orcRodape"
-              type="text"
-              pInputText
-              [(ngModel)]="config.orcamento.textos.rodape"
-              class="w-full"
-            />
-          </div>
-        </div>
-
-        <div class="col-12 md:col-6">
-          <div class="field">
-            <label for="orcSinalPercentual">Percentual de Sinal (%)</label>
-            <p-inputNumber
-              id="orcSinalPercentual"
-              [(ngModel)]="config.orcamento.sinalPercentual"
-              [min]="0"
-              [max]="100"
-              styleClass="w-full"
-            ></p-inputNumber>
-          </div>
-        </div>
-      </div>
-    </p-tabpanel>
-
-    <!-- ===== TAB 5: ESCALA ===== -->
-    <p-tabpanel value="5">
-      <div class="grid">
-        <div class="col-12 md:col-6">
-          <div class="field">
-            <label>Funcionário P1 (Noite)</label>
-            <input
-              type="text"
-              pInputText
-              [(ngModel)]="escalaConfig.p1"
-              class="w-full"
-              placeholder="Ex: Agryo"
-            />
-          </div>
-        </div>
-        <div class="col-12 md:col-6">
-          <div class="field">
-            <label>Funcionário P2 (Madruga)</label>
-            <input
-              type="text"
-              pInputText
-              [(ngModel)]="escalaConfig.p2"
-              class="w-full"
-              placeholder="Ex: Alex"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div class="field">
-        <label>Data de Início das Folgas</label>
-        <input type="date" pInputText [(ngModel)]="escalaConfig.dataInicioFolgas" class="w-full" />
-        <small class="text-secondary"
-          >A partir desta data, as folgas não mudam mais. Define o marco para o revezamento
-          fixo.</small
-        >
-      </div>
-
-      <div class="field">
-        <label>Dias de Folga Fixa</label>
-        <div class="flex flex-wrap gap-2">
-          <div *ngFor="let dia of diasSemana; let i = index" class="field-checkbox">
-            <p-checkbox
-              [(ngModel)]="escalaConfig.folgas"
-              [value]="i"
-              [inputId]="'folga_' + i"
-              [binary]="false"
-            ></p-checkbox>
-            <label [for]="'folga_' + i" class="ml-1">{{ dia.nome }}</label>
-          </div>
-        </div>
-        <small class="text-secondary"
-          >Selecione os dias que são folga fixa (ex: sábado e domingo).</small
-        >
-      </div>
-
-      <div class="field">
-        <label>Início do Revezamento (Quem começa folgando?)</label>
-        <p-select
-          [(ngModel)]="escalaConfig.quemFolgaPrimeiro"
-          [options]="[
-            { label: 'P1 Inicia Folgando', value: 'p1' },
-            { label: 'P2 Inicia Folgando', value: 'p2' },
-          ]"
-          optionLabel="label"
-          optionValue="value"
-          styleClass="w-full"
-        ></p-select>
-      </div>
-    </p-tabpanel>
-
-    <!-- ===== TAB 6: SEGURANÇA ===== -->
-    <p-tabpanel value="6">
-      <div class="grid">
-        <div class="col-12 md:col-6">
-          <p-card header="🔐 Senha de Acesso">
-            <div class="field">
-              <label>Senha Atual</label>
-              <div class="flex gap-2">
-                <input
-                  [type]="mostrarSenhaAtual ? 'text' : 'password'"
-                  pInputText
-                  [(ngModel)]="senhaAtualInput"
-                  class="w-full"
-                  placeholder="Digite a senha atual"
-                />
-                <p-button
-                  [icon]="mostrarSenhaAtual ? 'pi pi-eye-slash' : 'pi pi-eye'"
-                  styleClass="p-button-text"
-                  (click)="mostrarSenhaAtual = !mostrarSenhaAtual"
-                ></p-button>
-              </div>
-            </div>
-
-            <div class="field">
-              <label>Nova Senha</label>
-              <div class="flex gap-2">
-                <input
-                  [type]="mostrarNovaSenha ? 'text' : 'password'"
-                  pInputText
-                  [(ngModel)]="novaSenhaInput"
-                  class="w-full"
-                  placeholder="Digite a nova senha"
-                />
-                <p-button
-                  [icon]="mostrarNovaSenha ? 'pi pi-eye-slash' : 'pi pi-eye'"
-                  styleClass="p-button-text"
-                  (click)="mostrarNovaSenha = !mostrarNovaSenha"
-                ></p-button>
-              </div>
-            </div>
-
-            <div class="field">
-              <label>Confirmar Nova Senha</label>
-              <div class="flex gap-2">
-                <input
-                  [type]="mostrarConfirmarSenha ? 'text' : 'password'"
-                  pInputText
-                  [(ngModel)]="confirmarSenhaInput"
-                  class="w-full"
-                  placeholder="Confirme a nova senha"
-                />
-                <p-button
-                  [icon]="mostrarConfirmarSenha ? 'pi pi-eye-slash' : 'pi pi-eye'"
-                  styleClass="p-button-text"
-                  (click)="mostrarConfirmarSenha = !mostrarConfirmarSenha"
-                ></p-button>
-              </div>
-            </div>
-
-            <div class="flex gap-2 mt-3">
-              <p-button
-                label="Alterar Senha"
-                icon="pi pi-key"
-                styleClass="p-button-success"
-                (click)="alterarSenha()"
-              ></p-button>
-              <p-button
-                label="Remover Senha"
-                icon="pi pi-trash"
-                styleClass="p-button-danger"
-                (click)="removerSenha()"
-              ></p-button>
-            </div>
-          </p-card>
-        </div>
-
-        <div class="col-12 md:col-6">
-          <p-card header="ℹ️ Status da Senha">
-            <div class="flex align-items-center gap-3 mb-3">
-              <i
-                [class]="
-                  config.seguranca.senhaHash
-                    ? 'pi pi-check-circle text-success'
-                    : 'pi pi-exclamation-circle text-warning'
-                "
-                style="font-size: 2rem"
-              ></i>
-              <div>
-                <h3 class="text-lg font-bold mb-1">
-                  {{ config.seguranca.senhaHash ? 'Senha Ativa' : 'Sem Senha' }}
-                </h3>
-                <p class="text-secondary">
-                  Acesso ao painel
-                  {{ config.seguranca.senhaHash ? 'protegido por senha' : 'livre (sem proteção)' }}
-                </p>
-              </div>
-            </div>
-
-            <div class="border-top-1 surface-border pt-3">
-              <h4 class="text-md font-bold mb-2">Dicas de Segurança:</h4>
-              <ul class="text-secondary">
-                <li>Use uma senha com pelo menos 6 caracteres</li>
-                <li>Evite senhas óbvias como "1234" ou "admin"</li>
-                <li>Altere a senha periodicamente</li>
-                <li>Não compartilhe a senha com pessoas não autorizadas</li>
-              </ul>
-            </div>
-          </p-card>
-        </div>
-      </div>
-    </p-tabpanel>
-
-    <!-- ===== TAB 7: BACKUP ===== -->
-    <p-tabpanel value="7">
-      <div class="grid">
-        <!-- Exportar backup novo formato -->
-        <div class="col-12 md:col-6">
-          <p-card header="📤 Backup das Configurações">
-            <p class="mb-3">
-              Baixe um arquivo JSON com todas as configurações do sistema no formato atual.
-            </p>
-            <p-button
-              label="Salvar Backup"
-              icon="pi pi-download"
-              styleClass="p-button-success"
-              (click)="exportarBackup()"
-            ></p-button>
-          </p-card>
-        </div>
-
-        <!-- Importar backup novo formato -->
-        <div class="col-12 md:col-6">
-          <p-card header="📥 Restaurar Backup das Configurações">
-            <p class="mb-3">
-              Carregue um arquivo JSON para restaurar configurações previamente salvas.
-            </p>
-            <input
-              type="file"
-              accept=".btf"
-              #fileInput
-              style="display: none"
-              (change)="importarBackup($event)"
-            />
-            <p-button
-              label="Restaurar Backup"
-              icon="pi pi-upload"
-              styleClass="p-button-warning"
-              (click)="fileInput.click()"
-            ></p-button>
-          </p-card>
-        </div>
-
-        <!-- Limpeza -->
-        <div class="col-12 mt-3">
-          <p-card header="🧹 Limpeza">
-            <p class="mb-3">Limpa todos os dados do sistema e restaura as configurações padrão.</p>
-            <p-button
-              label="Limpar Cache do Sistema"
-              icon="pi pi-trash"
-              styleClass="p-button-danger"
-              (click)="limparCache()"
-            ></p-button>
-          </p-card>
-        </div>
-      </div>
-    </p-tabpanel>
-  </p-tabpanels>
-</p-tabs>
-
-<!-- Botões de ação -->
-<div class="flex justify-content-end gap-2 mt-1">
-  <p-button
-    label="Cancelar"
-    icon="pi pi-times"
-    styleClass="p-button-text"
-    (click)="fechar()"
-  ></p-button>
-  <p-button
-    label="SALVAR TODAS AS ALTERAÇÕES"
-    icon="pi pi-save"
-    styleClass="p-button-success"
-    (click)="salvarConfiguracoes()"
-  ></p-button>
-</div>
-
-<!-- Diálogo de Categoria -->
-<p-dialog
-  [(visible)]="categoriaDialog"
-  [style]="{ width: '700px' }"
-  header="Categoria de Quarto"
-  [modal]="true"
->
-  <ng-template pTemplate="content">
-    <div *ngIf="categoriaEdit" class="p-fluid">
-      <!-- Nome e Capacidade (já existentes) -->
-      <div class="field">
-        <label>Nome da UH</label>
-        <input
-          type="text"
-          pInputText
-          [(ngModel)]="categoriaEdit.nome"
-          class="w-full"
-          placeholder="Ex: Standard, Luxo, Suíte..."
-        />
-      </div>
-
-      <div class="field">
-        <label>Capacidade Máxima</label>
-        <p-inputNumber
-          [(ngModel)]="categoriaEdit.capacidadeMaxima"
-          [min]="1"
-          styleClass="w-full"
-        ></p-inputNumber>
-      </div>
-
-      <!-- Preços Alta Temporada -->
-      <h4 class="text-md font-bold mb-2 mt-3">Alta Temporada</h4>
-      <div class="grid">
-        <div class="col-6">
-          <div class="field">
-            <label>Com Café (R$)</label>
-            <p-inputNumber
-              [(ngModel)]="categoriaEdit.precoAltaCafe"
-              mode="currency"
-              currency="BRL"
-              styleClass="w-full"
-            ></p-inputNumber>
-          </div>
-        </div>
-        <div class="col-6">
-          <div class="field">
-            <label>Sem Café (R$)</label>
-            <p-inputNumber
-              [(ngModel)]="categoriaEdit.precoAltaSemCafe"
-              mode="currency"
-              currency="BRL"
-              styleClass="w-full"
-            ></p-inputNumber>
-          </div>
-        </div>
-      </div>
-
-      <!-- Preços Baixa Temporada -->
-      <h4 class="text-md font-bold mb-2 mt-3">Baixa Temporada</h4>
-      <div class="grid">
-        <div class="col-6">
-          <div class="field">
-            <label>Com Café (R$)</label>
-            <p-inputNumber
-              [(ngModel)]="categoriaEdit.precoBaixaCafe"
-              mode="currency"
-              currency="BRL"
-              styleClass="w-full"
-            ></p-inputNumber>
-          </div>
-        </div>
-        <div class="col-6">
-          <div class="field">
-            <label>Sem Café (R$)</label>
-            <p-inputNumber
-              [(ngModel)]="categoriaEdit.precoBaixaSemCafe"
-              mode="currency"
-              currency="BRL"
-              styleClass="w-full"
-            ></p-inputNumber>
-          </div>
-        </div>
-      </div>
-
-      <!-- ===== NOVOS CAMPOS DE DETALHES ===== -->
-      <h4 class="text-md font-bold mb-2 mt-3">Detalhes da UH</h4>
-
-      <!-- Tipo de Ocupação -->
-      <div class="field">
-        <label>Tipo de Ocupação Padrão</label>
-        <div class="flex align-items-center gap-2">
-          <p-select
-            [(ngModel)]="categoriaEdit.tipoOcupacaoPadrao"
-            [options]="[
-              { label: 'Automático', value: '' },
-              { label: 'Casal', value: 'casal' },
-              { label: 'Solteiro', value: 'solteiro' },
-            ]"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Selecione"
-            styleClass="w-full"
-          >
-          </p-select>
-          <span
-            class="help-icon"
-            pTooltip="'Automático' define 'Casal' se houver cama de casal, caso contrário 'Solteiro'. A escolha só afeta UHs com capacidade até 2 pessoas."
-            tooltipPosition="top"
-          >
-            <i class="pi pi-info-circle" style="font-size: 1.2rem; color: var(--primary-color)"></i>
-          </span>
-        </div>
-      </div>
-
-      <!-- Camas Casal e Solteiro -->
-      <div class="grid">
-        <div class="col-6">
-          <div class="field">
-            <label>Camas Casal</label>
-            <p-select
-              [(ngModel)]="categoriaEdit.camasCasal"
-              [options]="[
-                { label: 'Nenhuma', value: 0 },
-                { label: '1 Cama Casal', value: 1 },
-                { label: '2 Camas Casal', value: 2 },
-              ]"
-              optionLabel="label"
-              optionValue="value"
-              styleClass="w-full"
-            >
-            </p-select>
-          </div>
-        </div>
-        <div class="col-6">
-          <div class="field">
-            <label>Camas Solteiro</label>
-            <p-select
-              [(ngModel)]="categoriaEdit.camasSolteiro"
-              [options]="[
-                { label: 'Nenhuma', value: 0 },
-                { label: '1 Cama Solteiro', value: 1 },
-                { label: '2 Camas Solteiro', value: 2 },
-                { label: '3 Camas Solteiro', value: 3 },
-              ]"
-              optionLabel="label"
-              optionValue="value"
-              styleClass="w-full"
-            >
-            </p-select>
-          </div>
-        </div>
-      </div>
-
-      <!-- Descrição -->
-      <div class="field">
-        <label>Descrição / Diferencial</label>
-        <textarea
-          [(ngModel)]="categoriaEdit.descricao"
-          rows="2"
-          class="w-full"
-          placeholder="Ex: Próximo à piscina..."
-          style="
-            resize: vertical;
-            padding: 0.5rem;
-            border: 1px solid var(--surface-border);
-            border-radius: 4px;
-          "
-        ></textarea>
-      </div>
-
-      <!-- Números da UH -->
-      <div class="field">
-        <label>Números desta UH</label>
-        <div
-          class="uh-numbers-grid"
-          style="
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            max-height: 150px;
-            overflow-y: auto;
-            border: 1px solid var(--surface-border);
-            padding: 0.5rem;
-            border-radius: 4px;
-          "
-        >
-          <div
-            *ngFor="let num of getListaNumeros()"
-            class="uh-number-item"
-            style="display: flex; align-items: center; width: 60px"
-          >
-            <p-checkbox
-              [(ngModel)]="categoriaEdit.numeros"
-              [value]="num"
-              [inputId]="'num_' + num"
-              [binary]="false"
-            ></p-checkbox>
-            <label [for]="'num_' + num" class="ml-1">{{ num }}</label>
-          </div>
-        </div>
-        <small class="text-secondary"
-          >Selecione os números das unidades que pertencem a esta categoria.</small
-        >
-      </div>
-
-      <!-- Comodidades Específicas (baseadas nas globais) -->
-      <div class="field">
-        <label>Comodidades desta UH</label>
-        <div
-          class="comodidades-container"
-          style="
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid var(--surface-border);
-            padding: 0.5rem;
-            border-radius: 4px;
-          "
-        >
-          <div
-            *ngFor="let com of getComodidadesGlobaisArray()"
-            class="comodidade-item"
-            style="display: flex; align-items: center; width: 200px"
-          >
-            <p-checkbox
-              [(ngModel)]="categoriaEdit.comodidadesSelecionadas"
-              [value]="com"
-              [inputId]="'com_' + com"
-              [binary]="false"
-            ></p-checkbox>
-            <label [for]="'com_' + com" class="ml-1">{{ com }}</label>
-          </div>
-        </div>
-        <small class="text-secondary">Selecione as comodidades que esta UH oferece.</small>
-      </div>
-
-      <!-- Status Ativo -->
-      <div class="field-checkbox mt-3">
-        <p-checkbox [(ngModel)]="categoriaEdit.ativo" [binary]="true" inputId="ativo"></p-checkbox>
-        <label for="ativo" class="ml-2">UH Ativa (disponível para reservas)</label>
-      </div>
-    </div>
-  </ng-template>
-
-  <ng-template pTemplate="footer">
+  <div class="flex justify-content-center gap-2 mt-4">
     <p-button
       label="Cancelar"
       icon="pi pi-times"
       styleClass="p-button-text"
-      (click)="categoriaDialog = false"
+      (click)="fechar()"
     ></p-button>
     <p-button
-      label="Salvar"
+      label="Entrar"
       icon="pi pi-check"
       styleClass="p-button-success"
-      (click)="salvarCategoria()"
+      (click)="verificarSenhaPainel()"
     ></p-button>
-  </ng-template>
-</p-dialog>
+  </div>
+</div>
+
+<!-- CONTEÚDO DO PAINEL MASTER -->
+<div *ngIf="autenticado">
+  <p-tabs value="0">
+    <p-tablist>
+      <p-tab value="0">📋 Tarifário</p-tab>
+      <p-tab value="1">🛏️ UHs</p-tab>
+      <p-tab value="2">🎁 Promoções</p-tab>
+      <p-tab value="3">⏰ Horários</p-tab>
+      <p-tab value="4">📝 Textos do Orçamento</p-tab>
+      <p-tab value="5">🌙 Escala</p-tab>
+      <p-tab value="6">🔐 Segurança</p-tab>
+      <p-tab value="7">💾 Backup</p-tab>
+    </p-tablist>
+
+    <p-tabpanels>
+      <!-- ===== TAB 0: TARIFÁRIO ===== -->
+      <p-tabpanel value="0">
+        <!-- Configurações do topo -->
+        <div class="grid mb-3">
+          <div class="col-12 md:col-4">
+            <div class="field">
+              <label>Nome da Festividade (Orçamento Rápido)</label>
+              <input type="text" pInputText [(ngModel)]="config.festividade" class="w-full" />
+            </div>
+          </div>
+          <div class="col-12 md:col-2">
+            <div class="field">
+              <label>Valor Almoço (R$)</label>
+              <p-inputNumber
+                [(ngModel)]="config.precos.refeicoes.almoco"
+                mode="currency"
+                currency="BRL"
+                styleClass="w-full"
+              ></p-inputNumber>
+            </div>
+          </div>
+          <div class="col-12 md:col-2">
+            <div class="field">
+              <label>Valor Janta (R$)</label>
+              <p-inputNumber
+                [(ngModel)]="config.precos.refeicoes.janta"
+                mode="currency"
+                currency="BRL"
+                styleClass="w-full"
+              ></p-inputNumber>
+            </div>
+          </div>
+          <div class="col-12 md:col-2">
+            <div class="field">
+              <label>Valor Lanche (R$)</label>
+              <p-inputNumber
+                [(ngModel)]="config.precos.refeicoes.lanche"
+                mode="currency"
+                currency="BRL"
+                styleClass="w-full"
+              ></p-inputNumber>
+            </div>
+          </div>
+          <div class="col-12 md:col-2">
+            <div class="field">
+              <label>Valor kWh (R$)</label>
+              <p-inputNumber
+                [(ngModel)]="config.precos.kwh"
+                mode="currency"
+                currency="BRL"
+                styleClass="w-full"
+              ></p-inputNumber>
+            </div>
+          </div>
+        </div>
+
+        <!-- Datas da Alta Temporada -->
+        <div class="grid mb-3">
+          <div class="col-12 md:col-3">
+            <div class="field">
+              <label>Início Alta Temporada</label>
+              <p-datepicker
+                [(ngModel)]="altaInicioDate"
+                (onSelect)="onAltaInicioChange()"
+                dateFormat="dd/mm/yy"
+                [showIcon]="true"
+                class="w-full"
+                appendTo="body"
+              ></p-datepicker>
+            </div>
+          </div>
+          <div class="col-12 md:col-3">
+            <div class="field">
+              <label>Fim Alta Temporada</label>
+              <p-datepicker
+                [(ngModel)]="altaFimDate"
+                [minDate]="altaInicioDate"
+                dateFormat="dd/mm/yy"
+                [showIcon]="true"
+                class="w-full"
+                appendTo="body"
+              ></p-datepicker>
+            </div>
+          </div>
+        </div>
+      </p-tabpanel>
+
+      <!-- ===== TAB 1: UHs ===== -->
+      <p-tabpanel value="1">
+        <!-- Qtd. Total de UHs -->
+        <div class="grid mb-3">
+          <div class="col-12 md:col-2">
+            <div class="field">
+              <label>Qtd. Total de UHs</label>
+              <p-inputNumber
+                [(ngModel)]="config.totalUhs"
+                [min]="1"
+                styleClass="w-full"
+              ></p-inputNumber>
+            </div>
+          </div>
+          <!-- Comodidades Globais -->
+          <div class="col-12 md:col-10">
+            <div class="field">
+              <label>Comodidades Globais (Separe por vírgula)</label>
+              <input
+                type="text"
+                pInputText
+                [(ngModel)]="config.comodidadesGlobais"
+                class="w-full"
+                placeholder="Frigobar, TV, Hidro, Ar-condicionado..."
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Botão Adicionar UH -->
+        <div class="flex justify-content-end mb-3">
+          <p-button
+            label="ADICIONAR NOVA UH"
+            icon="pi pi-plus"
+            styleClass="p-button-success p-button-sm"
+            (click)="adicionarUH()"
+          ></p-button>
+        </div>
+
+        <!-- Tabela de UHs -->
+        <p-table
+          [value]="categorias"
+          styleClass="p-datatable-sm"
+          [scrollable]="true"
+          scrollHeight="300px"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th rowspan="2">UH (Unidade)</th>
+              <th colspan="2">Alta Temporada</th>
+              <th colspan="2">Baixa Temporada</th>
+              <th rowspan="2">Ações</th>
+            </tr>
+            <tr>
+              <th class="sub-th">C/ Café</th>
+              <th class="sub-th">S/ Café</th>
+              <th class="sub-th">C/ Café</th>
+              <th class="sub-th">S/ Café</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-cat>
+            <tr>
+              <td>{{ cat.nome }}</td>
+              <td>{{ cat.precoAltaCafe | currency: 'BRL' }}</td>
+              <td>{{ cat.precoAltaSemCafe | currency: 'BRL' }}</td>
+              <td>{{ cat.precoBaixaCafe | currency: 'BRL' }}</td>
+              <td>{{ cat.precoBaixaSemCafe | currency: 'BRL' }}</td>
+              <td>
+                <div class="flex gap-2">
+                  <p-button
+                    icon="pi pi-pencil"
+                    styleClass="p-button-text p-button-sm"
+                    (click)="editarUH(cat)"
+                  ></p-button>
+                  <p-button
+                    icon="pi pi-trash"
+                    styleClass="p-button-text p-button-danger p-button-sm"
+                    (click)="excluirUH(cat)"
+                  ></p-button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="6" class="text-center p-3">
+                Nenhuma UH cadastrada. Clique em "ADICIONAR NOVA UH" para começar.
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-tabpanel>
+
+      <!-- ===== TAB 2: PROMOÇÕES ===== -->
+      <p-tabpanel value="2">
+        <div class="grid">
+          <div class="col-12">
+            <div class="field-checkbox mb-3">
+              <p-checkbox
+                [(ngModel)]="config.promocao.ativa"
+                [binary]="true"
+                inputId="promoAtiva"
+              ></p-checkbox>
+              <label for="promoAtiva" class="ml-2 font-bold" style="color: #d84315"
+                >ATIVAR PROMOÇÕES</label
+              >
+              <small class="ml-2 text-secondary"
+                >(Liga/Desliga todo o sistema de promoções nos orçamentos)</small
+              >
+            </div>
+          </div>
+
+          <div class="col-12 md:col-3">
+            <div class="field">
+              <label>Desconto (%)</label>
+              <p-inputNumber
+                [(ngModel)]="config.promocao.desconto"
+                [min]="0"
+                [max]="100"
+                styleClass="w-full"
+                [disabled]="!config.promocao.ativa"
+              ></p-inputNumber>
+            </div>
+          </div>
+
+          <div class="col-12 md:col-3">
+            <div class="field">
+              <label>Mínimo de Diárias</label>
+              <p-inputNumber
+                [(ngModel)]="config.promocao.minDiarias"
+                [min]="0"
+                styleClass="w-full"
+                [disabled]="!config.promocao.ativa"
+              ></p-inputNumber>
+            </div>
+          </div>
+
+          <div class="col-12 md:col-6">
+            <div class="field">
+              <label>Condição / Forma de Pagamento</label>
+              <input
+                type="text"
+                pInputText
+                [(ngModel)]="config.promocao.texto"
+                class="w-full"
+                placeholder="Ex: Pagamento integral via Pix ou Dinheiro"
+                [disabled]="!config.promocao.ativa"
+              />
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="grid">
+              <div class="col-12 md:col-4">
+                <div class="field-checkbox">
+                  <p-checkbox
+                    [(ngModel)]="config.promocao.somenteAlta"
+                    [binary]="true"
+                    inputId="promoSomenteAlta"
+                    [disabled]="!config.promocao.ativa"
+                    (onChange)="onPromocaoSomenteAltaChange()"
+                  ></p-checkbox>
+                  <label for="promoSomenteAlta" class="ml-2">SOMENTE NA ALTA TEMPORADA</label>
+                </div>
+                <small class="text-secondary block"
+                  >Se marcado, o desconto só será aplicado se as datas estiverem na Alta
+                  Temporada.</small
+                >
+              </div>
+
+              <div class="col-12 md:col-4">
+                <div class="field-checkbox">
+                  <p-checkbox
+                    [(ngModel)]="config.promocao.msgBaixa"
+                    [binary]="true"
+                    inputId="promoMsgBaixa"
+                    [disabled]="!config.promocao.ativa || !config.promocao.somenteAlta"
+                  ></p-checkbox>
+                  <label for="promoMsgBaixa" class="ml-2">MENSAGEM NA BAIXA</label>
+                </div>
+                <small class="text-secondary block"
+                  >Exibe o texto da promoção na Baixa Temporada apenas como informativo, sem aplicar
+                  o desconto.</small
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </p-tabpanel>
+
+      <!-- ===== TAB 3: HORÁRIOS ===== -->
+      <p-tabpanel value="3">
+        <div class="grid">
+          <div class="col-12 md:col-3">
+            <div class="field">
+              <label>Horário Café</label>
+              <div class="flex gap-2">
+                <input
+                  type="time"
+                  pInputText
+                  [(ngModel)]="config.horarios.cafe.inicio"
+                  class="w-full"
+                />
+                <span class="p-2">às</span>
+                <input
+                  type="time"
+                  pInputText
+                  [(ngModel)]="config.horarios.cafe.fim"
+                  class="w-full"
+                />
+              </div>
+              <div class="field-checkbox mt-1">
+                <p-checkbox
+                  [(ngModel)]="config.horarios.cafe.ativo"
+                  [binary]="true"
+                  inputId="cafeAtivo"
+                ></p-checkbox>
+                <label for="cafeAtivo" class="ml-2">Exibir nas mensagens</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 md:col-3">
+            <div class="field">
+              <label>Horário Almoço</label>
+              <div class="flex gap-2">
+                <input
+                  type="time"
+                  pInputText
+                  [(ngModel)]="config.horarios.almoco.inicio"
+                  class="w-full"
+                />
+                <span class="p-2">às</span>
+                <input
+                  type="time"
+                  pInputText
+                  [(ngModel)]="config.horarios.almoco.fim"
+                  class="w-full"
+                />
+              </div>
+              <div class="field-checkbox mt-1">
+                <p-checkbox
+                  [(ngModel)]="config.horarios.almoco.ativo"
+                  [binary]="true"
+                  inputId="almocoAtivo"
+                ></p-checkbox>
+                <label for="almocoAtivo" class="ml-2">Exibir nas mensagens</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 md:col-3">
+            <div class="field">
+              <label>Lanche da Tarde</label>
+              <div class="flex gap-2">
+                <input
+                  type="time"
+                  pInputText
+                  [(ngModel)]="config.horarios.lanche.inicio"
+                  class="w-full"
+                />
+                <span class="p-2">às</span>
+                <input
+                  type="time"
+                  pInputText
+                  [(ngModel)]="config.horarios.lanche.fim"
+                  class="w-full"
+                />
+              </div>
+              <div class="field-checkbox mt-1">
+                <p-checkbox
+                  [(ngModel)]="config.horarios.lanche.ativo"
+                  [binary]="true"
+                  inputId="lancheTardeAtivo"
+                ></p-checkbox>
+                <label for="lancheTardeAtivo" class="ml-2">Exibir nas mensagens</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 md:col-3">
+            <div class="field">
+              <label>Jantar</label>
+              <div class="flex gap-2">
+                <input
+                  type="time"
+                  pInputText
+                  [(ngModel)]="config.horarios.jantar.inicio"
+                  class="w-full"
+                />
+                <span class="p-2">às</span>
+                <input
+                  type="time"
+                  pInputText
+                  [(ngModel)]="config.horarios.jantar.fim"
+                  class="w-full"
+                />
+              </div>
+              <div class="field-checkbox mt-1">
+                <p-checkbox
+                  [(ngModel)]="config.horarios.jantar.ativo"
+                  [binary]="true"
+                  inputId="jantarAtivo"
+                ></p-checkbox>
+                <label for="jantarAtivo" class="ml-2">Exibir nas mensagens</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </p-tabpanel>
+
+      <!-- ===== TAB 4 TEXTOS DO ORÇAMENTO ===== -->
+      <p-tabpanel value="4">
+        <div class="grid">
+          <!-- Caixa de ajuda colapsável com placeholders (Fieldset) -->
+          <div class="col-12">
+            <p-fieldset
+              legend="📌 Placeholders disponíveis e dicas de formatação"
+              [toggleable]="true"
+              [collapsed]="true"
+            >
+              <div class="grid">
+                <div class="col-12 md:col-6">
+                  <strong class="text-primary">Placeholders:</strong>
+                  <ul class="list-none p-0 m-0 mt-2">
+                    <li>
+                      <code>{{ '{' }}cliente{{ '}' }}</code> – Nome do cliente
+                    </li>
+                    <li>
+                      <code>{{ '{' }}checkinHora{{ '}' }}</code> – Hora de entrada
+                    </li>
+                    <li>
+                      <code>{{ '{' }}checkoutHora{{ '}' }}</code> – Hora de saída
+                    </li>
+                    <li>
+                      <code>{{ '{' }}checkinDataBr{{ '}' }}</code> – Data entrada (pt-BR)
+                    </li>
+                    <li>
+                      <code>{{ '{' }}checkoutDataBr{{ '}' }}</code> – Data saída (pt-BR)
+                    </li>
+                    <li>
+                      <code>{{ '{' }}noites{{ '}' }}</code> – Número de diárias
+                    </li>
+                    <li>
+                      <code>{{ '{' }}totalGeral{{ '}' }}</code> – Valor total
+                    </li>
+                    <li>
+                      <code>{{ '{' }}valorAlmoco{{ '}' }}</code> – Valor do almoço
+                    </li>
+                    <li>
+                      <code>{{ '{' }}valorJanta{{ '}' }}</code> – Valor da janta
+                    </li>
+                    <li>
+                      <code>{{ '{' }}valorLanche{{ '}' }}</code> – Valor do lanche
+                    </li>
+                  </ul>
+                </div>
+                <div class="col-12 md:col-6">
+                  <strong class="text-primary">Outros placeholders:</strong>
+                  <ul class="list-none p-0 m-0 mt-2">
+                    <li>
+                      <code>{{ '{' }}sinalPercentual{{ '}' }}</code> – % de sinal
+                    </li>
+                    <li>
+                      <code>{{ '{' }}horasExtras{{ '}' }}</code> – Horas extras
+                    </li>
+                    <li>
+                      <code>{{ '{' }}mensagemHorasExtras{{ '}' }}</code> – Texto das horas extras
+                    </li>
+                    <li>
+                      <code>{{ '{' }}percentualDesconto{{ '}' }}</code> – % desconto (promoção)
+                    </li>
+                    <li>
+                      <code>{{ '{' }}minimoDiarias{{ '}' }}</code> – Mín. diárias (promoção)
+                    </li>
+                    <li>
+                      <code>{{ '{' }}textoPromocao{{ '}' }}</code> – Texto da promoção
+                    </li>
+                    <li>
+                      <code>{{ '{' }}temporada{{ '}' }}</code> – Temporada selecionada
+                    </li>
+                  </ul>
+                </div>
+                <div class="col-12">
+                  <p-divider></p-divider>
+                  <strong class="text-primary">🎨 Formatação com HTML:</strong>
+                  <p class="mt-2">Você pode usar tags HTML para estilizar os textos:</p>
+                  <div class="grid">
+                    <div class="col-12 md:col-6">
+                      <ul class="list-none p-0 m-0">
+                        <li>
+                          <code>&lt;strong&gt;negrito&lt;/strong&gt;</code> →
+                          <strong>negrito</strong>
+                        </li>
+                        <li><code>&lt;em&gt;itálico&lt;/em&gt;</code> → <em>itálico</em></li>
+                        <li><code>&lt;u&gt;sublinhado&lt;/u&gt;</code> → <u>sublinhado</u></li>
+                      </ul>
+                    </div>
+                    <div class="col-12 md:col-6">
+                      <ul class="list-none p-0 m-0">
+                        <li><code>&lt;br&gt;</code> – quebra de linha</li>
+                        <li><code>&lt;p&gt;...&lt;/p&gt;</code> – novo parágrafo</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <p class="mt-2">
+                    Ex:
+                    <code
+                      >&lt;strong&gt;Check-in:&lt;/strong&gt; {{ '{' }}checkinHora{{ '}' }} do dia
+                      {{ '{' }}checkinDataBr{{ '}' }}.&lt;br&gt;</code
+                    >
+                  </p>
+                </div>
+              </div>
+            </p-fieldset>
+          </div>
+
+          <!-- Campos de texto organizados em grid -->
+          <div class="col-12 md:col-6">
+            <div class="field">
+              <label for="orcTitulo">Título do Orçamento</label>
+              <input
+                id="orcTitulo"
+                type="text"
+                pInputText
+                [(ngModel)]="config.orcamento.textos.titulo"
+                class="w-full"
+              />
+            </div>
+          </div>
+          <div class="col-12 md:col-6">
+            <div class="field">
+              <label for="orcConfigTitulo">1.1 Título da Seção de Configuração</label>
+              <input
+                id="orcConfigTitulo"
+                type="text"
+                pInputText
+                [(ngModel)]="config.orcamento.textos.configTitulo"
+                class="w-full"
+              />
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="field">
+              <label for="orcConfigDescricao">1.2 Descrição da Seção de Configuração</label>
+              <textarea
+                id="orcConfigDescricao"
+                pInputTextarea
+                [(ngModel)]="config.orcamento.textos.configDescricao"
+                rows="2"
+                class="w-full"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="field">
+              <label for="orcNotaRefeicoes">Nota após a tabela</label>
+              <textarea
+                id="orcNotaRefeicoes"
+                pInputTextarea
+                [(ngModel)]="config.orcamento.textos.notaRefeicoes"
+                rows="2"
+                class="w-full"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="field">
+              <label for="orcCronograma">2. Cronograma de Estadia e Logística</label>
+              <textarea
+                id="orcCronograma"
+                pInputTextarea
+                [(ngModel)]="config.orcamento.textos.cronograma"
+                rows="3"
+                class="w-full"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="field">
+              <label for="orcPagamento">3. Condições de Pagamento e Prazos</label>
+              <textarea
+                id="orcPagamento"
+                pInputTextarea
+                [(ngModel)]="config.orcamento.textos.pagamento"
+                rows="3"
+                class="w-full"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="field">
+              <label for="orcObservacoes">4. Observações Gerais</label>
+              <textarea
+                id="orcObservacoes"
+                pInputTextarea
+                [(ngModel)]="config.orcamento.textos.observacoes"
+                rows="3"
+                class="w-full"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="col-12 md:col-6">
+            <div class="field">
+              <label for="orcRodape">Texto do Rodapé (Assinaturas)</label>
+              <input
+                id="orcRodape"
+                type="text"
+                pInputText
+                [(ngModel)]="config.orcamento.textos.rodape"
+                class="w-full"
+              />
+            </div>
+          </div>
+
+          <div class="col-12 md:col-6">
+            <div class="field">
+              <label for="orcSinalPercentual">Percentual de Sinal (%)</label>
+              <p-inputNumber
+                id="orcSinalPercentual"
+                [(ngModel)]="config.orcamento.sinalPercentual"
+                [min]="0"
+                [max]="100"
+                styleClass="w-full"
+              ></p-inputNumber>
+            </div>
+          </div>
+        </div>
+      </p-tabpanel>
+
+      <!-- ===== TAB 5: ESCALA ===== -->
+      <p-tabpanel value="5">
+        <div class="grid">
+          <div class="col-12 md:col-6">
+            <div class="field">
+              <label>Funcionário P1 (Noite)</label>
+              <input
+                type="text"
+                pInputText
+                [(ngModel)]="escalaConfig.p1"
+                class="w-full"
+                placeholder="Ex: Agryo"
+              />
+            </div>
+          </div>
+          <div class="col-12 md:col-6">
+            <div class="field">
+              <label>Funcionário P2 (Madruga)</label>
+              <input
+                type="text"
+                pInputText
+                [(ngModel)]="escalaConfig.p2"
+                class="w-full"
+                placeholder="Ex: Alex"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Data de Início das Folgas</label>
+          <input
+            type="date"
+            pInputText
+            [(ngModel)]="escalaConfig.dataInicioFolgas"
+            class="w-full"
+          />
+          <small class="text-secondary"
+            >A partir desta data, as folgas não mudam mais. Define o marco para o revezamento
+            fixo.</small
+          >
+        </div>
+
+        <div class="field">
+          <label>Dias de Folga Fixa</label>
+          <div class="flex flex-wrap gap-2">
+            <div *ngFor="let dia of diasSemana; let i = index" class="field-checkbox">
+              <p-checkbox
+                [(ngModel)]="escalaConfig.folgas"
+                [value]="i"
+                [inputId]="'folga_' + i"
+                [binary]="false"
+              ></p-checkbox>
+              <label [for]="'folga_' + i" class="ml-1">{{ dia.nome }}</label>
+            </div>
+          </div>
+          <small class="text-secondary"
+            >Selecione os dias que são folga fixa (ex: sábado e domingo).</small
+          >
+        </div>
+
+        <div class="field">
+          <label>Início do Revezamento (Quem começa folgando?)</label>
+          <p-select
+            [(ngModel)]="escalaConfig.quemFolgaPrimeiro"
+            [options]="[
+              { label: 'P1 Inicia Folgando', value: 'p1' },
+              { label: 'P2 Inicia Folgando', value: 'p2' },
+            ]"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="w-full"
+          ></p-select>
+        </div>
+      </p-tabpanel>
+
+      <!-- ===== TAB 6: SEGURANÇA ===== -->
+      <p-tabpanel value="6">
+        <div class="grid">
+          <div class="col-12 md:col-6">
+            <p-card header="🔐 Senha de Acesso">
+              <div class="field">
+                <label>Senha Atual</label>
+                <div class="flex gap-2">
+                  <input
+                    [type]="mostrarSenhaAtual ? 'text' : 'password'"
+                    pInputText
+                    [(ngModel)]="senhaAtualInput"
+                    class="w-full"
+                    placeholder="Digite a senha atual"
+                  />
+                  <p-button
+                    [icon]="mostrarSenhaAtual ? 'pi pi-eye-slash' : 'pi pi-eye'"
+                    styleClass="p-button-text"
+                    (click)="mostrarSenhaAtual = !mostrarSenhaAtual"
+                  ></p-button>
+                </div>
+              </div>
+
+              <div class="field">
+                <label>Nova Senha</label>
+                <div class="flex gap-2">
+                  <input
+                    [type]="mostrarNovaSenha ? 'text' : 'password'"
+                    pInputText
+                    [(ngModel)]="novaSenhaInput"
+                    class="w-full"
+                    placeholder="Digite a nova senha"
+                  />
+                  <p-button
+                    [icon]="mostrarNovaSenha ? 'pi pi-eye-slash' : 'pi pi-eye'"
+                    styleClass="p-button-text"
+                    (click)="mostrarNovaSenha = !mostrarNovaSenha"
+                  ></p-button>
+                </div>
+              </div>
+
+              <div class="field">
+                <label>Confirmar Nova Senha</label>
+                <div class="flex gap-2">
+                  <input
+                    [type]="mostrarConfirmarSenha ? 'text' : 'password'"
+                    pInputText
+                    [(ngModel)]="confirmarSenhaInput"
+                    class="w-full"
+                    placeholder="Confirme a nova senha"
+                  />
+                  <p-button
+                    [icon]="mostrarConfirmarSenha ? 'pi pi-eye-slash' : 'pi pi-eye'"
+                    styleClass="p-button-text"
+                    (click)="mostrarConfirmarSenha = !mostrarConfirmarSenha"
+                  ></p-button>
+                </div>
+              </div>
+
+              <div class="flex gap-2 mt-3">
+                <p-button
+                  label="Alterar Senha"
+                  icon="pi pi-key"
+                  styleClass="p-button-success"
+                  (click)="alterarSenha()"
+                ></p-button>
+                <p-button
+                  label="Remover Senha"
+                  icon="pi pi-trash"
+                  styleClass="p-button-danger"
+                  (click)="removerSenha()"
+                ></p-button>
+              </div>
+            </p-card>
+          </div>
+
+          <div class="col-12 md:col-6">
+            <p-card header="ℹ️ Status da Senha">
+              <div class="flex align-items-center gap-3 mb-3">
+                <i
+                  [class]="
+                    config.seguranca.senhaHash
+                      ? 'pi pi-check-circle text-success'
+                      : 'pi pi-exclamation-circle text-warning'
+                  "
+                  style="font-size: 2rem"
+                ></i>
+                <div>
+                  <h3 class="text-lg font-bold mb-1">
+                    {{ config.seguranca.senhaHash ? 'Senha Ativa' : 'Sem Senha' }}
+                  </h3>
+                  <p class="text-secondary">
+                    Acesso ao painel
+                    {{
+                      config.seguranca.senhaHash ? 'protegido por senha' : 'livre (sem proteção)'
+                    }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="border-top-1 surface-border pt-3">
+                <h4 class="text-md font-bold mb-2">Dicas de Segurança:</h4>
+                <ul class="text-secondary">
+                  <li>Use uma senha com pelo menos 6 caracteres</li>
+                  <li>Evite senhas óbvias como "1234" ou "admin"</li>
+                  <li>Altere a senha periodicamente</li>
+                  <li>Não compartilhe a senha com pessoas não autorizadas</li>
+                </ul>
+              </div>
+            </p-card>
+          </div>
+        </div>
+      </p-tabpanel>
+
+      <!-- ===== TAB 7: BACKUP ===== -->
+      <p-tabpanel value="7">
+        <div class="grid">
+          <!-- Exportar backup novo formato -->
+          <div class="col-12 md:col-6">
+            <p-card header="📤 Backup das Configurações">
+              <p class="mb-3">
+                Baixe um arquivo JSON com todas as configurações do sistema no formato atual.
+              </p>
+              <p-button
+                label="Salvar Backup"
+                icon="pi pi-download"
+                styleClass="p-button-success"
+                (click)="exportarBackup()"
+              ></p-button>
+            </p-card>
+          </div>
+
+          <!-- Importar backup novo formato -->
+          <div class="col-12 md:col-6">
+            <p-card header="📥 Restaurar Backup das Configurações">
+              <p class="mb-3">
+                Carregue um arquivo JSON para restaurar configurações previamente salvas.
+              </p>
+              <input
+                type="file"
+                accept=".btf"
+                #fileInput
+                style="display: none"
+                (change)="importarBackup($event)"
+              />
+              <p-button
+                label="Restaurar Backup"
+                icon="pi pi-upload"
+                styleClass="p-button-warning"
+                (click)="fileInput.click()"
+              ></p-button>
+            </p-card>
+          </div>
+
+          <!-- Limpeza -->
+          <div class="col-12 mt-3">
+            <p-card header="🧹 Limpeza">
+              <p class="mb-3">
+                Limpa todos os dados do sistema e restaura as configurações padrão.
+              </p>
+              <p-button
+                label="Limpar Cache do Sistema"
+                icon="pi pi-trash"
+                styleClass="p-button-danger"
+                (click)="limparCache()"
+              ></p-button>
+            </p-card>
+          </div>
+        </div>
+      </p-tabpanel>
+    </p-tabpanels>
+  </p-tabs>
+
+  <!-- Botões de ação -->
+  <div class="flex justify-content-end gap-2 mt-1">
+    <p-button
+      label="Cancelar"
+      icon="pi pi-times"
+      styleClass="p-button-text"
+      (click)="fechar()"
+    ></p-button>
+    <p-button
+      label="SALVAR TODAS AS ALTERAÇÕES"
+      icon="pi pi-save"
+      styleClass="p-button-success"
+      (click)="salvarConfiguracoes()"
+    ></p-button>
+  </div>
+
+  <!-- Diálogo de Categoria -->
+  <p-dialog
+    [(visible)]="categoriaDialog"
+    [style]="{ width: '700px' }"
+    header="Categoria de Quarto"
+    [modal]="true"
+  >
+    <ng-template pTemplate="content">
+      <div *ngIf="categoriaEdit" class="p-fluid">
+        <!-- Nome e Capacidade (já existentes) -->
+        <div class="field">
+          <label>Nome da UH</label>
+          <input
+            type="text"
+            pInputText
+            [(ngModel)]="categoriaEdit.nome"
+            class="w-full"
+            placeholder="Ex: Standard, Luxo, Suíte..."
+          />
+        </div>
+
+        <div class="field">
+          <label>Capacidade Máxima</label>
+          <p-inputNumber
+            [(ngModel)]="categoriaEdit.capacidadeMaxima"
+            [min]="1"
+            styleClass="w-full"
+          ></p-inputNumber>
+        </div>
+
+        <!-- Preços Alta Temporada -->
+        <h4 class="text-md font-bold mb-2 mt-3">Alta Temporada</h4>
+        <div class="grid">
+          <div class="col-6">
+            <div class="field">
+              <label>Com Café (R$)</label>
+              <p-inputNumber
+                [(ngModel)]="categoriaEdit.precoAltaCafe"
+                mode="currency"
+                currency="BRL"
+                styleClass="w-full"
+              ></p-inputNumber>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="field">
+              <label>Sem Café (R$)</label>
+              <p-inputNumber
+                [(ngModel)]="categoriaEdit.precoAltaSemCafe"
+                mode="currency"
+                currency="BRL"
+                styleClass="w-full"
+              ></p-inputNumber>
+            </div>
+          </div>
+        </div>
+
+        <!-- Preços Baixa Temporada -->
+        <h4 class="text-md font-bold mb-2 mt-3">Baixa Temporada</h4>
+        <div class="grid">
+          <div class="col-6">
+            <div class="field">
+              <label>Com Café (R$)</label>
+              <p-inputNumber
+                [(ngModel)]="categoriaEdit.precoBaixaCafe"
+                mode="currency"
+                currency="BRL"
+                styleClass="w-full"
+              ></p-inputNumber>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="field">
+              <label>Sem Café (R$)</label>
+              <p-inputNumber
+                [(ngModel)]="categoriaEdit.precoBaixaSemCafe"
+                mode="currency"
+                currency="BRL"
+                styleClass="w-full"
+              ></p-inputNumber>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== NOVOS CAMPOS DE DETALHES ===== -->
+        <h4 class="text-md font-bold mb-2 mt-3">Detalhes da UH</h4>
+
+        <!-- Tipo de Ocupação -->
+        <div class="field">
+          <label>Tipo de Ocupação Padrão</label>
+          <div class="flex align-items-center gap-2">
+            <p-select
+              [(ngModel)]="categoriaEdit.tipoOcupacaoPadrao"
+              [options]="[
+                { label: 'Automático', value: '' },
+                { label: 'Casal', value: 'casal' },
+                { label: 'Solteiro', value: 'solteiro' },
+              ]"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Selecione"
+              styleClass="w-full"
+            >
+            </p-select>
+            <span
+              class="help-icon"
+              pTooltip="'Automático' define 'Casal' se houver cama de casal, caso contrário 'Solteiro'. A escolha só afeta UHs com capacidade até 2 pessoas."
+              tooltipPosition="top"
+            >
+              <i
+                class="pi pi-info-circle"
+                style="font-size: 1.2rem; color: var(--primary-color)"
+              ></i>
+            </span>
+          </div>
+        </div>
+
+        <!-- Camas Casal e Solteiro -->
+        <div class="grid">
+          <div class="col-6">
+            <div class="field">
+              <label>Camas Casal</label>
+              <p-select
+                [(ngModel)]="categoriaEdit.camasCasal"
+                [options]="[
+                  { label: 'Nenhuma', value: 0 },
+                  { label: '1 Cama Casal', value: 1 },
+                  { label: '2 Camas Casal', value: 2 },
+                ]"
+                optionLabel="label"
+                optionValue="value"
+                styleClass="w-full"
+              >
+              </p-select>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="field">
+              <label>Camas Solteiro</label>
+              <p-select
+                [(ngModel)]="categoriaEdit.camasSolteiro"
+                [options]="[
+                  { label: 'Nenhuma', value: 0 },
+                  { label: '1 Cama Solteiro', value: 1 },
+                  { label: '2 Camas Solteiro', value: 2 },
+                  { label: '3 Camas Solteiro', value: 3 },
+                ]"
+                optionLabel="label"
+                optionValue="value"
+                styleClass="w-full"
+              >
+              </p-select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Descrição -->
+        <div class="field">
+          <label>Descrição / Diferencial</label>
+          <textarea
+            [(ngModel)]="categoriaEdit.descricao"
+            rows="2"
+            class="w-full"
+            placeholder="Ex: Próximo à piscina..."
+            style="
+              resize: vertical;
+              padding: 0.5rem;
+              border: 1px solid var(--surface-border);
+              border-radius: 4px;
+            "
+          ></textarea>
+        </div>
+
+        <!-- Números da UH -->
+        <div class="field">
+          <label>Números desta UH</label>
+          <div
+            class="uh-numbers-grid"
+            style="
+              display: flex;
+              flex-wrap: wrap;
+              gap: 0.5rem;
+              max-height: 150px;
+              overflow-y: auto;
+              border: 1px solid var(--surface-border);
+              padding: 0.5rem;
+              border-radius: 4px;
+            "
+          >
+            <div
+              *ngFor="let num of getListaNumeros()"
+              class="uh-number-item"
+              style="display: flex; align-items: center; width: 60px"
+            >
+              <p-checkbox
+                [(ngModel)]="categoriaEdit.numeros"
+                [value]="num"
+                [inputId]="'num_' + num"
+                [binary]="false"
+              ></p-checkbox>
+              <label [for]="'num_' + num" class="ml-1">{{ num }}</label>
+            </div>
+          </div>
+          <small class="text-secondary"
+            >Selecione os números das unidades que pertencem a esta categoria.</small
+          >
+        </div>
+
+        <!-- Comodidades Específicas (baseadas nas globais) -->
+        <div class="field">
+          <label>Comodidades desta UH</label>
+          <div
+            class="comodidades-container"
+            style="
+              display: flex;
+              flex-wrap: wrap;
+              gap: 0.5rem;
+              max-height: 200px;
+              overflow-y: auto;
+              border: 1px solid var(--surface-border);
+              padding: 0.5rem;
+              border-radius: 4px;
+            "
+          >
+            <div
+              *ngFor="let com of getComodidadesGlobaisArray()"
+              class="comodidade-item"
+              style="display: flex; align-items: center; width: 200px"
+            >
+              <p-checkbox
+                [(ngModel)]="categoriaEdit.comodidadesSelecionadas"
+                [value]="com"
+                [inputId]="'com_' + com"
+                [binary]="false"
+              ></p-checkbox>
+              <label [for]="'com_' + com" class="ml-1">{{ com }}</label>
+            </div>
+          </div>
+          <small class="text-secondary">Selecione as comodidades que esta UH oferece.</small>
+        </div>
+
+        <!-- Status Ativo -->
+        <div class="field-checkbox mt-3">
+          <p-checkbox
+            [(ngModel)]="categoriaEdit.ativo"
+            [binary]="true"
+            inputId="ativo"
+          ></p-checkbox>
+          <label for="ativo" class="ml-2">UH Ativa (disponível para reservas)</label>
+        </div>
+      </div>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+      <p-button
+        label="Cancelar"
+        icon="pi pi-times"
+        styleClass="p-button-text"
+        (click)="categoriaDialog = false"
+      ></p-button>
+      <p-button
+        label="Salvar"
+        icon="pi pi-check"
+        styleClass="p-button-success"
+        (click)="salvarCategoria()"
+      ></p-button>
+    </ng-template>
+  </p-dialog>
+</div>

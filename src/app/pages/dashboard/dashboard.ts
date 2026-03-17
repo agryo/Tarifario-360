@@ -50,8 +50,7 @@ registerLocaleData(localePt);
 export class Dashboard implements OnInit {
   // Controle dos diálogos
   configDialogVisible: boolean = false;
-  senhaDialogVisible: boolean = false;
-  senhaInput: string = '';
+  isPainelAutenticado: boolean = false;
 
   // Dados para os cards de resumo
   totalCategorias: number = 0;
@@ -120,51 +119,20 @@ export class Dashboard implements OnInit {
 
   // ===== CONTROLE DE ACESSO =====
   abrirConfiguracoes() {
-    if (this.config.seguranca?.senhaHash) {
-      this.senhaInput = '';
-      this.senhaDialogVisible = true;
-    } else {
-      this.abrirModalConfiguracoes();
-    }
-  }
-
-  verificarSenha() {
-    if (
-      this.criptografia.verificarSenha(
-        this.senhaInput,
-        this.config.seguranca.senhaHash,
-        this.config.seguranca.senhaSalt,
-      )
-    ) {
-      this.senhaDialogVisible = false;
-      this.abrirModalConfiguracoes();
-    } else {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Acesso Negado',
-        detail: 'Senha incorreta!',
-        life: 3000,
-      });
-      this.senhaInput = '';
-    }
-  }
-
-  abrirModalConfiguracoes() {
     this.configDialogVisible = true;
   }
 
   fecharConfiguracoes() {
     this.configDialogVisible = false;
+    this.isPainelAutenticado = false; // Reseta o estado para a próxima abertura
     this.carregarResumos();
   }
 
-  // ===== MENSAGENS VINDAS DO PAINEL MASTER =====
-  mostrarMensagem(event: { severity: string; summary: string; detail: string }) {
-    this.messageService.add({
-      severity: event.severity,
-      summary: event.summary,
-      detail: event.detail,
-      life: 3000,
-    });
+  /**
+   * Chamado pelo evento (onAutenticadoChange) do painel-master.
+   * Atualiza o estado local para que o dialog possa se redimensionar.
+   */
+  handlePainelAuthState(autenticado: boolean) {
+    this.isPainelAutenticado = autenticado;
   }
 }
