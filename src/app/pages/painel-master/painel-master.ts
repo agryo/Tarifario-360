@@ -400,8 +400,10 @@ export class PainelMasterComponent implements OnInit, OnChanges {
           detail: 'Arquivo de backup inválido ou corrompido',
         });
       } finally {
-        // Limpa o valor do input para permitir que o evento (change) seja disparado
-        // novamente se o mesmo arquivo for selecionado.
+        /** 
+          Limpa o valor do input para permitir que o evento (change) seja disparado
+          novamente se o mesmo arquivo for selecionado. 
+        **/
         target.value = '';
       }
     };

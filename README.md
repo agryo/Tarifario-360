@@ -15,7 +15,10 @@ O **Tarifário 360** é uma aplicação web desenvolvida para otimizar a rotina 
 - **Promoções**: Configuração de regras de desconto (ex: Early Bird, Long Stay) com critérios de dias mínimos e validade sazonal.
 - **Escala de Trabalho**: Organização e visualização das escalas dos colaboradores.
 - **Painel Master**: Área administrativa protegida por senha para configurações globais (horários de refeições, valores de extras, festividades e parâmetros do sistema).
-- **Backup e Segurança**: Sistema robusto de exportação e importação de dados (JSON) com verificação de integridade e criptografia de senhas.
+- **Segurança Avançada**:
+  - **Proteção de Senhas**: As senhas de acesso são protegidas com hash **SHA-256 e salt**, garantindo que não sejam armazenadas em texto plano.
+  - **Backup Criptografado**: Funcionalidade robusta para exportar e importar todos os dados do sistema em um arquivo `.btf` seguro. Os backups são **criptografados com AES** para proteger as informações do hotel.
+  - **Verificação de Integridade**: A importação de backups inclui uma verificação de assinatura para garantir que os dados não foram corrompidos ou alterados.
 - **Impressão**: Geração de tabelas de preços formatadas especificamente para impressão física.
 
 ## 🛠 Tecnologias Utilizadas
