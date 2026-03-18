@@ -6,10 +6,10 @@
 
 // ===== CARDS DE RESUMO =====
 .dashboard-card {
-  border-radius: 10px;
+  border-radius: 12px;
   transition: all 0.3s ease;
   background-color: var(--surface-card);
-  box-shadow: var(--card-shadow, 0 4px 12px rgba(0, 0, 0, 0.12));
+  box-shadow: var(--card-shadow, 0 6px 16px rgba(0, 0, 0, 0.08));
 
   .p-card-body {
     padding: 0.5rem 0.75rem !important;
@@ -20,8 +20,8 @@
   }
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--card-shadow-hover, 0 8px 24px rgba(0, 0, 0, 0.15));
+    transform: translateY(-3px);
+    box-shadow: var(--card-shadow-hover, 0 12px 28px rgba(0, 0, 0, 0.15));
   }
 
   .flex {

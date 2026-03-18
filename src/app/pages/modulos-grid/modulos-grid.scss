@@ -3,13 +3,29 @@
   height: 100%;
   display: flex;
   flex-direction: column;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  background-color: var(--surface-card);
+  box-shadow: var(--card-shadow, 0 6px 16px rgba(0, 0, 0, 0.08));
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--card-shadow-hover, 0 12px 28px rgba(0, 0, 0, 0.15));
+  }
 
   /* Força o corpo do card a ocupar toda a altura disponível */
   ::ng-deep .p-card-body {
     height: 100%;
     display: flex;
     flex-direction: column;
+    padding: 1rem; /* Reduz o padding padrão do PrimeNG para deixar o card mais compacto */
   }
+
+  /* Reduz o espaçamento padrão abaixo do título 
+  ::ng-deep .p-card-title {
+    margin-bottom: 0.5rem;
+  }
+    */
 
   /* Empurra o rodapé (botão) para baixo */
   ::ng-deep .p-card-content {
@@ -18,23 +34,23 @@
 }
 
 .module-description {
-  font-size: 0.8rem;
-  min-height: 3rem; /* Garante alinhamento mesmo com descrições curtas */
+  font-size: 0.9rem;
+  min-height: 0.5rem; /* Ajustado para acompanhar a redução do card */
   color: var(--text-color-secondary);
-  margin-bottom: 1rem;
+  margin-top: 0.3rem;
+  margin-bottom: 0.3rem;
 }
 
 .module-features {
   display: flex;
   flex-direction: column;
-  font-size: 0.8rem;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  gap: 0.25rem; /* Reduzido de 0.5rem */
+  margin-bottom: 0.5rem; /* Reduzido de 1rem */
 
   span {
     display: flex;
     align-items: center;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     color: var(--text-color);
   }
 }
