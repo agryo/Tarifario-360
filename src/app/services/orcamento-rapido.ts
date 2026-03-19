@@ -31,8 +31,11 @@ export class OrcamentoRapidoService {
     // Calcular preço por noite considerando temporada
     let diasAlta = 0;
     let diasBaixa = 0;
-    let somaComCafe = 0;
-    let somaSemCafe = 0;
+
+    let somaComCafeAlta = 0;
+    let somaSemCafeAlta = 0;
+    let somaComCafeBaixa = 0;
+    let somaSemCafeBaixa = 0;
 
     const dataAtual = new Date(request.dataCheckin);
     const dataFim = new Date(request.dataCheckout);
@@ -45,29 +48,47 @@ export class OrcamentoRapidoService {
       );
       if (isAlta) {
         diasAlta++;
-        somaComCafe += categoria.precoAltaCafe;
-        somaSemCafe += categoria.precoAltaSemCafe;
+        somaComCafeAlta += categoria.precoAltaCafe;
+        somaSemCafeAlta += categoria.precoAltaSemCafe;
       } else {
         diasBaixa++;
-        somaComCafe += categoria.precoBaixaCafe;
-        somaSemCafe += categoria.precoBaixaSemCafe;
+        somaComCafeBaixa += categoria.precoBaixaCafe;
+        somaSemCafeBaixa += categoria.precoBaixaSemCafe;
       }
       dataAtual.setDate(dataAtual.getDate() + 1);
     }
+
+    const somaComCafe = somaComCafeAlta + somaComCafeBaixa;
+    const somaSemCafe = somaSemCafeAlta + somaSemCafeBaixa;
 
     const tipoTemporada = diasAlta > 0 && diasBaixa > 0 ? 'misto' : diasAlta > 0 ? 'alta' : 'baixa';
     const valorTotalComCafe = somaComCafe * request.quantidade;
     const valorTotalSemCafe = somaSemCafe * request.quantidade;
 
     // ===== LÓGICA DE PROMOÇÃO CENTRALIZADA =====
-    const resultadoPromo = MensagemUtils.processarPromocao(config, numeroNoites, diasAlta);
+    const resultadoPromo = MensagemUtils.processarPromocao(
+      config,
+      numeroNoites,
+      diasAlta,
+      request.dataCheckin,
+      request.dataCheckout,
+    );
 
-    const valorFinalComCafe = resultadoPromo.aplicada
-      ? valorTotalComCafe * (1 - resultadoPromo.desconto)
-      : valorTotalComCafe;
-    const valorFinalSemCafe = resultadoPromo.aplicada
-      ? valorTotalSemCafe * (1 - resultadoPromo.desconto)
-      : valorTotalSemCafe;
+    let valorFinalComCafe = valorTotalComCafe;
+    let valorFinalSemCafe = valorTotalSemCafe;
+
+    if (resultadoPromo.aplicada) {
+      const fatorDesconto = 1 - resultadoPromo.desconto;
+
+      // Aplica desconto SEMPRE apenas nos dias de alta temporada (período da promoção)
+      const totalAltaCom = somaComCafeAlta * request.quantidade;
+      const totalAltaSem = somaSemCafeAlta * request.quantidade;
+      const totalBaixaCom = somaComCafeBaixa * request.quantidade;
+      const totalBaixaSem = somaSemCafeBaixa * request.quantidade;
+
+      valorFinalComCafe = totalAltaCom * fatorDesconto + totalBaixaCom;
+      valorFinalSemCafe = totalAltaSem * fatorDesconto + totalBaixaSem;
+    }
 
     const textoWhatsApp = this.gerarTextoWhatsApp(categoria, {
       request,

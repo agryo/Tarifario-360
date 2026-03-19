@@ -79,6 +79,8 @@ export class MensagemUtils {
     config: ConfiguracaoGeral,
     noites: number,
     diasAlta: number,
+    checkin?: Date,
+    checkout?: Date,
   ): { texto: string; aplicada: boolean; desconto: number } {
     if (!config.promocao.ativa) {
       return { texto: '', aplicada: false, desconto: 0 };
@@ -86,35 +88,85 @@ export class MensagemUtils {
 
     const { desconto, minDiarias, texto: promoTexto, somenteAlta, msgBaixa } = config.promocao;
 
-    let aplicarPromo = true;
-    let exibirApenasMsg = false;
+    // 1. Verifica elegibilidade da promoção (dias dentro do período promocional >= minDiarias)
+    let diasElegiveis = diasAlta;
 
-    // Se for somente alta e não houver dias de alta
-    if (somenteAlta && diasAlta === 0) {
-      aplicarPromo = false;
-      if (msgBaixa) exibirApenasMsg = true;
+    // Cálculo de fallback: Se diasAlta vier zerado (ex: tabela-opcoes), tenta calcular via datas se disponíveis
+    if (
+      diasAlta === 0 &&
+      checkin &&
+      checkout &&
+      config.temporada.altaInicio &&
+      config.temporada.altaFim
+    ) {
+      const inicioPromo = new Date(config.temporada.altaInicio + 'T00:00:00');
+      const fimPromo = new Date(config.temporada.altaFim + 'T00:00:00');
+      const current = new Date(checkin);
+      current.setHours(0, 0, 0, 0);
+
+      const end = new Date(checkout);
+      end.setDate(end.getDate() - 1); // Última diária é dia anterior ao checkout
+      end.setHours(0, 0, 0, 0);
+
+      let count = 0;
+      // Itera para contar dias dentro do intervalo
+      while (current <= end) {
+        if (current >= inicioPromo && current <= fimPromo) {
+          count++;
+        }
+        current.setDate(current.getDate() + 1);
+      }
+      diasElegiveis = count;
     }
 
+    let aplicarPromo = false;
+
+    // Regra unificada: O desconto só ativa se houver o mínimo de diárias DENTRO do período promocional.
+    // A flag 'somenteAlta' controla apenas a exibição de mensagens fora do período, não a regra de aplicação.
+    if (diasElegiveis >= minDiarias) {
+      aplicarPromo = true;
+    }
+
+    // 2. Lógica de Aplicação do Desconto (Requer período válido e mínimo de noites)
     if (aplicarPromo) {
-      if (noites >= minDiarias) {
+      return {
+        texto: `🔥 *PROMOÇÃO ESPECIAL ATIVA:*\nGanhe *${desconto}% de desconto* para ${promoTexto}!\n👇 *Valores com desconto aplicado:*`,
+        aplicada: true,
+        desconto: desconto / 100,
+      };
+    }
+
+    // 3. Lógica de Exibição de Mensagens (Quando o desconto NÃO é aplicado)
+
+    // Caso A: Tem dias no período (ou é promo geral), mas não atingiu o mínimo -> Incentiva a reserva
+    // Para "somenteAlta", verifica se tem ALGUM dia de alta (diasElegiveis > 0) para mostrar o incentivo
+    if ((somenteAlta && diasElegiveis > 0) || (!somenteAlta && noites > 0)) {
+      return {
+        texto: `🔥 *PROMOÇÃO ESPECIAL:* Reserve *${minDiarias} diárias* ou mais e ganhe *${desconto}% de desconto* para ${promoTexto}!`,
+        aplicada: false,
+        desconto: 0,
+      };
+    }
+
+    // Caso B: Totalmente fora do período (apenas se somenteAlta for true, pois o else acima cobre !somenteAlta)
+    if (!somenteAlta) {
+      // Opção "Somente Alta" DESMARCADA -> Mostra a mensagem de incentivo padrão em qualquer data
+      return {
+        texto: `🔥 *PROMOÇÃO ESPECIAL:* Reserve *${minDiarias} diárias* ou mais e ganhe *${desconto}% de desconto* para ${promoTexto}!`,
+        aplicada: false,
+        desconto: 0,
+      };
+    } else {
+      // Opção "Somente Alta" MARCADA
+      if (msgBaixa) {
+        // Opção "Mensagem na Baixa" MARCADA -> Mostra mensagem alternativa
         return {
-          texto: `🔥 *PROMOÇÃO ESPECIAL ATIVA:*\nGanhe *${desconto}% de desconto* para ${promoTexto}!\n👇 *Valores com desconto aplicado:*`,
-          aplicada: true,
-          desconto: desconto / 100,
-        };
-      } else {
-        return {
-          texto: `🔥 *PROMOÇÃO ESPECIAL:* Reserve *${minDiarias} diárias* ou mais e ganhe *${desconto}% de desconto* para ${promoTexto}!`,
+          texto: `🔥 *PROMOÇÃO ESPECIAL:* Ganhe *${desconto}% de desconto* para ${promoTexto}!`,
           aplicada: false,
           desconto: 0,
         };
       }
-    } else if (exibirApenasMsg) {
-      return {
-        texto: `🔥 *PROMOÇÃO ESPECIAL:* Ganhe *${desconto}% de desconto* para ${promoTexto}!`,
-        aplicada: false,
-        desconto: 0,
-      };
+      // Se "Mensagem na Baixa" estiver desmarcada, não retorna nada (cai no return final)
     }
 
     return { texto: '', aplicada: false, desconto: 0 };
