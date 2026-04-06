@@ -216,8 +216,9 @@ export class OrcamentoRapidoService {
       texto += `\n`;
     }
 
-    texto += `\n📥 *Check-in:* a partir das 14h\n`;
-    texto += `📤 *Check-out:* até as 11h\n\n`;
+    texto += `\n📥 *Check-in:* das 14h às 22h.\n`;
+    texto += `_OBS.: Após esse horário a recepção fecha. Acesso somente para hóspedes acomodados (descanso e circulação normal)._\n`;
+    texto += `📤 *Check-out:* até as 12h\n\n`;
 
     // Horários das refeições (igual ao JS)
     texto += MensagemUtils.formatarHorariosRefeicoes(config);

@@ -189,6 +189,9 @@ export class TabelaOpcoesComponent implements OnInit {
     texto += this.aplicarPromocao(resultados, noites, diasAlta);
 
     texto += MensagemUtils.formatarHorariosRefeicoes(this.config);
+    texto += `\n📥 *Check-in:* das 14h às 22h.\n`;
+    texto += `_OBS.: Após esse horário a recepção fecha. Acesso somente para hóspedes acomodados (descanso e circulação normal)._\n`;
+    texto += `📤 *Check-out:* até as 12h.\n\n`;
     texto += `\n⚠️ _Valores sujeitos a disponibilidade no ato da reserva._\n\nDeseja garantir sua reserva?`;
 
     this.textoPrevia = texto;
