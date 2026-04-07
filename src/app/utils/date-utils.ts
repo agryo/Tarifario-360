@@ -12,7 +12,7 @@ export class DateUtils {
 
   // ===== CONSTANTES =====
   static readonly HORA_CHECKIN = '14:00';
-  static readonly HORA_CHECKOUT = '11:00';
+  static readonly HORA_CHECKOUT = '12:00';
 
   // ===== DATAS ATUAIS =====
   static hoje(): Date {
