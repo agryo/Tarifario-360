@@ -339,7 +339,7 @@ export class OrcamentoOficialComponent implements OnInit {
     let extraCharge = 0;
     if (this.horasExtras > 0 && noites > 0) {
       const baseDaily = totalBaseHospedagem / noites;
-      const hourlyRate = baseDaily / 21;
+      const hourlyRate = baseDaily / DateUtils.getDuracaoDiariaPadrao();
       extraCharge = hourlyRate * this.horasExtras * item.quantidade;
     }
 
@@ -376,7 +376,11 @@ export class OrcamentoOficialComponent implements OnInit {
     const [hSai, mSai] = this.horaSaida.split(':').map(Number);
     dtSaida.setHours(hSai, mSai, 0, 0);
 
-    const dtStandardEnd = new Date(dtEntrada.getTime() + 21 * 60 * 60 * 1000);
+    const noites = this.calcularNoites(this.dataCheckin, this.dataCheckout);
+    const duracaoPadraoMs =
+      ((noites - 1) * 24 + DateUtils.getDuracaoDiariaPadrao()) * 60 * 60 * 1000;
+
+    const dtStandardEnd = new Date(dtEntrada.getTime() + duracaoPadraoMs);
     const diffMs = dtSaida.getTime() - dtStandardEnd.getTime();
     this.horasExtras = Math.max(0, diffMs / (1000 * 60 * 60));
   }

@@ -117,4 +117,13 @@ export class DateUtils {
     const diff = dia === 6 ? 0 : 6 - dia;
     return this.adicionarDias(data, diff);
   }
+
+  /**
+   * Calcula a duração padrão de uma diária em horas (ex: 14:00 às 12:00 = 22h)
+   */
+  static getDuracaoDiariaPadrao(): number {
+    const hIn = parseInt(this.HORA_CHECKIN.split(':')[0], 10);
+    const hOut = parseInt(this.HORA_CHECKOUT.split(':')[0], 10);
+    return 24 - hIn + hOut;
+  }
 }
