@@ -1,4 +1,4 @@
-import { Component, OnInit, Output, EventEmitter, LOCALE_ID } from '@angular/core';
+import { Component, OnInit, LOCALE_ID } from '@angular/core';
 import { CommonModule, registerLocaleData } from '@angular/common';
 import { Router } from '@angular/router';
 import localePt from '@angular/common/locales/pt';
@@ -33,8 +33,6 @@ export class OrcamentoRapidoComponent implements OnInit {
   categoriaId: string | null = null;
   dataCheckin: Date = DateUtils.hoje();
   dataCheckout: Date = DateUtils.amanha();
-  quantidade: number = 1; // fixo
-  incluirCafe: boolean = true; // fixo
 
   textoOrcamento: string = '';
   hoje: Date = DateUtils.hoje();
@@ -103,18 +101,6 @@ export class OrcamentoRapidoComponent implements OnInit {
         summary: 'Copiado!',
         detail: 'Orçamento copiado para a área de transferência.',
       });
-    });
-  }
-
-  limpar() {
-    this.categoriaId = this.categorias.length ? this.categorias[0].id : null;
-    this.dataCheckin = DateUtils.hoje();
-    this.dataCheckout = DateUtils.amanha();
-    this.gerarOrcamento();
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Limpo',
-      detail: 'Campos reiniciados.',
     });
   }
 

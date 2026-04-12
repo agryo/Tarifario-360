@@ -1,4 +1,4 @@
-import { Component, OnInit, Output, EventEmitter, LOCALE_ID } from '@angular/core';
+import { Component, OnInit, LOCALE_ID } from '@angular/core';
 import { CommonModule, registerLocaleData } from '@angular/common';
 import localePt from '@angular/common/locales/pt';
 import { FormsModule } from '@angular/forms';
@@ -157,13 +157,6 @@ export class TabelaOpcoesComponent implements OnInit {
         cat.grupo === 'solteiro' && cat.capacidadeMaxima === 1
           ? 'Apenas 1 pessoa'
           : `Até ${cat.capacidadeMaxima} pessoas`;
-
-      const txtDiariaCom =
-        diariaMediaCom.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) +
-        (isMisto ? ' (média)' : '');
-      const txtDiariaSem =
-        diariaMediaSem.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) +
-        (isMisto ? ' (média)' : '');
 
       texto += `\n🟢 *${cat.nome.toUpperCase()}*\n`;
       if (cat.descricao) texto += `_${cat.descricao}_\n`;

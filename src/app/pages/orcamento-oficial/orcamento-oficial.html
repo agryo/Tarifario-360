@@ -311,14 +311,33 @@
           <td>
             <span *ngIf="item.comCafe">Café</span>
             <span *ngIf="item.comAlmoco && item.qtdAlmoco">
-              + {{ item.qtdAlmoco }} Almoço{{ item.qtdAlmoco > 1 ? 's' : '' }}</span
+              {{ item.comCafe ? '+ ' : '' }}{{ item.qtdAlmoco }} Almoço{{
+                item.qtdAlmoco > 1 ? 's' : ''
+              }}</span
             >
             <span *ngIf="item.comJanta && item.qtdJanta">
-              + {{ item.qtdJanta }} Janta{{ item.qtdJanta > 1 ? 's' : '' }}</span
+              {{ item.comCafe || (item.comAlmoco && item.qtdAlmoco) ? '+ ' : ''
+              }}{{ item.qtdJanta }} Janta{{ item.qtdJanta > 1 ? 's' : '' }}</span
             >
             <span *ngIf="item.comLanche && item.qtdLanche">
-              + {{ item.qtdLanche }} Lanche{{ item.qtdLanche > 1 ? 's' : '' }}</span
+              {{
+                item.comCafe ||
+                (item.comAlmoco && item.qtdAlmoco) ||
+                (item.comJanta && item.qtdJanta)
+                  ? '+ '
+                  : ''
+              }}{{ item.qtdLanche }} Lanche{{ item.qtdLanche > 1 ? 's' : '' }}</span
             >
+            <span
+              *ngIf="
+                !item.comCafe &&
+                (!item.comAlmoco || !item.qtdAlmoco) &&
+                (!item.comJanta || !item.qtdJanta) &&
+                (!item.comLanche || !item.qtdLanche)
+              "
+            >
+              Nenhum
+            </span>
           </td>
           <td class="alinhar-direita">{{ item.precoDiaria | currency: 'BRL' }}</td>
           <td class="alinhar-direita">
@@ -328,7 +347,7 @@
               {{ horasExtras > 1 ? 'horas extra' : 'hora extra' }})</span
             >
           </td>
-          <td class="alinhar-direita">{{ item._totalItem | currency: 'BRL' }}</td>
+          <td class="alinhar-direita">{{ item.total | currency: 'BRL' }}</td>
         </tr>
       </tbody>
       <tfoot>

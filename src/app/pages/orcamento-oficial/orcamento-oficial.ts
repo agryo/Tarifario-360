@@ -1,4 +1,4 @@
-import { Component, OnInit, Output, EventEmitter, LOCALE_ID } from '@angular/core';
+import { Component, OnInit, LOCALE_ID } from '@angular/core';
 import { CommonModule, registerLocaleData } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -14,12 +14,10 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { MessageService } from 'primeng/api';
-import { ConfirmationService } from 'primeng/api';
+import { MessageService, ConfirmationService } from 'primeng/api';
 
 // Services
 import { TarifaService } from '../../services/tarifa';
-import { OrcamentoOficialService } from '../../services/orcamento-oficial';
 import { CriptografiaService } from '../../services/criptografia';
 import { DateUtils } from '../../utils/date-utils';
 import { ImpressaoService } from '../../utils/impressao-service';
@@ -48,11 +46,8 @@ export interface ItemOrcamento {
   precoDiaria: number; // preço médio por diária (acomodação + refeições inclusas)
   total: number;
   // campos auxiliares para exibição (não persistidos)
-  _subtotalAcomodacao?: number;
-  _subtotalRefeicoes?: number;
   _subtotalSemExtra?: number;
   _extraCharge?: number;
-  _totalItem?: number;
   // contagens de refeições para exibição
   qtdAlmoco?: number;
   qtdJanta?: number;
@@ -102,7 +97,6 @@ export class OrcamentoOficialComponent implements OnInit {
 
   constructor(
     private tarifaService: TarifaService,
-    private orcamentoService: OrcamentoOficialService,
     private messageService: MessageService,
     private confirmationService: ConfirmationService,
     private impressaoService: ImpressaoService,
@@ -351,11 +345,8 @@ export class OrcamentoOficialComponent implements OnInit {
     item.total = totalItem;
 
     // Guardar valores auxiliares para exibição
-    item._subtotalAcomodacao = totalBaseHospedagem * item.quantidade;
-    item._subtotalRefeicoes = totalRefeicoes * item.quantidade;
     item._subtotalSemExtra = totalItemSemExtra;
     item._extraCharge = extraCharge;
-    item._totalItem = totalItem;
     item.qtdAlmoco = qtdAlmoco;
     item.qtdJanta = qtdJanta;
     item.qtdLanche = qtdLanche;
