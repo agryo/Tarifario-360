@@ -1,6 +1,5 @@
-import { Component, OnInit, Output, EventEmitter, LOCALE_ID } from '@angular/core';
-import { CommonModule, registerLocaleData } from '@angular/common';
-import localePt from '@angular/common/locales/pt';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -14,6 +13,7 @@ import { MessageService } from 'primeng/api';
 // Services
 import { TarifaService } from '../../services/tarifa';
 import { ImpressaoService } from '../../utils/impressao-service';
+import { MensagemUtils } from '../../utils/mensagem-utils';
 
 // Model impressão
 import { ImpressaoTabelaCSS } from './impressao-styles';
@@ -21,9 +21,6 @@ import { ImpressaoTabelaCSS } from './impressao-styles';
 // Models
 import { CategoriaQuarto } from '../../models/categoria-quarto.model';
 import { ConfiguracaoGeral } from '../../models/tarifa.model';
-
-// Registra a localização pt-BR
-registerLocaleData(localePt);
 
 interface GrupoUHs {
   prioridade: number;
@@ -35,7 +32,7 @@ interface GrupoUHs {
   selector: 'app-tabela-precos',
   standalone: true,
   imports: [CommonModule, FormsModule, ButtonModule, CardModule, ToastModule, MessageModule],
-  providers: [{ provide: LOCALE_ID, useValue: 'pt-BR' }],
+  providers: [],
   templateUrl: './tabela-precos.html',
   styleUrls: ['./tabela-precos.scss'],
 })
@@ -103,10 +100,10 @@ export class TabelaPrecosComponent implements OnInit {
     categorias.forEach((cat) => {
       if (processados.has(cat.id)) return;
 
-      const catNumeros = cat.numeros ? [...cat.numeros].sort() : [];
+      const catNumeros = [...(cat.numeros ?? [])].sort();
 
       const mesmoGrupo = categorias.filter((c) => {
-        const cNumeros = c.numeros ? [...c.numeros].sort() : [];
+        const cNumeros = [...(c.numeros ?? [])].sort();
         return JSON.stringify(cNumeros) === JSON.stringify(catNumeros);
       });
 
@@ -114,7 +111,7 @@ export class TabelaPrecosComponent implements OnInit {
 
       let prioridade = 3;
       const nomeLower = (cat.nome || '').toLowerCase();
-      const temCasal = (cat.camasCasal || 0) > 0;
+      const temCasal = (cat.camasCasal ?? 0) > 0;
 
       if (
         nomeLower.includes('master') ||
@@ -145,14 +142,7 @@ export class TabelaPrecosComponent implements OnInit {
   }
 
   getCamasText(item: CategoriaQuarto): string {
-    const camas: string[] = [];
-    if (item.camasCasal && item.camasCasal > 0) {
-      camas.push(`${item.camasCasal} Cama de Casal`);
-    }
-    if (item.camasSolteiro && item.camasSolteiro > 0) {
-      camas.push(`${item.camasSolteiro} Cama de Solteiro`);
-    }
-    return camas.join(' e ') || 'Configuração de camas não definida';
+    return MensagemUtils.formatarCamas(item) || 'Configuração de camas não definida';
   }
 
   getLabelSufixo(item: CategoriaQuarto, grupo: GrupoUHs): string {

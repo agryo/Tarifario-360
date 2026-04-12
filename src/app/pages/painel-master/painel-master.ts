@@ -3,13 +3,11 @@ import {
   OnInit,
   Output,
   EventEmitter,
-  LOCALE_ID,
   Input,
   OnChanges,
   SimpleChanges,
 } from '@angular/core';
-import { CommonModule, registerLocaleData } from '@angular/common';
-import localePt from '@angular/common/locales/pt';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 // PrimeNG
@@ -39,8 +37,6 @@ import { CategoriaQuarto } from '../../models/categoria-quarto.model';
 import { ConfiguracaoGeral } from '../../models/tarifa.model';
 import { DateUtils } from '../../utils/date-utils';
 
-registerLocaleData(localePt);
-
 @Component({
   selector: 'app-painel-master',
   standalone: true,
@@ -63,7 +59,7 @@ registerLocaleData(localePt);
     FieldsetModule,
     DatePickerModule,
   ],
-  providers: [ConfirmationService, { provide: LOCALE_ID, useValue: 'pt-BR' }],
+  providers: [ConfirmationService],
   templateUrl: './painel-master.html',
   styleUrls: ['./painel-master.scss'],
 })
@@ -97,7 +93,7 @@ export class PainelMasterComponent implements OnInit, OnChanges {
   novaSenhaInput: string = '';
   confirmarSenhaInput: string = '';
 
-  hoje: Date = new Date(); // Para o atributo min dos datepickers
+  hoje: Date = DateUtils.hoje(); // Para o atributo min dos datepickers
 
   constructor(
     private tarifaService: TarifaService,
@@ -352,8 +348,7 @@ export class PainelMasterComponent implements OnInit, OnChanges {
 
   // ===== BACKUP =====
   exportarBackup() {
-    const backup = this.backupService.exportarDados();
-    this.backupService.downloadBackup(backup);
+    this.backupService.exportarArquivoCompleto();
     this.messageService.add({
       severity: 'success',
       summary: 'Backup exportado',
@@ -361,53 +356,25 @@ export class PainelMasterComponent implements OnInit, OnChanges {
     });
   }
 
-  importarBackup(event: Event) {
+  async importarBackup(event: Event) {
     const target = event.target as HTMLInputElement;
     const file = target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e: ProgressEvent<FileReader>) => {
-      try {
-        const rawContent = e.target?.result as string;
 
-        // Tenta descriptografar (.btf)
-        const backup = this.criptografia.descriptografarDados(rawContent);
+    const resultado = await this.backupService.importarArquivo(file);
 
-        if (!backup) {
-          throw new Error('Formato de arquivo inválido ou corrompido.');
-        }
+    if (resultado.sucesso) {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Sucesso',
+        detail: resultado.mensagem,
+      });
+      this.carregarDados(); // Recarrega os dados na tela
+    } else {
+      this.messageService.add({ severity: 'error', summary: 'Erro', detail: resultado.mensagem });
+    }
 
-        const resultado = this.backupService.importarDados(backup);
-        if (resultado.sucesso) {
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Sucesso',
-            detail: resultado.mensagem,
-          });
-          this.carregarDados(); // recarrega todos os dados
-        } else {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Erro',
-            detail: resultado.mensagem,
-          });
-        }
-      } catch (error) {
-        console.error('Erro ao importar backup:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Erro',
-          detail: 'Arquivo de backup inválido ou corrompido',
-        });
-      } finally {
-        /** 
-          Limpa o valor do input para permitir que o evento (change) seja disparado
-          novamente se o mesmo arquivo for selecionado. 
-        **/
-        target.value = '';
-      }
-    };
-    reader.readAsText(file);
+    target.value = '';
   }
 
   limparCache() {

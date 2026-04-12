@@ -1,4 +1,4 @@
-import { Component, OnInit, Output, EventEmitter, LOCALE_ID } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule, registerLocaleData } from '@angular/common';
 import localePt from '@angular/common/locales/pt';
 import { FormsModule } from '@angular/forms';
@@ -16,9 +16,6 @@ import { MessageService } from 'primeng/api';
 import { TarifaService } from '../../services/tarifa';
 import { DateUtils } from '../../utils/date-utils';
 
-// Registra a localização pt-BR
-registerLocaleData(localePt);
-
 @Component({
   selector: 'app-wallbox',
   standalone: true,
@@ -31,7 +28,7 @@ registerLocaleData(localePt);
     InputTextModule,
     TooltipModule,
   ],
-  providers: [{ provide: LOCALE_ID, useValue: 'pt-BR' }],
+  providers: [],
   templateUrl: './wallbox.html',
   styleUrls: ['./wallbox.scss'],
 })

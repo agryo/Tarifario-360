@@ -1,4 +1,4 @@
-import { Component, OnInit, LOCALE_ID } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule, registerLocaleData } from '@angular/common';
 import localePt from '@angular/common/locales/pt';
 import { FormsModule } from '@angular/forms';
@@ -17,8 +17,6 @@ import { TarifaService } from '../../services/tarifa';
 import { DateUtils } from '../../utils/date-utils';
 import { ConfiguracaoGeral } from '../../models/tarifa.model';
 import { MensagemUtils } from '../../utils/mensagem-utils';
-
-registerLocaleData(localePt);
 
 interface CategoriaComSelecao {
   id: string;
@@ -49,7 +47,7 @@ interface CategoriaComSelecao {
     CheckboxModule,
     TooltipModule,
   ],
-  providers: [{ provide: LOCALE_ID, useValue: 'pt-BR' }],
+  providers: [],
   templateUrl: './tabela-opcoes.html',
   styleUrls: ['./tabela-opcoes.scss'],
 })

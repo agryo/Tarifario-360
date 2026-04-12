@@ -1,8 +1,7 @@
-import { Component, OnInit, LOCALE_ID } from '@angular/core';
-import { CommonModule, registerLocaleData } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import localePt from '@angular/common/locales/pt';
 
 // PrimeNG
 import { ButtonModule } from 'primeng/button';
@@ -21,6 +20,7 @@ import { TarifaService } from '../../services/tarifa';
 import { CriptografiaService } from '../../services/criptografia';
 import { DateUtils } from '../../utils/date-utils';
 import { ImpressaoService } from '../../utils/impressao-service';
+import { MensagemUtils } from '../../utils/mensagem-utils';
 
 // Pipes
 import { SubstituirPlaceholdersPipe } from '../../pipes/substituir-placeholders-pipe';
@@ -29,8 +29,6 @@ import { SubstituirPlaceholdersPipe } from '../../pipes/substituir-placeholders-
 import { CategoriaQuarto } from '../../models/categoria-quarto.model';
 import { ConfiguracaoGeral } from '../../models/tarifa.model';
 import { ImpressaoOrcamentoCSS } from './impressao-styles';
-
-registerLocaleData(localePt);
 
 export interface ItemOrcamento {
   id?: string;
@@ -73,7 +71,7 @@ type Refeicao = 'comCafe' | 'comAlmoco' | 'comJanta' | 'comLanche';
     ConfirmDialogModule,
     SubstituirPlaceholdersPipe,
   ],
-  providers: [{ provide: LOCALE_ID, useValue: 'pt-BR' }],
+  providers: [],
   templateUrl: './orcamento-oficial.html',
   styleUrls: ['./orcamento-oficial.scss'],
 })
@@ -162,7 +160,7 @@ export class OrcamentoOficialComponent implements OnInit {
       quantidade: 1,
       categoriaId: this.categorias[0].id,
       categoriaNome: this.categorias[0].nome,
-      camasDescricao: this.formatarCamas(this.categorias[0]),
+      camasDescricao: this.formatarCamas(this.categorias[0]), // Mantém wrapper local ou migra direto para pipe
       descricao: '',
       comCafe: true,
       comAlmoco: false,
@@ -400,14 +398,8 @@ export class OrcamentoOficialComponent implements OnInit {
   }
 
   formatarCamas(cat: any): string {
-    const partes = [];
-    if (cat.camasCasal > 0) {
-      partes.push(`${cat.camasCasal} ${cat.camasCasal > 1 ? 'Camas' : 'Cama'} Casal`);
-    }
-    if (cat.camasSolteiro > 0) {
-      partes.push(`${cat.camasSolteiro} ${cat.camasSolteiro > 1 ? 'Camas' : 'Cama'} Solteiro`);
-    }
-    return partes.length > 0 ? `(${partes.join(' + ')})` : '';
+    const txt = MensagemUtils.formatarCamas(cat);
+    return txt ? `(${txt})` : '';
   }
 
   // ===== MÉTODOS PARA BOTÕES ÚNICOS =====

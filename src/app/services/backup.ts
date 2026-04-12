@@ -79,7 +79,7 @@ export class BackupService {
 
       // Escala (substituição)
       if (backup.escalaConfig) {
-        this.escalaService.importarDados(backup.escalaConfig);
+        this.escalaService.salvarConfiguracao(backup.escalaConfig);
       }
 
       return { sucesso: true, mensagem: 'Backup importado com sucesso!' };
@@ -87,6 +87,11 @@ export class BackupService {
       console.error('Erro na importação:', error);
       return { sucesso: false, mensagem: 'Erro ao processar o arquivo.' };
     }
+  }
+
+  exportarArquivoCompleto(nomeArquivo: string = 'backup'): void {
+    const backup = this.exportarDados();
+    this.downloadBackup(backup, nomeArquivo);
   }
 
   downloadBackup(backup: BackupData, nomeArquivo: string = 'backup'): void {
@@ -100,26 +105,31 @@ export class BackupService {
     URL.revokeObjectURL(url);
   }
 
-  uploadBackup(arquivo: File): Promise<BackupData> {
-    return new Promise((resolve, reject) => {
+  importarArquivo(arquivo: File): Promise<{ sucesso: boolean; mensagem: string }> {
+    return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         try {
-          const content = e.target?.result as string;
-          // Tenta descriptografar (.btf)
-          const backup = this.criptografia.descriptografarDados(content);
-
-          if (!backup) {
-            reject('Arquivo inválido ou corrompido');
-            return;
+          const rawContent = e.target?.result as string;
+          if (!rawContent) {
+            return resolve({ sucesso: false, mensagem: 'O arquivo está vazio.' });
           }
 
-          resolve(backup);
-        } catch {
-          reject('Arquivo inválido');
+          const backup = this.criptografia.descriptografarDados(rawContent);
+          if (!backup) {
+            return resolve({
+              sucesso: false,
+              mensagem: 'Formato de arquivo inválido ou corrompido.',
+            });
+          }
+
+          resolve(this.importarDados(backup));
+        } catch (error) {
+          resolve({ sucesso: false, mensagem: 'Erro inesperado ao processar o backup.' });
         }
       };
-      reader.onerror = () => reject('Erro ao ler arquivo');
+      reader.onerror = () =>
+        resolve({ sucesso: false, mensagem: 'Erro na leitura física do arquivo.' });
       reader.readAsText(arquivo);
     });
   }

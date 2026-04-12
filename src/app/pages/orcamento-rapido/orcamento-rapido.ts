@@ -1,4 +1,4 @@
-import { Component, OnInit, LOCALE_ID } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule, registerLocaleData } from '@angular/common';
 import { Router } from '@angular/router';
 import localePt from '@angular/common/locales/pt';
@@ -16,13 +16,11 @@ import { OrcamentoRapidoService } from '../../services/orcamento-rapido';
 import { DateUtils } from '../../utils/date-utils';
 import { ConfiguracaoGeral } from '../../models/tarifa.model';
 
-registerLocaleData(localePt);
-
 @Component({
   selector: 'app-orcamento-rapido',
   standalone: true,
   imports: [CommonModule, FormsModule, Button, Select, DatePicker],
-  providers: [{ provide: LOCALE_ID, useValue: 'pt-BR' }],
+  providers: [],
   templateUrl: './orcamento-rapido.html',
   styleUrls: ['./orcamento-rapido.scss'],
 })
