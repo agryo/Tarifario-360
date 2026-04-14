@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule, registerLocaleData } from '@angular/common';
-import localePt from '@angular/common/locales/pt';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -139,7 +138,7 @@ export class TabelaOpcoesComponent implements OnInit {
     );
 
     let texto = `*ORÇAMENTO DE HOSPEDAGEM*\n\n`;
-    texto += `🏨 *Hotel Plaza - Cruzeta/RN*\n\n`;
+    texto += `🏨 *Hotel Plaza - Cruzeta/RN*\n`;
     texto += `📅 *Período:* ${d1.toLocaleDateString('pt-BR')} a ${d2.toLocaleDateString('pt-BR')}\n`;
     texto += `🌙 *Duração:* ${noites} diária(s)\n\n------ *OPÇÕES DE ACOMODAÇÃO* ------\n`;
 
@@ -180,10 +179,10 @@ export class TabelaOpcoesComponent implements OnInit {
     texto += this.aplicarPromocao(resultados, noites, diasAlta);
 
     texto += MensagemUtils.formatarHorariosRefeicoes(this.config);
-    texto += `\n📥 *Check-in:* das 14h às 22h.\n`;
+    texto += `📥 *Check-in:* das 14h às 22h.\n`;
     texto += `_OBS.: Após esse horário a recepção fecha. Acesso somente para hóspedes acomodados (descanso e circulação normal)._\n`;
     texto += `📤 *Check-out:* até as 12h.\n\n`;
-    texto += `\n⚠️ _Valores sujeitos a disponibilidade no ato da reserva._\n\nDeseja garantir sua reserva?`;
+    texto += `⚠️ _Valores sujeitos a disponibilidade no ato da reserva._\n\nDeseja garantir sua reserva?`;
 
     this.textoPrevia = texto;
   }

@@ -1,7 +1,6 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
-import { CommonModule, registerLocaleData } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import localePt from '@angular/common/locales/pt';
 import { FormsModule } from '@angular/forms';
 import html2canvas from 'html2canvas';
 

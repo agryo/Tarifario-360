@@ -160,7 +160,7 @@ export class OrcamentoOficialComponent implements OnInit {
       quantidade: 1,
       categoriaId: this.categorias[0].id,
       categoriaNome: this.categorias[0].nome,
-      camasDescricao: this.formatarCamas(this.categorias[0]), // Mantém wrapper local ou migra direto para pipe
+      camasDescricao: this.formatarCamas(this.categorias[0]),
       descricao: '',
       comCafe: true,
       comAlmoco: false,
