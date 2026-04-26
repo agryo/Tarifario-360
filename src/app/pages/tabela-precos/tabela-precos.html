@@ -55,9 +55,9 @@
       <div class="conteudo-detalhes">
         <div class="titulo-uh">{{ getTituloCategoria(grupo.itens[0].nome) }}</div>
 
-        <!-- Comodidades globais (da configuração) -->
-        <div class="comodidades-gerais" *ngIf="config.comodidadesGlobais">
-          {{ config.comodidadesGlobais }}
+        <!-- Comodidades específicas da categoria -->
+        <div class="comodidades-gerais" *ngIf="grupo.comodidades">
+          {{ grupo.comodidades }}
         </div>
 
         <!-- Itens do grupo -->

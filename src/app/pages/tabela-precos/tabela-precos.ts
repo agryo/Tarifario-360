@@ -26,6 +26,7 @@ interface GrupoUHs {
   prioridade: number;
   uhs: string;
   itens: CategoriaQuarto[];
+  comodidades: string;
 }
 
 @Component({
@@ -127,6 +128,7 @@ export class TabelaPrecosComponent implements OnInit {
         prioridade,
         uhs: catNumeros.join(', '),
         itens: mesmoGrupo,
+        comodidades: cat.comodidadesSelecionadas?.join(', ') || '',
       });
     });
 
