@@ -98,9 +98,15 @@ export const ImpressaoOrcamentoCSS = /* css */ `
   #documento-impressao .tabela-orcamento th,
   #documento-impressao .tabela-orcamento td {
     border: 1px solid #ddd;
-    padding: 6px;
+    padding: 4px 6px;
     font-size: 10px;
     vertical-align: top;
+  }
+
+  /* Garante que descrições extras e parágrafos internos não criem espaços vazios no fundo da linha */
+  #documento-impressao .tabela-orcamento td div,
+  #documento-impressao .tabela-orcamento td p {
+    margin-bottom: 0 !important;
   }
 
   #documento-impressao .tabela-orcamento th {
@@ -111,11 +117,11 @@ export const ImpressaoOrcamentoCSS = /* css */ `
   }
 
   /* Larguras das colunas */
-  #documento-impressao .tabela-orcamento th:nth-child(1) { width: 4% }  /* Qtd */
+  #documento-impressao .tabela-orcamento th:nth-child(1) { width: 5% }  /* Qtd */
   #documento-impressao .tabela-orcamento th:nth-child(2) { width: 28%; } /* Acomodação */
   #documento-impressao .tabela-orcamento th:nth-child(3) { width: 28%; } /* Serviços */
   #documento-impressao .tabela-orcamento th:nth-child(4) { width: 10%; } /* Vlr. Diária */
-  #documento-impressao .tabela-orcamento th:nth-child(5) { width: 20%; } /* Diárias */
+  #documento-impressao .tabela-orcamento th:nth-child(5) { width: 18%; } /* Diárias */
   #documento-impressao .tabela-orcamento th:nth-child(6) { width: 10%; } /* Total */
 
   /* Alinhamento */
@@ -168,7 +174,7 @@ export const ImpressaoOrcamentoCSS = /* css */ `
     width: 45%;
     text-align: center;
     border-top: 1px solid #333;
-    padding-top: 8x;
+    padding-top: 8px;
     font-size: 10px;
   }
 `;
