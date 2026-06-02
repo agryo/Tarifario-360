@@ -284,8 +284,7 @@
         <span
           >{{ dataCheckin | date: 'dd/MM/yyyy' }} a {{ dataCheckout | date: 'dd/MM/yyyy' }}</span
         >
-        (<span>{{ calcularNoites(dataCheckin, dataCheckout) }}</span>
-        {{ calcularNoites(dataCheckin, dataCheckout) === 1 ? 'diária' : 'diárias' }}):
+        ({{ noitesDescricao }}):
       </p>
     </div>
 

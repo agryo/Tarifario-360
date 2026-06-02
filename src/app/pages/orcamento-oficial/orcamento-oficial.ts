@@ -112,8 +112,40 @@ export class OrcamentoOficialComponent implements OnInit {
     this.config = this.tarifaService.getConfiguracao();
   }
 
+  /**
+   * Retorna o número de noites para fins de exibição e cálculo.
+   * Se for o mesmo dia (Day Use), retorna 1 para cobrar a diária cheia.
+   */
+  get noitesCalculadas(): number {
+    const noitesReais = this.calcularNoites(this.dataCheckin, this.dataCheckout);
+    const isDayUse = noitesReais === 0 && !!this.dataCheckin && !!this.dataCheckout;
+    return isDayUse ? 1 : noitesReais;
+  }
+
+  /**
+   * Retorna se a estadia atual é considerada Day Use (mesma data).
+   */
+  get isDayUse(): boolean {
+    return (
+      this.calcularNoites(this.dataCheckin, this.dataCheckout) === 0 &&
+      !!this.dataCheckin &&
+      !!this.dataCheckout
+    );
+  }
+
+  /**
+   * Retorna a descrição textual do período (ex: "Day Use", "1 diária", "2 diárias")
+   */
+  get noitesDescricao(): string {
+    if (this.isDayUse) return 'Day Use';
+    const n = this.noitesCalculadas;
+    return `${n} diária${n !== 1 ? 's' : ''}`;
+  }
+
   getPlaceholderVars(): { [key: string]: string } {
-    const noites = this.calcularNoites(this.dataCheckin, this.dataCheckout);
+    const noites = this.noitesCalculadas;
+    const noitesDesc = this.noitesDescricao;
+
     return {
       cliente: this.cliente || '',
       checkinHora: this.horaEntrada,
@@ -121,6 +153,7 @@ export class OrcamentoOficialComponent implements OnInit {
       checkinDataBr: DateUtils.formatarDataBR(this.dataCheckin),
       checkoutDataBr: DateUtils.formatarDataBR(this.dataCheckout),
       noites: noites.toString(),
+      noitesDescricao: noitesDesc,
       totalGeral: this.totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
       valorAlmoco: (this.config.precos.refeicoes.almoco || 0).toLocaleString('pt-BR', {
         style: 'currency',
@@ -212,7 +245,9 @@ export class OrcamentoOficialComponent implements OnInit {
     const cat = this.categorias.find((c) => c.id === item.categoriaId);
     if (!cat) return;
 
-    const noites = this.calcularNoites(this.dataCheckin, this.dataCheckout);
+    const noites = this.noitesCalculadas;
+    const isMesmoDia = this.isDayUse;
+
     if (noites <= 0) {
       item.precoDiaria = 0;
       item.total = 0;
@@ -266,8 +301,12 @@ export class OrcamentoOficialComponent implements OnInit {
       totalBaseHospedagem = valorDia * noites;
     }
 
-    // Aplicar promoção se ativa
-    if (this.config.promocao.ativa && noites >= (this.config.promocao.minDiarias || 1)) {
+    // Aplicar promoção se ativa (Ignora se for Day Use conforme solicitado: "sem abatimentos")
+    if (
+      !isMesmoDia &&
+      this.config.promocao.ativa &&
+      noites >= (this.config.promocao.minDiarias || 1)
+    ) {
       const isPeriodoAlta =
         this.temporada === 'alta' ||
         (this.temporada === 'auto' &&
@@ -301,25 +340,52 @@ export class OrcamentoOficialComponent implements OnInit {
 
     if (item.comAlmoco) {
       let count = 0;
-      if (arrMin <= this.parseTime(this.config.horarios.almoco.fim)) count++;
-      if (depMin >= this.parseTime(this.config.horarios.almoco.inicio)) count++;
-      count += middleDays;
+      if (isMesmoDia) {
+        if (
+          arrMin <= this.parseTime(this.config.horarios.almoco.fim) &&
+          depMin >= this.parseTime(this.config.horarios.almoco.inicio)
+        ) {
+          count = 1;
+        }
+      } else {
+        if (arrMin <= this.parseTime(this.config.horarios.almoco.fim)) count++;
+        if (depMin >= this.parseTime(this.config.horarios.almoco.inicio)) count++;
+        count += middleDays;
+      }
       qtdAlmoco = count;
       custoAlmoco = count * (this.config.precos.refeicoes.almoco || 0) * capacidade;
     }
     if (item.comJanta) {
       let count = 0;
-      if (arrMin <= this.parseTime(this.config.horarios.jantar.fim)) count++;
-      if (depMin >= this.parseTime(this.config.horarios.jantar.inicio)) count++;
-      count += middleDays;
+      if (isMesmoDia) {
+        if (
+          arrMin <= this.parseTime(this.config.horarios.jantar.fim) &&
+          depMin >= this.parseTime(this.config.horarios.jantar.inicio)
+        ) {
+          count = 1;
+        }
+      } else {
+        if (arrMin <= this.parseTime(this.config.horarios.jantar.fim)) count++;
+        if (depMin >= this.parseTime(this.config.horarios.jantar.inicio)) count++;
+        count += middleDays;
+      }
       qtdJanta = count;
       custoJanta = count * (this.config.precos.refeicoes.janta || 0) * capacidade;
     }
     if (item.comLanche) {
       let count = 0;
-      if (arrMin <= this.parseTime(this.config.horarios.lanche.fim)) count++;
-      if (depMin >= this.parseTime(this.config.horarios.lanche.inicio)) count++;
-      count += middleDays;
+      if (isMesmoDia) {
+        if (
+          arrMin <= this.parseTime(this.config.horarios.lanche.fim) &&
+          depMin >= this.parseTime(this.config.horarios.lanche.inicio)
+        ) {
+          count = 1;
+        }
+      } else {
+        if (arrMin <= this.parseTime(this.config.horarios.lanche.fim)) count++;
+        if (depMin >= this.parseTime(this.config.horarios.lanche.inicio)) count++;
+        count += middleDays;
+      }
       qtdLanche = count;
       custoLanche = count * (this.config.precos.refeicoes.lanche || 0) * capacidade;
     }
@@ -366,6 +432,12 @@ export class OrcamentoOficialComponent implements OnInit {
     dtSaida.setHours(hSai, mSai, 0, 0);
 
     const noites = this.calcularNoites(this.dataCheckin, this.dataCheckout);
+    // Se for o mesmo dia, não há prolongamento de diária (horas extras)
+    if (noites <= 0) {
+      this.horasExtras = 0;
+      return;
+    }
+
     const duracaoPadraoMs =
       ((noites - 1) * 24 + DateUtils.getDuracaoDiariaPadrao()) * 60 * 60 * 1000;
 
@@ -384,7 +456,11 @@ export class OrcamentoOficialComponent implements OnInit {
 
   ajustarDataSaida(): void {
     if (this.dataCheckin && this.dataCheckout) {
-      this.dataCheckout = DateUtils.ajustarDataSaida(this.dataCheckin, this.dataCheckout);
+      // Só ajusta automaticamente se a saída for ANTES da entrada.
+      // Se for IGUAL, agora é permitido manualmente.
+      if (this.dataCheckout < this.dataCheckin) {
+        this.dataCheckout = DateUtils.ajustarDataSaida(this.dataCheckin, this.dataCheckout);
+      }
     }
   }
 
