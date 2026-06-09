@@ -25,7 +25,9 @@ export class OrcamentoRapidoService {
     const categoria = this.tarifaService.getCategoria(request.categoriaId);
     if (!categoria) throw new Error('Categoria não encontrada');
 
-    const numeroNoites = this.calcularNoites(request.dataCheckin, request.dataCheckout);
+    const noitesReais = this.calcularNoites(request.dataCheckin, request.dataCheckout);
+    const isDayUse = noitesReais === 0 && !!request.dataCheckin && !!request.dataCheckout;
+    const numeroNoites = isDayUse ? 1 : noitesReais;
     const config = this.tarifaService.getConfiguracao();
 
     // Calcular preço por noite considerando temporada
@@ -40,7 +42,8 @@ export class OrcamentoRapidoService {
     const dataAtual = new Date(request.dataCheckin);
     const dataFim = new Date(request.dataCheckout);
 
-    while (dataAtual < dataFim) {
+    // Usamos um loop baseado no número de diárias para garantir que Day Use (1 diária) funcione
+    for (let i = 0; i < numeroNoites; i++) {
       const isAlta = this.isAltaTemporada(
         dataAtual,
         config.temporada.altaInicio,
@@ -189,7 +192,14 @@ export class OrcamentoRapidoService {
 
     // Período (usando toLocaleDateString pt-BR)
     texto += `📅 *Período:* ${request.dataCheckin.toLocaleDateString('pt-BR')} a ${request.dataCheckout.toLocaleDateString('pt-BR')}\n`;
-    texto += `🌙 *Duração:* ${numeroNoites} diária(s)\n\n`;
+
+    const isDayUseLocal =
+      numeroNoites === 1 &&
+      request.dataCheckin.getFullYear() === request.dataCheckout.getFullYear() &&
+      request.dataCheckin.getMonth() === request.dataCheckout.getMonth() &&
+      request.dataCheckin.getDate() === request.dataCheckout.getDate();
+
+    texto += `🌙 *Duração:* ${isDayUseLocal ? 'Day Use' : numeroNoites + ' diária(s)'}\n\n`;
 
     // Valor da diária
     const mediaCom = somaComCafe / numeroNoites;

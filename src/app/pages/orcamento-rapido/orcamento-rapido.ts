@@ -54,9 +54,22 @@ export class OrcamentoRapidoComponent implements OnInit {
     }
   }
 
+  onCheckinSelect() {
+    if (this.dataCheckin) {
+      // Ao mudar o check-in, sugere check-out para o dia seguinte por padrão
+      const amanha = new Date(this.dataCheckin);
+      amanha.setDate(amanha.getDate() + 1);
+      this.dataCheckout = amanha;
+    }
+    this.onDataChange();
+  }
+
   onDataChange() {
     if (this.dataCheckin && this.dataCheckout) {
-      this.dataCheckout = DateUtils.ajustarDataSaida(this.dataCheckin, this.dataCheckout);
+      // Só força o ajuste automático se o checkout for ANTES do checkin.
+      if (this.dataCheckout < this.dataCheckin) {
+        this.dataCheckout = DateUtils.ajustarDataSaida(this.dataCheckin, this.dataCheckout);
+      }
     }
     this.gerarOrcamento();
   }
@@ -66,7 +79,7 @@ export class OrcamentoRapidoComponent implements OnInit {
       !this.categoriaId ||
       !this.dataCheckin ||
       !this.dataCheckout ||
-      this.dataCheckout <= this.dataCheckin
+      this.dataCheckout < this.dataCheckin
     ) {
       this.textoOrcamento = '';
       return;

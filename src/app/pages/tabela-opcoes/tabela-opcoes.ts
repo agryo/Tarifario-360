@@ -111,9 +111,23 @@ export class TabelaOpcoesComponent implements OnInit {
     this.gerar();
   }
 
+  onCheckinSelect() {
+    if (this.dataCheckin) {
+      // Comportamento padrão: ao mudar o check-in, sugere check-out para o dia seguinte
+      const amanha = new Date(this.dataCheckin);
+      amanha.setDate(amanha.getDate() + 1);
+      this.dataCheckout = amanha;
+    }
+    this.onDataChange();
+  }
+
   onDataChange() {
     if (this.dataCheckin && this.dataCheckout) {
-      this.dataCheckout = DateUtils.ajustarDataSaida(this.dataCheckin, this.dataCheckout);
+      // Só força o ajuste automático se o checkout for ANTES do checkin.
+      // Se forem iguais (Day Use), agora é permitido manualmente.
+      if (this.dataCheckout < this.dataCheckin) {
+        this.dataCheckout = DateUtils.ajustarDataSaida(this.dataCheckin, this.dataCheckout);
+      }
     }
     this.gerar();
   }
@@ -125,7 +139,11 @@ export class TabelaOpcoesComponent implements OnInit {
       return;
     }
 
-    const noites = this.calcularNoites(this.dataCheckin, this.dataCheckout);
+    const noitesReais = this.calcularNoites(this.dataCheckin, this.dataCheckout);
+    // Se for o mesmo dia, consideramos como 1 diária para fins de cobrança
+    const isDayUse = noitesReais === 0 && !!this.dataCheckin && !!this.dataCheckout;
+    const noites = isDayUse ? 1 : noitesReais;
+
     const d1 = this.dataCheckin;
     const d2 = this.dataCheckout;
 
@@ -140,7 +158,7 @@ export class TabelaOpcoesComponent implements OnInit {
     let texto = `*ORÇAMENTO DE HOSPEDAGEM*\n\n`;
     texto += `🏨 *Hotel Plaza - Cruzeta/RN*\n`;
     texto += `📅 *Período:* ${d1.toLocaleDateString('pt-BR')} a ${d2.toLocaleDateString('pt-BR')}\n`;
-    texto += `🌙 *Duração:* ${noites} diária(s)\n\n------ *OPÇÕES DE ACOMODAÇÃO* ------\n`;
+    texto += `🌙 *Duração:* ${isDayUse ? 'Day Use' : noites + ' diária(s)'}\n\n------ *OPÇÕES DE ACOMODAÇÃO* ------\n`;
 
     const resultados: { nome: string; com: number; sem: number }[] = [];
 
@@ -207,10 +225,8 @@ export class TabelaOpcoesComponent implements OnInit {
       diasBaixa = 0;
     const current = new Date(d1);
     current.setHours(0, 0, 0, 0);
-    const end = new Date(d2);
-    end.setHours(0, 0, 0, 0);
-
-    while (current < end) {
+    // Usamos um loop baseado no número de diárias para garantir que Day Use (1 diária) funcione
+    for (let i = 0; i < noites; i++) {
       const isAlta = DateUtils.isAltaTemporada(
         current,
         this.config.temporada.altaInicio,
