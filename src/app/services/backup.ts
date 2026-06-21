@@ -94,6 +94,16 @@ export class BackupService {
     await this.downloadBackup(backup, nomeArquivo);
   }
 
+  /**
+   * Formata data local para YYYY-MM-DD (sem problema de fuso horário)
+   */
+  private formatarDataLocal(date: Date = new Date()): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   async downloadBackup(backup: BackupData, nomeArquivo: string = 'backup'): Promise<void> {
     // Usa segredo de backup (portável) para permitir importação em outras máquinas
     const encryptedData = await this.criptografia.criptografarDados(backup, true);
@@ -101,7 +111,8 @@ export class BackupService {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${nomeArquivo}_${new Date().toISOString().split('T')[0]}.btf`;
+    // Usa data LOCAL (não UTC) para evitar data do dia seguinte à noite
+    link.download = `${nomeArquivo}_${this.formatarDataLocal()}.btf`;
     link.click();
     URL.revokeObjectURL(url);
   }
@@ -116,6 +127,33 @@ export class BackupService {
     const backup = (await this.criptografia.descriptografarDados(rawContent, true)) as BackupData | null;
     if (!backup) {
       return { sucesso: false, mensagem: 'Formato de arquivo inválido ou corrompido.' };
+    }
+
+    return this.importarDados(backup);
+  }
+
+  // ========== NOVOS MÉTODOS COM SENHA DO USUÁRIO (MAIS SEGURO) ==========
+
+  async downloadBackupComSenha(backup: BackupData, senha: string, nomeArquivo: string = 'backup'): Promise<void> {
+    const encryptedData = await this.criptografia.criptografarBackupComSenha(backup, senha);
+    const blob = new Blob([encryptedData], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${nomeArquivo}_${this.formatarDataLocal()}.btf`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async importarArquivoComSenha(arquivo: File, senha: string): Promise<{ sucesso: boolean; mensagem: string }> {
+    const rawContent = await arquivo.text();
+    if (!rawContent) {
+      return { sucesso: false, mensagem: 'O arquivo está vazio.' };
+    }
+
+    const backup = (await this.criptografia.descriptografarBackupComSenha(rawContent, senha)) as BackupData | null;
+    if (!backup) {
+      return { sucesso: false, mensagem: 'Senha incorreta ou arquivo corrompido.' };
     }
 
     return this.importarDados(backup);

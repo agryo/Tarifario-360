@@ -31,6 +31,97 @@ export class CriptografiaService {
   }
 
   /**
+   * Deriva chave de backup a partir de senha do usuário (PBKDF2 nativo).
+   * Muito mais seguro que chave fixa no código.
+   * @param senha Senha fornecida pelo usuário
+   * @param salt Salt opcional (se não fornecido, gera novo)
+   * @returns { key, salt } - Chave CryptoKey e salt usado
+   */
+  async derivarChaveBackup(senha: string, salt?: Uint8Array): Promise<{ key: CryptoKey; salt: Uint8Array }> {
+    const encoder = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(senha),
+      { name: 'PBKDF2' },
+      false,
+      ['deriveKey']
+    );
+
+    const saltBuffer = salt || crypto.getRandomValues(new Uint8Array(16));
+
+    const key = await crypto.subtle.deriveKey(
+      {
+        name: 'PBKDF2',
+        salt: saltBuffer as BufferSource,
+        iterations: this.PBKDF2_ITERATIONS,
+        hash: 'SHA-256',
+      },
+      keyMaterial,
+      { name: 'AES-CBC', length: this.KEY_SIZE },
+      false,
+      ['encrypt', 'decrypt']
+    );
+
+    return { key, salt: saltBuffer };
+  }
+
+  /**
+   * Criptografa backup usando senha do usuário (mais seguro).
+   * @param dados Dados do backup
+   * @param senha Senha do usuário
+   * @returns String criptografada no formato: salt:iv:ciphertext
+   */
+  async criptografarBackupComSenha(dados: unknown, senha: string): Promise<string> {
+    const jsonStr = JSON.stringify(dados);
+    const encoder = new TextEncoder();
+    const data = encoder.encode(jsonStr);
+
+    const iv = crypto.getRandomValues(new Uint8Array(16));
+    const { key, salt } = await this.derivarChaveBackup(senha);
+
+    const encrypted = await crypto.subtle.encrypt(
+      { name: 'AES-CBC', iv },
+      key,
+      data
+    );
+
+    // Cast para ArrayBuffer para evitar erro de tipo (SharedArrayBuffer vs ArrayBuffer)
+    return `${this.bufferToHex(salt.buffer as ArrayBuffer)}:${this.bufferToHex(iv.buffer as ArrayBuffer)}:${this.bufferToHex(encrypted as ArrayBuffer)}`;
+  }
+
+  /**
+   * Descriptografa backup usando senha do usuário.
+   * @param dadosCriptografados String no formato salt:iv:ciphertext
+   * @param senha Senha do usuário
+   * @returns Objeto descriptografado ou null se falhar
+   */
+  async descriptografarBackupComSenha(dadosCriptografados: string, senha: string): Promise<unknown> {
+    try {
+      const parts = dadosCriptografados.split(':');
+      if (parts.length !== 3) return null;
+
+      const [saltHex, ivHex, ciphertextHex] = parts;
+      const salt = this.hexToBuffer(saltHex);
+      const iv = this.hexToBuffer(ivHex);
+      const ciphertext = this.hexToBuffer(ciphertextHex);
+
+      const { key } = await this.derivarChaveBackup(senha, new Uint8Array(salt));
+
+      const decrypted = await crypto.subtle.decrypt(
+        { name: 'AES-CBC', iv: iv as ArrayBuffer },
+        key,
+        ciphertext as ArrayBuffer
+      );
+
+      const decoder = new TextDecoder();
+      return JSON.parse(decoder.decode(decrypted));
+    } catch (error) {
+      console.error('Falha ao descriptografar backup com senha:', error);
+      return null;
+    }
+  }
+
+  /**
    * Deriva chave usando Web Crypto API (assíncrono, não bloqueia UI).
    */
   private async deriveKey(password: string, salt: string): Promise<CryptoKey> {
@@ -175,9 +266,9 @@ export class CriptografiaService {
 
       // Descriptografa com AES-CBC
       const decrypted = await crypto.subtle.decrypt(
-        { name: 'AES-CBC', iv },
+        { name: 'AES-CBC', iv: iv as ArrayBuffer },
         key,
-        ciphertext
+        ciphertext as ArrayBuffer
       );
 
       const decoder = new TextDecoder();
