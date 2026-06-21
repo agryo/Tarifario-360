@@ -1,5 +1,6 @@
 export interface OrcamentoRapido {
-  id?: string;
+  tipo: 'orcamento_rapido';
+  id: string;
   dataGeracao: Date;
   categoriaId: string;
   dataCheckin: Date;

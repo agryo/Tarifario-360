@@ -16,7 +16,7 @@ import { ImpressaoService } from '../../utils/impressao-service';
 import { MensagemUtils } from '../../utils/mensagem-utils';
 
 // Model impressão
-import { ImpressaoTabelaCSS } from './impressao-styles';
+import { IMPRESSAO_TABELA_PRECOS_CSS } from '../../utils/print-styles';
 
 // Models
 import { CategoriaQuarto } from '../../models/categoria-quarto.model';
@@ -180,7 +180,7 @@ export class TabelaPrecosComponent implements OnInit {
       this.impressaoService.imprimirElemento(
         elemento,
         `Tabela de Preços - ${temporada} Temporada`,
-        ImpressaoTabelaCSS,
+        IMPRESSAO_TABELA_PRECOS_CSS,
       );
     } else {
       this.messageService.add({

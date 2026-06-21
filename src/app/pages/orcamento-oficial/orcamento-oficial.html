@@ -4,37 +4,54 @@
     <h1 class="text-2xl font-bold text-center">📄 Orçamento Oficial</h1>
   </div>
 
+  <!-- Barra de ações -->
+  <div class="card mb-3">
+    <div class="flex flex-wrap gap-2 align-items-center">
+      <p-button
+        label="Novo"
+        icon="pi pi-plus"
+        severity="secondary"
+        (onClick)="novoOrcamento()"
+      ></p-button>
+      <p-button
+        label="Abrir Orçamentos"
+        icon="pi pi-folder-open"
+        severity="info"
+        (onClick)="abrirOrcamentosSalvos()"
+      ></p-button>
+      <p-button
+        label="Salvar"
+        icon="pi pi-save"
+        severity="success"
+        (onClick)="salvarOrcamento()"
+      ></p-button>
+      <p-button
+        label="Importar .ortf"
+        icon="pi pi-upload"
+        severity="help"
+        (onClick)="fileInput.click()"
+      ></p-button>
+      <input #fileInput type="file" accept=".ortf" hidden (change)="importarOrcamento($event)" />
+      <p-button
+        label="Exportar .ortf"
+        icon="pi pi-download"
+        severity="contrast"
+        (onClick)="exportarOrcamento()"
+      ></p-button>
+      <p-button label="Imprimir / PDF" icon="pi pi-print" (onClick)="imprimir()"></p-button>
+      <p-button
+        label="Voltar"
+        icon="pi pi-arrow-left"
+        severity="help"
+        (onClick)="voltar()"
+      ></p-button>
+    </div>
+  </div>
+
   <!-- Área de Configuração -->
   <div class="surface-card p-3 border-round mb-3 border-2 border-primary">
     <div class="flex justify-content-between align-items-center mb-3">
       <h2 class="text-xl font-bold m-0">📄 Insira os dados</h2>
-      <div class="flex gap-2">
-        <p-button
-          label="Salvar"
-          icon="pi pi-save"
-          styleClass="p-button-success"
-          (click)="exportarOrcamento()"
-        ></p-button>
-        <p-button
-          label="Abrir"
-          icon="pi pi-folder-open"
-          styleClass="p-button-secondary"
-          (click)="fileInput.click()"
-        ></p-button>
-        <input
-          #fileInput
-          type="file"
-          accept=".ortf"
-          style="display: none"
-          (change)="importarOrcamento($event)"
-        />
-        <p-button
-          label="Voltar"
-          icon="pi pi-arrow-left"
-          styleClass="p-button-help"
-          (click)="voltar()"
-        ></p-button>
-      </div>
     </div>
 
     <!-- Primeira linha: Cliente e Temporada -->
@@ -82,7 +99,6 @@
             [(ngModel)]="dataCheckin"
             [showIcon]="true"
             dateFormat="dd/mm/yy"
-            [minDate]="hoje"
             (onSelect)="onDataChange()"
             styleClass="w-full"
             appendTo="body"
@@ -110,7 +126,7 @@
             [(ngModel)]="dataCheckout"
             [showIcon]="true"
             dateFormat="dd/mm/yy"
-            [minDate]="dataCheckin || hoje"
+            [minDate]="dataCheckin"
             (onSelect)="onDataChange()"
             styleClass="w-full"
             appendTo="body"
@@ -394,3 +410,54 @@
     ></p-button>
   </div>
 </div>
+
+<!-- Dialog de Orçamentos Salvos -->
+<p-dialog
+  [(visible)]="orcamentosSalvosDialog"
+  header="Orçamentos Salvos"
+  [modal]="true"
+  [style]="{ width: '800px' }"
+  [draggable]="false"
+  [resizable]="false"
+>
+  <div *ngIf="orcamentosSalvos.length === 0" class="text-center p-4">
+    <p class="text-color-secondary">Nenhum orçamento salvo encontrado.</p>
+  </div>
+  <div *ngIf="orcamentosSalvos.length > 0" class="overflow-auto" style="max-height: 400px">
+    <table class="w-full border-collapse">
+      <thead>
+        <tr class="bg-surface-100">
+          <th class="p-2 text-left">Título</th>
+          <th class="p-2 text-left">Cliente</th>
+          <th class="p-2 text-left">Período</th>
+          <th class="p-2 text-left">Data Criação</th>
+          <th class="p-2 text-center">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let o of orcamentosSalvos"
+          (click)="selecionarOrcamentoSalvo(o)"
+          class="cursor-pointer hover:bg-surface-50"
+        >
+          <td class="p-2">{{ o.titulo }}</td>
+          <td class="p-2">{{ o.cliente }}</td>
+          <td class="p-2">
+            {{ o.dataCheckin | date: 'dd/MM/yyyy' }} - {{ o.dataCheckout | date: 'dd/MM/yyyy' }}
+          </td>
+
+          <td class="p-2">{{ o.dataGeracao | date: 'dd/MM/yyyy HH:mm' }}</td>
+          <td class="p-2 text-center">
+            <p-button
+              icon="pi pi-trash"
+              severity="danger"
+              size="small"
+              pTooltip="Excluir"
+              (onClick)="excluirOrcamentoSalvo($event, o)"
+            ></p-button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</p-dialog>

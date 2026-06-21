@@ -49,6 +49,7 @@ export class OrcamentoRapidoComponent implements OnInit {
   carregarDados() {
     this.categorias = this.tarifaService.getCategorias();
     this.config = this.tarifaService.getConfiguracao();
+
     if (this.categorias.length) {
       this.categoriaId = this.categorias[0].id;
     }
@@ -75,11 +76,15 @@ export class OrcamentoRapidoComponent implements OnInit {
   }
 
   gerarOrcamento() {
+    // Converter strings para Date se necessário (PrimeNG 21 pode retornar string)
+    const checkin = this.dataCheckin instanceof Date ? this.dataCheckin : new Date(this.dataCheckin);
+    const checkout = this.dataCheckout instanceof Date ? this.dataCheckout : new Date(this.dataCheckout);
+
     if (
       !this.categoriaId ||
-      !this.dataCheckin ||
-      !this.dataCheckout ||
-      this.dataCheckout < this.dataCheckin
+      !checkin ||
+      !checkout ||
+      checkout < checkin
     ) {
       this.textoOrcamento = '';
       return;
@@ -88,17 +93,18 @@ export class OrcamentoRapidoComponent implements OnInit {
     try {
       const resultado = this.orcamentoService.gerarOrcamento({
         categoriaId: this.categoriaId,
-        dataCheckin: this.dataCheckin,
-        dataCheckout: this.dataCheckout,
+        dataCheckin: checkin,
+        dataCheckout: checkout,
         quantidade: 1, // fixo
         incluirCafe: true, // fixo
       });
       this.textoOrcamento = resultado.textoWhatsApp;
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Erro ao gerar orçamento:', error);
       this.messageService.add({
         severity: 'error',
         summary: 'Erro',
-        detail: 'Não foi possível gerar o orçamento.',
+        detail: `Não foi possível gerar o orçamento: ${error.message}`,
       });
     }
   }

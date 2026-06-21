@@ -8,6 +8,11 @@ export interface OrcamentoOficial {
   evento?: string;
   dataGeracao: Date;
   dataValidade: Date;
+  dataCheckin: Date;
+  dataCheckout: Date;
+  horaEntrada?: string;
+  horaSaida?: string;
+  temporada?: 'auto' | 'baixa' | 'alta';
   itens: ItemOrcamento[];
   observacoes?: string;
   status: 'rascunho' | 'enviado' | 'aprovado' | 'cancelado';

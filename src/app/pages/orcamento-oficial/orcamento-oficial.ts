@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
 // PrimeNG
@@ -13,11 +13,16 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { DialogModule } from 'primeng/dialog';
 import { MessageService, ConfirmationService } from 'primeng/api';
 
 // Services
 import { TarifaService } from '../../services/tarifa';
 import { CriptografiaService } from '../../services/criptografia';
+import { OrcamentoOficialService } from '../../services/orcamento-oficial';
+import { OrcamentoOficial } from '../../models/orcamento-oficial.model';
+import { ItemOrcamento } from '../../models/item-orcamento.model';
+import { ProgressService } from '../../services/progress';
 import { DateUtils } from '../../utils/date-utils';
 import { ImpressaoService } from '../../utils/impressao-service';
 import { MensagemUtils } from '../../utils/mensagem-utils';
@@ -28,28 +33,18 @@ import { SubstituirPlaceholdersPipe } from '../../pipes/substituir-placeholders-
 // Models
 import { CategoriaQuarto } from '../../models/categoria-quarto.model';
 import { ConfiguracaoGeral } from '../../models/tarifa.model';
-import { ImpressaoOrcamentoCSS } from './impressao-styles';
+import { IMPRESSAO_ORCAMENTO_CSS } from '../../utils/print-styles';
 
-export interface ItemOrcamento {
-  id?: string;
-  quantidade: number;
-  categoriaId: string;
-  categoriaNome?: string;
-  camasDescricao?: string;
-  descricao?: string; // nome dos hóspedes / cargo
-  comCafe: boolean;
-  comAlmoco: boolean;
-  comJanta: boolean;
-  comLanche: boolean;
-  precoDiaria: number; // preço médio por diária (acomodação + refeições inclusas)
-  total: number;
-  // campos auxiliares para exibição (não persistidos)
-  _subtotalSemExtra?: number;
-  _extraCharge?: number;
-  // contagens de refeições para exibição
-  qtdAlmoco?: number;
-  qtdJanta?: number;
-  qtdLanche?: number;
+interface OrcamentoOficialImportado {
+  tipo: string;
+  cliente: string;
+  temporada: string;
+  dataCheckin: string | Date;
+  dataCheckout: string | Date;
+  horaEntrada?: string;
+  horaSaida?: string;
+  itens: ItemOrcamento[];
+  assinatura?: string;
 }
 
 type Refeicao = 'comCafe' | 'comAlmoco' | 'comJanta' | 'comLanche';
@@ -69,6 +64,7 @@ type Refeicao = 'comCafe' | 'comAlmoco' | 'comJanta' | 'comLanche';
     TableModule,
     ToastModule,
     ConfirmDialogModule,
+    DialogModule,
     SubstituirPlaceholdersPipe,
   ],
   providers: [],
@@ -87,6 +83,10 @@ export class OrcamentoOficialComponent implements OnInit {
   horaSaida: string = DateUtils.HORA_CHECKOUT;
   hoje: Date = DateUtils.hoje();
 
+  // Dialog de orçamentos salvos
+  orcamentosSalvosDialog: boolean = false;
+  orcamentosSalvos: OrcamentoOficial[] = [];
+
   itens: ItemOrcamento[] = [];
 
   // Para o documento impresso
@@ -99,12 +99,153 @@ export class OrcamentoOficialComponent implements OnInit {
     private confirmationService: ConfirmationService,
     private impressaoService: ImpressaoService,
     private criptografia: CriptografiaService,
+    private orcamentoOficialService: OrcamentoOficialService,
+    private progressService: ProgressService,
     private router: Router,
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit() {
     this.carregarDados();
+    this.verificarOrcamentoSalvo();
     this.adicionarItem(); // começa com uma linha em branco
+  }
+
+  private verificarOrcamentoSalvo() {
+    // Verifica se há um orçamento salvo passado via navegação (history.state)
+    const navigation = this.router.getCurrentNavigation();
+    const state = navigation?.extras?.state as { orcamentoSalvo?: any } | undefined;
+
+    if (state?.orcamentoSalvo) {
+      this.carregarOrcamentoSalvo(state.orcamentoSalvo);
+    }
+  }
+
+  private carregarOrcamentoSalvo(orcamento: any) {
+    try {
+      this.cliente = orcamento.cliente || '';
+      this.temporada = (orcamento.temporada as 'auto' | 'baixa' | 'alta') || 'auto';
+      this.dataCheckin = new Date(orcamento.dataCheckin);
+      this.dataCheckout = new Date(orcamento.dataCheckout);
+      this.horaEntrada = orcamento.horaEntrada || DateUtils.HORA_CHECKIN;
+      this.horaSaida = orcamento.horaSaida || DateUtils.HORA_CHECKOUT;
+      this.itens = orcamento.itens || [];
+      this.onDataChange(); // Recalcula tudo
+    } catch (error) {
+      console.error('Erro ao carregar orçamento salvo:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erro',
+        detail: 'Não foi possível carregar o orçamento salvo.',
+      });
+    }
+  }
+
+  abrirOrcamentosSalvos() {
+    this.orcamentosSalvos = this.orcamentoOficialService.listar().sort(
+      (a, b) => new Date(b.dataGeracao).getTime() - new Date(a.dataGeracao).getTime()
+    );
+    this.orcamentosSalvosDialog = true;
+  }
+
+  selecionarOrcamentoSalvo(orcamento: OrcamentoOficial) {
+    this.carregarOrcamentoSalvo(orcamento);
+    this.orcamentosSalvosDialog = false;
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Orçamento Carregado',
+      detail: `"${orcamento.titulo}" carregado com sucesso.`,
+    });
+  }
+
+  excluirOrcamentoSalvo(event: Event, orcamento: OrcamentoOficial) {
+    event.stopPropagation();
+    this.confirmationService.confirm({
+      target: event.target as EventTarget,
+      message: `Excluir o orçamento "${orcamento.titulo}" do cliente ${orcamento.cliente}?`,
+      header: 'Confirmar Exclusão',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Sim, excluir',
+      rejectLabel: 'Cancelar',
+      accept: () => {
+        this.orcamentoOficialService.excluir(orcamento.id);
+        this.orcamentosSalvos = this.orcamentosSalvos.filter((o) => o.id !== orcamento.id);
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Excluído',
+          detail: 'Orçamento removido com sucesso.',
+        });
+      },
+    });
+  }
+
+  novoOrcamento() {
+    this.cliente = '';
+    this.temporada = 'auto';
+    this.dataCheckin = new Date();
+    this.dataCheckout = new Date();
+    this.dataCheckout.setDate(this.dataCheckout.getDate() + 1);
+    this.horaEntrada = DateUtils.HORA_CHECKIN;
+    this.horaSaida = DateUtils.HORA_CHECKOUT;
+    this.itens = [];
+    this.adicionarItem();
+    this.onDataChange();
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Novo Orçamento',
+      detail: 'Formulário limpo para novo orçamento.',
+    });
+  }
+
+  async salvarOrcamento() {
+    if (!this.cliente) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atenção',
+        detail: 'Informe o nome do cliente.',
+      });
+      return;
+    }
+
+    this.progressService.show({
+      titulo: 'Salvando Orçamento',
+      mensagem: 'Preparando dados...',
+      mostrarBarra: false,
+    });
+
+    try {
+      const orcamento = this.orcamentoOficialService.criarOrcamento(
+        `Orçamento ${this.cliente}`,
+        this.cliente
+      );
+
+      orcamento.temporada = this.temporada;
+      orcamento.dataCheckin = this.dataCheckin;
+      orcamento.dataCheckout = this.dataCheckout;
+      orcamento.horaEntrada = this.horaEntrada;
+      orcamento.horaSaida = this.horaSaida;
+      orcamento.itens = this.itens;
+
+      this.progressService.updateMensagem('Salvando no banco de dados...');
+      this.progressService.updateProgress(50);
+
+      this.orcamentoOficialService.salvar(orcamento);
+
+      this.progressService.updateProgress(100);
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Salvo',
+        detail: 'Orçamento salvo com sucesso.',
+      });
+    } catch (error: any) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erro',
+        detail: error.message || 'Não foi possível salvar o orçamento.',
+      });
+    } finally {
+      this.progressService.hide();
+    }
   }
 
   carregarDados() {
@@ -492,7 +633,7 @@ export class OrcamentoOficialComponent implements OnInit {
   }
 
   // Exportar/Importar
-  exportarOrcamento() {
+  async exportarOrcamento() {
     if (!this.cliente) {
       this.messageService.add({
         severity: 'warn',
@@ -501,96 +642,132 @@ export class OrcamentoOficialComponent implements OnInit {
       });
       return;
     }
-    const dados = {
-      tipo: 'orcamento-oficial-snapshot', // Identificador para validação na importação
-      versao: '1.0',
-      cliente: this.cliente,
-      temporada: this.temporada,
-      dataCheckin: this.dataCheckin,
-      dataCheckout: this.dataCheckout,
-      horaEntrada: this.horaEntrada,
-      horaSaida: this.horaSaida,
-      itens: this.itens,
-      totalGeral: this.totalGeral,
-    };
 
-    const orcamentoAssinado = {
-      ...dados,
-      assinatura: this.criptografia.gerarHash(JSON.stringify(dados)),
-    };
-
-    const encryptedData = this.criptografia.criptografarDados(orcamentoAssinado);
-    const blob = new Blob([encryptedData], { type: 'application/octet-stream' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `orcamento_${this.cliente.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.ortf`;
-    link.click();
-    URL.revokeObjectURL(url);
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Exportado',
-      detail: 'Arquivo .ortf salvo com sucesso.',
+    this.progressService.show({
+      titulo: 'Exportando Orçamento',
+      mensagem: 'Preparando dados...',
+      mostrarBarra: false,
     });
+
+    try {
+      const dados = {
+        tipo: 'orcamento-oficial-snapshot',
+        versao: '1.0',
+        cliente: this.cliente,
+        temporada: this.temporada,
+        dataCheckin: this.dataCheckin,
+        dataCheckout: this.dataCheckout,
+        horaEntrada: this.horaEntrada,
+        horaSaida: this.horaSaida,
+        itens: this.itens,
+        totalGeral: this.totalGeral,
+      };
+
+      this.progressService.updateMensagem('Gerando assinatura digital...');
+      const orcamentoAssinado = {
+        ...dados,
+        assinatura: this.criptografia.gerarHash(JSON.stringify(dados)),
+      };
+
+      this.progressService.updateMensagem('Criptografando arquivo (pode levar alguns segundos)...');
+      this.progressService.updateProgress(50);
+      const encryptedData = await this.criptografia.criptografarDados(orcamentoAssinado);
+
+      this.progressService.updateMensagem('Finalizando download...');
+      this.progressService.updateProgress(80);
+      const blob = new Blob([encryptedData], { type: 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `orcamento_${this.cliente.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.ortf`;
+      link.click();
+      URL.revokeObjectURL(url);
+
+      this.progressService.updateProgress(100);
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Exportado',
+        detail: 'Arquivo .ortf salvo com sucesso.',
+      });
+    } catch (error: any) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erro na Exportação',
+        detail: error.message || 'Não foi possível exportar o orçamento.',
+      });
+    } finally {
+      this.progressService.hide();
+    }
   }
 
-  importarOrcamento(event: Event) {
+  async importarOrcamento(event: Event) {
     const target = event.target as HTMLInputElement;
     const file = target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (e: ProgressEvent<FileReader>) => {
-      try {
-        const rawContent = e.target?.result as string;
-        if (!rawContent) {
-          throw new Error('Arquivo vazio.');
-        }
+    this.progressService.show({
+      titulo: 'Importando Orçamento',
+      mensagem: 'Lendo arquivo...',
+      mostrarBarra: false,
+    });
 
-        // Tenta descriptografar (.ortf)
-        const dados = this.criptografia.descriptografarDados(rawContent);
-
-        if (!dados) {
-          throw new Error('Formato de arquivo inválido ou corrompido.');
-        }
-
-        if (dados.tipo !== 'orcamento-oficial-snapshot' || !dados.itens || !dados.cliente) {
-          throw new Error('Este não é um arquivo de orçamento oficial válido.');
-        }
-
-        if (dados.assinatura) {
-          const { assinatura, ...dadosParaVerificar } = dados;
-          const hashCalculado = this.criptografia.gerarHash(JSON.stringify(dadosParaVerificar));
-          if (hashCalculado !== assinatura) {
-            throw new Error('Assinatura do arquivo inválida. O arquivo pode estar corrompido.');
-          }
-        }
-
-        this.cliente = dados.cliente || '';
-        this.temporada = dados.temporada || 'auto';
-        this.dataCheckin = new Date(dados.dataCheckin);
-        this.dataCheckout = new Date(dados.dataCheckout);
-        this.horaEntrada = dados.horaEntrada || DateUtils.HORA_CHECKIN;
-        this.horaSaida = dados.horaSaida || DateUtils.HORA_CHECKOUT;
-        this.itens = dados.itens || [];
-
-        this.onDataChange(); // Recalcula tudo e ajusta datas
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Importado',
-          detail: 'Orçamento carregado com sucesso.',
-        });
-      } catch (error: any) {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Erro na Importação',
-          detail: error.message || 'Arquivo inválido ou corrompido.',
-        });
-      } finally {
-        target.value = '';
+    try {
+      const rawContent = await file.text();
+      if (!rawContent) {
+        throw new Error('Arquivo vazio.');
       }
-    };
-    reader.readAsText(file);
+
+      this.progressService.updateMensagem('Descriptografando arquivo (pode levar alguns segundos)...');
+      this.progressService.updateProgress(30);
+      const dados = (await this.criptografia.descriptografarDados(rawContent)) as OrcamentoOficialImportado | null;
+
+      this.progressService.updateMensagem('Validando assinatura digital...');
+      this.progressService.updateProgress(60);
+
+      if (!dados) {
+        throw new Error('Formato de arquivo inválido ou corrompido.');
+      }
+
+      if (dados.tipo !== 'orcamento-oficial-snapshot' || !dados.itens || !dados.cliente) {
+        throw new Error('Este não é um arquivo de orçamento oficial válido.');
+      }
+
+      if (dados.assinatura) {
+        const { assinatura, ...dadosParaVerificar } = dados;
+        const hashCalculado = this.criptografia.gerarHash(JSON.stringify(dadosParaVerificar));
+        if (hashCalculado !== assinatura) {
+          throw new Error('Assinatura do arquivo inválida. O arquivo pode estar corrompido.');
+        }
+      }
+
+      this.progressService.updateMensagem('Carregando dados do orçamento...');
+      this.progressService.updateProgress(80);
+
+      this.cliente = dados.cliente || '';
+      this.temporada = (dados.temporada as 'auto' | 'baixa' | 'alta') || 'auto';
+      this.dataCheckin = new Date(dados.dataCheckin);
+      this.dataCheckout = new Date(dados.dataCheckout);
+      this.horaEntrada = dados.horaEntrada || DateUtils.HORA_CHECKIN;
+      this.horaSaida = dados.horaSaida || DateUtils.HORA_CHECKOUT;
+      this.itens = dados.itens || [];
+
+      this.onDataChange(); // Recalcula tudo e ajusta datas
+      this.progressService.updateProgress(100);
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Importado',
+        detail: 'Orçamento carregado com sucesso.',
+      });
+    } catch (error: any) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erro na Importação',
+        detail: error.message || 'Arquivo inválido ou corrompido.',
+      });
+    } finally {
+      this.progressService.hide();
+      target.value = '';
+    }
   }
 
   imprimir() {
@@ -598,7 +775,7 @@ export class OrcamentoOficialComponent implements OnInit {
     if (elemento) {
       const tituloImpressao = this.cliente ? `Orçamento - ${this.cliente}` : 'Orçamento Oficial';
 
-      this.impressaoService.imprimirElemento(elemento, tituloImpressao, ImpressaoOrcamentoCSS);
+      this.impressaoService.imprimirElemento(elemento, tituloImpressao, IMPRESSAO_ORCAMENTO_CSS);
     } else {
       this.messageService.add({
         severity: 'error',

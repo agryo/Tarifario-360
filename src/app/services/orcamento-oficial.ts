@@ -1,28 +1,57 @@
 import { Injectable } from '@angular/core';
-import { StorageService } from './storage';
+import { BaseStorageService } from './base-storage';
 import { CriptografiaService } from './criptografia';
 import { OrcamentoOficial, OrcamentoOficialCompleto } from '../models/orcamento-oficial.model';
-import { ItemOrcamento, ItemDiaria } from '../models/item-orcamento.model';
+import { ItemOrcamento } from '../models/item-orcamento.model';
+import { StorageService } from './storage';
+
+export type { OrcamentoOficial, OrcamentoOficialCompleto };
+
+interface OrcamentoOficialImportado {
+  tipo: string;
+  id: string;
+  titulo: string;
+  cliente: string;
+  dataGeracao: string | Date;
+  dataValidade: string | Date;
+  dataCheckin: string | Date;
+  dataCheckout: string | Date;
+  horaEntrada?: string;
+  horaSaida?: string;
+  temporada?: string;
+  itens: ItemOrcamento[];
+  status: string;
+  assinatura?: string;
+  [key: string]: unknown;
+}
 
 @Injectable({
   providedIn: 'root',
 })
-export class OrcamentoOficialService {
-  private readonly STORAGE_KEY = 'orcamentos_oficiais';
+export class OrcamentoOficialService extends BaseStorageService<OrcamentoOficial> {
+  protected readonly STORAGE_KEY = 'orcamentos_oficiais';
+  protected readonly ENTITY_TYPE = 'orcamento';
 
   constructor(
-    private storage: StorageService,
+    storage: StorageService,
     private criptografia: CriptografiaService,
-  ) {}
+  ) {
+    super(storage);
+  }
 
   criarOrcamento(titulo: string, cliente: string): OrcamentoOficial {
     const orcamento: OrcamentoOficial = {
+      ...this.criarEntidade({}),
       tipo: 'orcamento',
-      id: this.storage.generateId(),
       titulo,
       cliente,
       dataGeracao: new Date(),
       dataValidade: new Date(new Date().setDate(new Date().getDate() + 7)),
+      dataCheckin: new Date(),
+      dataCheckout: new Date(new Date().setDate(new Date().getDate() + 1)),
+      horaEntrada: '14:00',
+      horaSaida: '12:00',
+      temporada: 'auto',
       itens: [],
       status: 'rascunho',
     };
@@ -30,47 +59,34 @@ export class OrcamentoOficialService {
     return orcamento;
   }
 
-  salvarOrcamento(orcamento: OrcamentoOficial): void {
-    // Adiciona uma camada de validação para garantir que apenas orçamentos válidos sejam salvos.
-    // Isso impede que um arquivo de backup, por exemplo, seja salvo como um orçamento.
-    if (
-      !orcamento ||
-      orcamento.tipo !== 'orcamento' ||
-      !orcamento.id ||
-      !orcamento.titulo ||
-      !Array.isArray(orcamento.itens)
-    ) {
-      throw new Error('Dados inválidos. O objeto a ser salvo não é um orçamento válido.');
-    }
-    const orcamentos = this.listarOrcamentos();
-    const index = orcamentos.findIndex((o) => o.id === orcamento.id);
-
-    if (index >= 0) {
-      orcamentos[index] = orcamento;
-    } else {
-      orcamentos.push(orcamento);
-    }
-
-    this.storage.set(this.STORAGE_KEY, orcamentos);
+  // Sobrescreve listar para converter datas de string para Date
+  override listar(): OrcamentoOficial[] {
+    const lista = super.listar();
+    return lista.map((orc) => ({
+      ...orc,
+      dataGeracao: new Date(orc.dataGeracao),
+      dataValidade: new Date(orc.dataValidade),
+      dataCheckin: new Date(orc.dataCheckin),
+      dataCheckout: new Date(orc.dataCheckout),
+    }));
   }
 
-  listarOrcamentos(): OrcamentoOficial[] {
-    return this.storage.get<OrcamentoOficial[]>(this.STORAGE_KEY) || [];
+  // Sobrescreve validarEntidade para validações específicas do orçamento
+  protected override validarEntidade(entidade: unknown): entidade is OrcamentoOficial {
+    const baseValida = super.validarEntidade(entidade);
+    if (!baseValida) return false;
+
+    const orc = entidade as OrcamentoOficial;
+    return (
+      !!orc.titulo &&
+      Array.isArray(orc.itens)
+    );
   }
 
-  getOrcamento(id: string): OrcamentoOficial | null {
-    const orcamentos = this.listarOrcamentos();
-    return orcamentos.find((o) => o.id === id) || null;
-  }
-
-  excluirOrcamento(id: string): void {
-    const orcamentos = this.listarOrcamentos().filter((o) => o.id !== id);
-    this.storage.set(this.STORAGE_KEY, orcamentos);
-  }
-
+  // Métodos específicos de negócio (não genéricos)
   calcularTotais(orcamento: OrcamentoOficial): OrcamentoOficialCompleto {
     const subtotal = orcamento.itens.reduce(
-      (acc, item) => acc + item.valorUnitario * item.quantidade,
+      (acc, item) => acc + item.precoDiaria * item.quantidade,
       0,
     );
 
@@ -96,7 +112,7 @@ export class OrcamentoOficialService {
     return orcamento;
   }
 
-  exportarParaJSON(orcamento: OrcamentoOficial): string {
+  override exportarParaJSON(orcamento: OrcamentoOficial): string {
     // Garante que o orçamento tenha a assinatura mais recente antes de exportar
     const { assinatura, ...dados } = orcamento;
     const orcamentoComAssinatura: OrcamentoOficial = {
@@ -106,7 +122,7 @@ export class OrcamentoOficialService {
     return JSON.stringify(orcamentoComAssinatura, null, 2);
   }
 
-  downloadOrcamento(orcamento: OrcamentoOficial): void {
+  async downloadOrcamento(orcamento: OrcamentoOficial): Promise<void> {
     // Garante assinatura antes de criptografar
     const { assinatura, ...dados } = orcamento;
     const orcamentoAssinado: OrcamentoOficial = {
@@ -114,7 +130,7 @@ export class OrcamentoOficialService {
       assinatura: this.criptografia.gerarHash(JSON.stringify(dados)),
     };
 
-    const encryptedData = this.criptografia.criptografarDados(orcamentoAssinado);
+    const encryptedData = await this.criptografia.criptografarDados(orcamentoAssinado);
     const blob = new Blob([encryptedData], { type: 'application/octet-stream' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -125,21 +141,21 @@ export class OrcamentoOficialService {
     URL.revokeObjectURL(url);
   }
 
-  importarDeJSON(json: string): {
+  async importarDeJSON(json: string): Promise<{
     sucesso: boolean;
     orcamento: OrcamentoOficial | null;
     mensagem: string;
-  } {
+  }> {
     try {
       // Tenta descriptografar (formato .ortf)
-      const orcamento = this.criptografia.descriptografarDados(json);
+      const orcamentoImportado = (await this.criptografia.descriptografarDados(json)) as OrcamentoOficialImportado | null;
 
-      if (!orcamento) {
+      if (!orcamentoImportado) {
         throw new Error('Arquivo criptografado inválido.');
       }
 
       // 0. Validação do tipo de arquivo
-      if (orcamento.tipo !== 'orcamento') {
+      if (orcamentoImportado.tipo !== 'orcamento') {
         return {
           sucesso: false,
           orcamento: null,
@@ -148,7 +164,7 @@ export class OrcamentoOficialService {
       }
 
       // 1. Validação de estrutura
-      if (!orcamento.id || !orcamento.titulo || !orcamento.itens) {
+      if (!orcamentoImportado.id || !orcamentoImportado.titulo || !orcamentoImportado.itens) {
         return {
           sucesso: false,
           orcamento: null,
@@ -157,7 +173,7 @@ export class OrcamentoOficialService {
       }
 
       // 2. Validação da assinatura de segurança
-      const { assinatura, ...dadosParaVerificar } = orcamento;
+      const { assinatura, ...dadosParaVerificar } = orcamentoImportado;
       if (!assinatura) {
         return {
           sucesso: false,
@@ -175,7 +191,9 @@ export class OrcamentoOficialService {
         };
       }
 
-      return { sucesso: true, orcamento: orcamento, mensagem: 'Orçamento importado com sucesso!' };
+      // Cast para OrcamentoOficial após validação completa
+      const orcamento = orcamentoImportado as OrcamentoOficial;
+      return { sucesso: true, orcamento, mensagem: 'Orçamento importado com sucesso!' };
     } catch (error: any) {
       console.error('Erro ao importar orçamento de JSON:', error.message);
       return {
@@ -184,9 +202,5 @@ export class OrcamentoOficialService {
         mensagem: 'Arquivo de orçamento inválido ou corrompido.',
       };
     }
-  }
-
-  importarDados(orcamentos: OrcamentoOficial[]): void {
-    this.storage.set(this.STORAGE_KEY, orcamentos || []);
   }
 }

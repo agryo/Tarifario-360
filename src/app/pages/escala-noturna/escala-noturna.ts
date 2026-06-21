@@ -15,7 +15,7 @@ import { DateUtils } from '../../utils/date-utils';
 import { ImpressaoService } from '../../utils/impressao-service';
 
 // Model impressão
-import { ImpressaoEscalaCSS } from './impressao-styles';
+import { IMPRESSAO_ESCALA_CSS } from '../../utils/print-styles';
 
 @Component({
   selector: 'app-escala-noturna',
@@ -181,7 +181,7 @@ export class EscalaNoturnaComponent implements OnInit {
   imprimir() {
     const elemento = document.querySelector('.tabela-area') as HTMLElement;
     if (elemento) {
-      this.impressaoService.imprimirElemento(elemento, 'Escala Noturna', ImpressaoEscalaCSS);
+      this.impressaoService.imprimirElemento(elemento, 'Escala Noturna', IMPRESSAO_ESCALA_CSS);
     } else {
       this.messageService.add({
         severity: 'error',

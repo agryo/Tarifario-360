@@ -166,21 +166,6 @@ div {
   overflow: visible !important;
 }
 
-@media print {
-  .no-print {
-    display: none !important;
-  }
-  .documento {
-    background: white !important;
-    color: black !important;
-    border: 1px solid #ddd !important;
-    box-shadow: none;
-    width: 100%;
-    margin: 0;
-    padding: 5mm;
-  }
-}
-
 // Modo Escuro (complemento)
 :host-context(.my-app-dark) {
   #documento-impressao {

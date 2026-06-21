@@ -1,14 +1,26 @@
 export interface ItemOrcamento {
-  id: string;
-  descricao: string;
+  id?: string;
   quantidade: number;
-  valorUnitario: number;
-  categoria?: 'diaria' | 'alimentacao' | 'taxa' | 'outros';
-  observacao?: string;
+  categoriaId: string;
+  categoriaNome?: string;
+  camasDescricao?: string;
+  descricao?: string; // nome dos hóspedes / cargo
+  comCafe: boolean;
+  comAlmoco: boolean;
+  comJanta: boolean;
+  comLanche: boolean;
+  precoDiaria: number; // preço médio por diária (acomodação + refeições inclusas)
+  total: number;
+  // campos auxiliares para exibição (não persistidos)
+  _subtotalSemExtra?: number;
+  _extraCharge?: number;
+  // contagens de refeições para exibição
+  qtdAlmoco?: number;
+  qtdJanta?: number;
+  qtdLanche?: number;
 }
 
 export interface ItemDiaria extends ItemOrcamento {
-  categoriaId: string;
   dataCheckin: Date;
   dataCheckout: Date;
   numeroNoites: number;

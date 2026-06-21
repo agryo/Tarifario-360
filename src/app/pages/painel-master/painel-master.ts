@@ -33,6 +33,7 @@ import { TarifaService } from '../../services/tarifa';
 import { CriptografiaService } from '../../services/criptografia';
 import { EscalaService, EscalaConfig } from '../../services/escala';
 import { BackupService } from '../../services/backup';
+import { ProgressService } from '../../services/progress';
 import { CategoriaQuarto } from '../../models/categoria-quarto.model';
 import { ConfiguracaoGeral } from '../../models/tarifa.model';
 import { DateUtils } from '../../utils/date-utils';
@@ -102,6 +103,7 @@ export class PainelMasterComponent implements OnInit, OnChanges {
     private criptografia: CriptografiaService,
     private escalaService: EscalaService,
     private messageService: MessageService,
+    private progressService: ProgressService,
   ) {}
 
   ngOnInit() {
@@ -347,13 +349,33 @@ export class PainelMasterComponent implements OnInit, OnChanges {
   }
 
   // ===== BACKUP =====
-  exportarBackup() {
-    this.backupService.exportarArquivoCompleto();
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Backup exportado',
-      detail: 'Arquivo gerado com sucesso',
+  async exportarBackup() {
+    this.progressService.show({
+      titulo: 'Exportando Backup Completo',
+      mensagem: 'Preparando todos os dados do sistema...',
+      mostrarBarra: false,
     });
+
+    try {
+      this.progressService.updateMensagem('Criptografando backup (pode levar alguns segundos)...');
+      this.progressService.updateProgress(50);
+      await this.backupService.exportarArquivoCompleto();
+
+      this.progressService.updateProgress(100);
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Backup exportado',
+        detail: 'Arquivo gerado com sucesso',
+      });
+    } catch (error: any) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erro no Backup',
+        detail: error.message || 'Não foi possível exportar o backup.',
+      });
+    } finally {
+      this.progressService.hide();
+    }
   }
 
   async importarBackup(event: Event) {
@@ -361,20 +383,42 @@ export class PainelMasterComponent implements OnInit, OnChanges {
     const file = target.files?.[0];
     if (!file) return;
 
-    const resultado = await this.backupService.importarArquivo(file);
+    this.progressService.show({
+      titulo: 'Importando Backup',
+      mensagem: 'Lendo arquivo de backup...',
+      mostrarBarra: false,
+    });
 
-    if (resultado.sucesso) {
+    try {
+      this.progressService.updateMensagem('Descriptografando e validando dados...');
+      this.progressService.updateProgress(30);
+
+      const resultado = await this.backupService.importarArquivo(file);
+
+      this.progressService.updateMensagem('Restaurando configurações no sistema...');
+      this.progressService.updateProgress(80);
+
+      if (resultado.sucesso) {
+        this.carregarDados(); // Recarrega os dados na tela
+        this.progressService.updateProgress(100);
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Sucesso',
+          detail: resultado.mensagem,
+        });
+      } else {
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail: resultado.mensagem });
+      }
+    } catch (error: any) {
       this.messageService.add({
-        severity: 'success',
-        summary: 'Sucesso',
-        detail: resultado.mensagem,
+        severity: 'error',
+        summary: 'Erro na Importação',
+        detail: error.message || 'Arquivo inválido ou corrompido.',
       });
-      this.carregarDados(); // Recarrega os dados na tela
-    } else {
-      this.messageService.add({ severity: 'error', summary: 'Erro', detail: resultado.mensagem });
+    } finally {
+      this.progressService.hide();
+      target.value = '';
     }
-
-    target.value = '';
   }
 
   limparCache() {

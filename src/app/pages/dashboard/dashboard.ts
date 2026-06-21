@@ -21,6 +21,7 @@ import { CriptografiaService } from '../../services/criptografia';
 // Componentes
 import { ThemeToggleComponent } from '../../components/theme-toggle/theme-toggle';
 import { PainelMasterComponent } from '../painel-master/painel-master';
+import { GlobalProgressComponent } from '../../components/global-progress/global-progress';
 
 // Registra a localização pt-BR
 registerLocaleData(localePt);
@@ -42,6 +43,7 @@ registerLocaleData(localePt);
     // Meus componentes
     ThemeToggleComponent,
     PainelMasterComponent,
+    GlobalProgressComponent,
   ],
   providers: [MessageService, ConfirmationService, { provide: LOCALE_ID, useValue: 'pt-BR' }],
   templateUrl: './dashboard.html',

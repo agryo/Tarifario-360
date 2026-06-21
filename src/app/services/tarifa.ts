@@ -8,10 +8,11 @@ import { ConfiguracaoGeral } from '../models/tarifa.model';
 export class TarifaService {
   private readonly STORAGE_CATEGORIAS = 'categorias';
   private readonly STORAGE_CONFIG = 'config';
-  private criptografia: CriptografiaService;
 
-  constructor(private storage: StorageService) {
-    this.criptografia = new CriptografiaService();
+  constructor(
+    private storage: StorageService,
+    private criptografia: CriptografiaService,
+  ) {
     this.inicializarDadosPadrao();
   }
   // ===== SUBSTITUIÇÃO TOTAL =====
@@ -36,7 +37,12 @@ export class TarifaService {
    * @returns O objeto CategoriaQuarto correspondente ao ID, ou null se não for encontrado.
    */
   getCategoria(id: string): CategoriaQuarto | null {
-    return this.getCategorias().find((c) => c.id === id) || null;
+    const categorias = this.getCategorias();
+    console.log('getCategoria - id:', id);
+    console.log('getCategoria - categorias disponíveis:', categorias.map(c => ({ id: c.id, nome: c.nome })));
+    const result = categorias.find((c) => c.id === id) || null;
+    console.log('getCategoria - resultado:', result);
+    return result;
   }
 
   salvarCategoria(categoria: CategoriaQuarto): void {

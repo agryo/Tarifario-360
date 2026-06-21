@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { StorageService } from './storage';
+import { BaseStorageService } from './base-storage';
 import { TarifaService } from './tarifa';
+import { StorageService } from './storage';
 import {
   OrcamentoRapido,
   OrcamentoRapidoRequest,
@@ -13,20 +14,35 @@ import { MensagemUtils } from '../utils/mensagem-utils';
 @Injectable({
   providedIn: 'root',
 })
-export class OrcamentoRapidoService {
-  private readonly STORAGE_KEY = 'orcamentos_rapidos';
+export class OrcamentoRapidoService extends BaseStorageService<OrcamentoRapido> {
+  protected readonly STORAGE_KEY = 'orcamentos_rapidos';
+  protected readonly ENTITY_TYPE = 'orcamento_rapido';
 
   constructor(
-    private storage: StorageService,
+    storage: StorageService,
     private tarifaService: TarifaService,
-  ) {}
+  ) {
+    super(storage);
+  }
 
   gerarOrcamento(request: OrcamentoRapidoRequest): OrcamentoRapidoResultado {
+    console.log('=== orcamento-rapido.service gerarOrcamento ===');
+    console.log('request:', request);
+
+    // Garantir que datas são objetos Date (PrimeNG 21 pode retornar string)
+    const checkin = request.dataCheckin instanceof Date ? request.dataCheckin : new Date(request.dataCheckin);
+    const checkout = request.dataCheckout instanceof Date ? request.dataCheckout : new Date(request.dataCheckout);
+
+    console.log('checkin:', checkin);
+    console.log('checkout:', checkout);
+    console.log('categoriaId:', request.categoriaId);
+
     const categoria = this.tarifaService.getCategoria(request.categoriaId);
+    console.log('categoria encontrada:', categoria);
     if (!categoria) throw new Error('Categoria não encontrada');
 
-    const noitesReais = this.calcularNoites(request.dataCheckin, request.dataCheckout);
-    const isDayUse = noitesReais === 0 && !!request.dataCheckin && !!request.dataCheckout;
+    const noitesReais = this.calcularNoites(checkin, checkout);
+    const isDayUse = noitesReais === 0 && !!checkin && !!checkout;
     const numeroNoites = isDayUse ? 1 : noitesReais;
     const config = this.tarifaService.getConfiguracao();
 
@@ -39,8 +55,8 @@ export class OrcamentoRapidoService {
     let somaComCafeBaixa = 0;
     let somaSemCafeBaixa = 0;
 
-    const dataAtual = new Date(request.dataCheckin);
-    const dataFim = new Date(request.dataCheckout);
+    const dataAtual = new Date(checkin);
+    const dataFim = new Date(checkout);
 
     // Usamos um loop baseado no número de diárias para garantir que Day Use (1 diária) funcione
     for (let i = 0; i < numeroNoites; i++) {
@@ -95,6 +111,8 @@ export class OrcamentoRapidoService {
 
     const textoWhatsApp = this.gerarTextoWhatsApp(categoria, {
       request,
+      checkin,
+      checkout,
       numeroNoites,
       diasAlta,
       diasBaixa,
@@ -110,7 +128,8 @@ export class OrcamentoRapidoService {
     });
 
     const orcamento: OrcamentoRapido = {
-      id: this.storage.generateId(),
+      ...this.criarEntidade({}),
+      tipo: this.ENTITY_TYPE,
       dataGeracao: new Date(),
       categoriaId: request.categoriaId,
       dataCheckin: request.dataCheckin,
@@ -122,7 +141,7 @@ export class OrcamentoRapidoService {
       valorTotal: request.incluirCafe ? valorFinalComCafe : valorFinalSemCafe,
     };
 
-    // this.salvarHistorico(orcamento);
+    this.salvar(orcamento);
     return { orcamento, textoWhatsApp };
   }
 
@@ -138,9 +157,11 @@ export class OrcamentoRapidoService {
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   }
 
-  private gerarTextoWhatsApp(categoria: CategoriaQuarto, dados: DadosGeracaoTexto): string {
+  private gerarTextoWhatsApp(categoria: CategoriaQuarto, dados: DadosGeracaoTexto & { checkin: Date; checkout: Date }): string {
     const {
       request,
+      checkin,
+      checkout,
       numeroNoites,
       diasAlta,
       diasBaixa,
@@ -191,13 +212,13 @@ export class OrcamentoRapidoService {
     texto += `👤 *Capacidade:* ${capacidadeTexto}\n`;
 
     // Período (usando toLocaleDateString pt-BR)
-    texto += `📅 *Período:* ${request.dataCheckin.toLocaleDateString('pt-BR')} a ${request.dataCheckout.toLocaleDateString('pt-BR')}\n`;
+    texto += `📅 *Período:* ${checkin.toLocaleDateString('pt-BR')} a ${checkout.toLocaleDateString('pt-BR')}\n`;
 
     const isDayUseLocal =
       numeroNoites === 1 &&
-      request.dataCheckin.getFullYear() === request.dataCheckout.getFullYear() &&
-      request.dataCheckin.getMonth() === request.dataCheckout.getMonth() &&
-      request.dataCheckin.getDate() === request.dataCheckout.getDate();
+      checkin.getFullYear() === checkout.getFullYear() &&
+      checkin.getMonth() === checkout.getMonth() &&
+      checkin.getDate() === checkout.getDate();
 
     texto += `🌙 *Duração:* ${isDayUseLocal ? 'Day Use' : numeroNoites + ' diária(s)'}\n\n`;
 
@@ -237,9 +258,5 @@ export class OrcamentoRapidoService {
     texto += `*Deseja garantir sua reserva agora?*`;
 
     return texto;
-  }
-
-  importarDados(historico: OrcamentoRapido[]): void {
-    this.storage.set(this.STORAGE_KEY, historico || []);
   }
 }
