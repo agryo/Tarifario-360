@@ -95,7 +95,8 @@ export class BackupService {
   }
 
   async downloadBackup(backup: BackupData, nomeArquivo: string = 'backup'): Promise<void> {
-    const encryptedData = await this.criptografia.criptografarDados(backup);
+    // Usa segredo de backup (portável) para permitir importação em outras máquinas
+    const encryptedData = await this.criptografia.criptografarDados(backup, true);
     const blob = new Blob([encryptedData], { type: 'application/octet-stream' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -111,7 +112,8 @@ export class BackupService {
       return { sucesso: false, mensagem: 'O arquivo está vazio.' };
     }
 
-    const backup = (await this.criptografia.descriptografarDados(rawContent)) as BackupData | null;
+    // Usa segredo de backup (portável) para descriptografar backups de outras máquinas
+    const backup = (await this.criptografia.descriptografarDados(rawContent, true)) as BackupData | null;
     if (!backup) {
       return { sucesso: false, mensagem: 'Formato de arquivo inválido ou corrompido.' };
     }

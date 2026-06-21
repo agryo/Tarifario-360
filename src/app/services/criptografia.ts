@@ -6,6 +6,7 @@ import * as CryptoJS from 'crypto-js';
 })
 export class CriptografiaService {
   private readonly FILE_SECRET_KEY = 'tarifario360_file_secret';
+  private readonly BACKUP_SECRET_KEY = 'tarifario360_backup_secret_v2';
   private readonly PBKDF2_ITERATIONS = 600000;
   private readonly KEY_SIZE = 256;
 
@@ -17,6 +18,16 @@ export class CriptografiaService {
     const generated = CryptoJS.lib.WordArray.random(256 / 8).toString();
     localStorage.setItem(this.FILE_SECRET_KEY, generated);
     return generated;
+  }
+
+  /**
+   * Segredo fixo para backups (portável entre máquinas).
+   * Diferente do segredo de arquivos locais para manter separação de contextos.
+   */
+  private getBackupSecret(): string {
+    // Chave fixa da aplicação para backups - permite portabilidade entre máquinas
+    // Em produção, idealmente seria derivada de senha do usuário
+    return 'tarifario-360-backup-key-2024-fixed-portable-secret';
   }
 
   /**
@@ -113,9 +124,10 @@ export class CriptografiaService {
    * Criptografa um objeto qualquer usando Web Crypto API (totalmente assíncrono, não bloqueia UI).
    * Usa PBKDF2 nativo + AES-CBC.
    * @param dados Objeto ou dados a serem criptografados
+   * @param usarBackupSecret Se true, usa segredo fixo para backup (portável). Se false, usa segredo local (machine-specific).
    * @returns Promise com string criptografada (formato: salt:iv:ciphertext)
    */
-  async criptografarDados(dados: unknown): Promise<string> {
+  async criptografarDados(dados: unknown, usarBackupSecret: boolean = false): Promise<string> {
     const jsonStr = JSON.stringify(dados);
     const encoder = new TextEncoder();
     const data = encoder.encode(jsonStr);
@@ -125,7 +137,8 @@ export class CriptografiaService {
     const iv = crypto.getRandomValues(new Uint8Array(16));
 
     // Deriva chave de forma assíncrona (PBKDF2 nativo - não bloqueia)
-    const key = await this.deriveKey(this.getFileSecret(), this.bufferToHex(salt.buffer as ArrayBuffer));
+    const secret = usarBackupSecret ? this.getBackupSecret() : this.getFileSecret();
+    const key = await this.deriveKey(secret, this.bufferToHex(salt.buffer as ArrayBuffer));
 
     // Criptografa com AES-CBC
     const encrypted = await crypto.subtle.encrypt(
@@ -140,9 +153,10 @@ export class CriptografiaService {
   /**
    * Tenta descriptografar uma string para recuperar o objeto original (assíncrono nativo).
    * @param dadosCriptografados String criptografada no formato salt:iv:ciphertext
+   * @param usarBackupSecret Se true, usa segredo fixo para backup (portável). Se false, usa segredo local (machine-specific).
    * @returns Promise com o objeto original ou null se falhar
    */
-  async descriptografarDados(dadosCriptografados: string): Promise<unknown> {
+  async descriptografarDados(dadosCriptografados: string, usarBackupSecret: boolean = false): Promise<unknown> {
     try {
       const parts = dadosCriptografados.split(':');
       if (parts.length !== 3) {
@@ -156,7 +170,8 @@ export class CriptografiaService {
       const ciphertext = this.hexToBuffer(ciphertextHex);
 
       // Deriva chave de forma assíncrona
-      const key = await this.deriveKey(this.getFileSecret(), saltHex);
+      const secret = usarBackupSecret ? this.getBackupSecret() : this.getFileSecret();
+      const key = await this.deriveKey(secret, saltHex);
 
       // Descriptografa com AES-CBC
       const decrypted = await crypto.subtle.decrypt(
