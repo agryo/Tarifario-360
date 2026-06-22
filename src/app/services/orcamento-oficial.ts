@@ -130,7 +130,8 @@ export class OrcamentoOficialService extends BaseStorageService<OrcamentoOficial
       assinatura: this.criptografia.gerarHash(JSON.stringify(dados)),
     };
 
-    const encryptedData = await this.criptografia.criptografarDados(orcamentoAssinado);
+    // Usa segredo de backup (portável) para permitir importação em outras máquinas
+    const encryptedData = await this.criptografia.criptografarDados(orcamentoAssinado, true);
     const blob = new Blob([encryptedData], { type: 'application/octet-stream' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -147,8 +148,8 @@ export class OrcamentoOficialService extends BaseStorageService<OrcamentoOficial
     mensagem: string;
   }> {
     try {
-      // Tenta descriptografar (formato .ortf)
-      const orcamentoImportado = (await this.criptografia.descriptografarDados(json)) as OrcamentoOficialImportado | null;
+      // Tenta descriptografar (formato .ortf) - usa segredo de backup (portável)
+      const orcamentoImportado = (await this.criptografia.descriptografarDados(json, true)) as OrcamentoOficialImportado | null;
 
       if (!orcamentoImportado) {
         throw new Error('Arquivo criptografado inválido.');
