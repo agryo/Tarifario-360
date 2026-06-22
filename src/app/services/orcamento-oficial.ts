@@ -59,6 +59,38 @@ export class OrcamentoOficialService extends BaseStorageService<OrcamentoOficial
     return orcamento;
   }
 
+  /**
+   * Cria orçamento completo com todos os dados do formulário
+   */
+  criarOrcamentoCompleto(params: {
+    titulo: string;
+    cliente: string;
+    temporada: string;
+    dataCheckin: Date;
+    dataCheckout: Date;
+    horaEntrada: string;
+    horaSaida: string;
+    itens: ItemOrcamento[];
+  }): OrcamentoOficial {
+    const orcamento: OrcamentoOficial = {
+      ...this.criarEntidade({}),
+      tipo: 'orcamento',
+      titulo: params.titulo,
+      cliente: params.cliente,
+      dataGeracao: new Date(),
+      dataValidade: new Date(new Date().setDate(new Date().getDate() + 7)),
+      dataCheckin: params.dataCheckin,
+      dataCheckout: params.dataCheckout,
+      horaEntrada: params.horaEntrada,
+      horaSaida: params.horaSaida,
+      temporada: params.temporada as 'auto' | 'baixa' | 'alta',
+      itens: params.itens,
+      status: 'rascunho',
+    };
+
+    return orcamento;
+  }
+
   // Sobrescreve listar para converter datas de string para Date
   override listar(): OrcamentoOficial[] {
     const lista = super.listar();

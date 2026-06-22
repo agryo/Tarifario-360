@@ -650,38 +650,19 @@ export class OrcamentoOficialComponent implements OnInit {
     });
 
     try {
-      const dados = {
-        tipo: 'orcamento-oficial-snapshot',
-        versao: '1.0',
+      // Usa o service que já faz criptografia com segredo portável
+      const orcamento = this.orcamentoOficialService.criarOrcamentoCompleto({
+        titulo: `Orçamento - ${this.cliente}`,
         cliente: this.cliente,
         temporada: this.temporada,
         dataCheckin: this.dataCheckin,
         dataCheckout: this.dataCheckout,
         horaEntrada: this.horaEntrada,
         horaSaida: this.horaSaida,
-        itens: this.itens,
-        totalGeral: this.totalGeral,
-      };
+        itens: this.itens
+      });
 
-      this.progressService.updateMensagem('Gerando assinatura digital...');
-      const orcamentoAssinado = {
-        ...dados,
-        assinatura: this.criptografia.gerarHash(JSON.stringify(dados)),
-      };
-
-      this.progressService.updateMensagem('Criptografando arquivo (pode levar alguns segundos)...');
-      this.progressService.updateProgress(50);
-      const encryptedData = await this.criptografia.criptografarDados(orcamentoAssinado);
-
-      this.progressService.updateMensagem('Finalizando download...');
-      this.progressService.updateProgress(80);
-      const blob = new Blob([encryptedData], { type: 'application/octet-stream' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `orcamento_${this.cliente.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.ortf`;
-      link.click();
-      URL.revokeObjectURL(url);
+      await this.orcamentoOficialService.downloadOrcamento(orcamento);
 
       this.progressService.updateProgress(100);
       this.messageService.add({
