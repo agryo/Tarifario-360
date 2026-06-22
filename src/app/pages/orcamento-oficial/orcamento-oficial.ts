@@ -719,7 +719,8 @@ export class OrcamentoOficialComponent implements OnInit {
 
       this.progressService.updateMensagem('Descriptografando arquivo (pode levar alguns segundos)...');
       this.progressService.updateProgress(30);
-      const dados = (await this.criptografia.descriptografarDados(rawContent)) as OrcamentoOficialImportado | null;
+      // Usa segredo de backup (portável) para permitir importação de outras máquinas
+      const dados = (await this.criptografia.descriptografarDados(rawContent, true)) as OrcamentoOficialImportado | null;
 
       this.progressService.updateMensagem('Validando assinatura digital...');
       this.progressService.updateProgress(60);
@@ -728,7 +729,8 @@ export class OrcamentoOficialComponent implements OnInit {
         throw new Error('Formato de arquivo inválido ou corrompido.');
       }
 
-      if (dados.tipo !== 'orcamento-oficial-snapshot' || !dados.itens || !dados.cliente) {
+      // O service exporta com tipo 'orcamento' (não 'orcamento-oficial-snapshot')
+      if (dados.tipo !== 'orcamento' || !dados.itens || !dados.cliente) {
         throw new Error('Este não é um arquivo de orçamento oficial válido.');
       }
 
