@@ -17,6 +17,8 @@ export interface OrcamentoOficial {
   observacoes?: string;
   status: 'rascunho' | 'enviado' | 'aprovado' | 'cancelado';
   assinatura?: string; // Hash para validar integridade
+  criado_em?: string;
+  atualizado_em?: string;
 }
 
 export interface OrcamentoOficialCompleto extends OrcamentoOficial {

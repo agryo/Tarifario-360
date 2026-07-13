@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -41,12 +41,14 @@ export class WallboxComponent implements OnInit {
     private tarifaService: TarifaService,
     private messageService: MessageService,
     private router: Router,
+    private cdr: ChangeDetectorRef,
   ) {}
 
-  ngOnInit() {
-    const config = this.tarifaService.getConfiguracao();
+  async ngOnInit() {
+    const config = await this.tarifaService.getConfiguracao();
     if (config && config.precos.kwh !== undefined) {
       this.tarifaKwh = config.precos.kwh;
+      this.cdr.detectChanges();
     }
   }
 

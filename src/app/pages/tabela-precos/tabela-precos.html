@@ -41,13 +41,13 @@
 <!-- Conteúdo da tabela (imprimível) -->
 <div class="page" id="folha-a4">
   <div class="header">
-    <h1 [ngClass]="temporadaAtual === 'alta' ? 'titulo-alta' : 'titulo-baixa'">
+    <h1 [ngClass]="temporadaAtual() === 'alta' ? 'titulo-alta' : 'titulo-baixa'">
       TABELA DE PREÇOS {{ getTituloTemporada() }} TEMPORADA
     </h1>
   </div>
 
-  <div class="tabela-container" *ngIf="grupos.length > 0; else semDados">
-    <div *ngFor="let grupo of grupos" class="bloco-categoria">
+  <div class="tabela-container" *ngIf="grupos().length > 0; else semDados">
+    <div *ngFor="let grupo of grupos()" class="bloco-categoria">
       <!-- Números das UHs -->
       <div class="numero-uh-topo">{{ grupo.uhs }}</div>
 

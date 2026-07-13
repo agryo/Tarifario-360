@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -16,6 +16,7 @@ import { TarifaService } from '../../services/tarifa';
 import { DateUtils } from '../../utils/date-utils';
 import { ConfiguracaoGeral } from '../../models/tarifa.model';
 import { MensagemUtils } from '../../utils/mensagem-utils';
+import { CategoriaQuarto } from '../../models/categoria-quarto.model';
 
 interface CategoriaComSelecao {
   id: string;
@@ -46,35 +47,38 @@ interface CategoriaComSelecao {
     CheckboxModule,
     TooltipModule,
   ],
-  providers: [],
+  providers: [MessageService],
   templateUrl: './tabela-opcoes.html',
   styleUrls: ['./tabela-opcoes.scss'],
 })
 export class TabelaOpcoesComponent implements OnInit {
   categorias: CategoriaComSelecao[] = [];
-  config!: ConfiguracaoGeral;
+  config: ConfiguracaoGeral | null = null;
 
   dataCheckin: Date = DateUtils.hoje();
   dataCheckout: Date = DateUtils.amanha();
   temporada: 'auto' | 'baixa' | 'alta' = 'auto';
   hoje: Date = DateUtils.hoje();
+  carregando = true;
 
   textoPrevia: string = '';
 
   constructor(
     private tarifaService: TarifaService,
     private messageService: MessageService,
+    private cdr: ChangeDetectorRef,
     private router: Router,
   ) {}
 
-  ngOnInit() {
-    this.carregarDados();
+  async ngOnInit() {
+    await this.carregarDados();
     this.gerar();
   }
 
-  carregarDados() {
-    this.config = this.tarifaService.getConfiguracao();
-    const cats = this.tarifaService.getCategorias();
+  async carregarDados() {
+    this.carregando = true;
+    this.config = await this.tarifaService.getConfiguracao();
+    const cats = await this.tarifaService.getCategorias();
     this.categorias = cats.map((cat) => ({
       ...cat,
       camasCasal: cat.camasCasal ?? 0,
@@ -82,6 +86,8 @@ export class TabelaOpcoesComponent implements OnInit {
       grupo: this.inferirGrupo(cat),
       selecionado: false,
     }));
+    this.carregando = false;
+    this.cdr.detectChanges();
   }
 
   private inferirGrupo(cat: any): 'solteiro' | 'casal' {
@@ -133,6 +139,11 @@ export class TabelaOpcoesComponent implements OnInit {
   }
 
   gerar() {
+    if (!this.config) {
+      this.textoPrevia = 'Carregando configuração...';
+      return;
+    }
+
     const selecionados = this.categorias.filter((c) => c.selecionado);
     if (selecionados.length === 0) {
       this.textoPrevia = 'Selecione as acomodações...';
@@ -196,7 +207,7 @@ export class TabelaOpcoesComponent implements OnInit {
 
     texto += this.aplicarPromocao(resultados, noites, diasAlta);
 
-    texto += MensagemUtils.formatarHorariosRefeicoes(this.config);
+    texto += this.formatarHorariosRefeicoes();
     texto += `📥 *Check-in:* das 14h às 22h.\n`;
     texto += `_OBS.: Após esse horário a recepção fecha. Acesso somente para hóspedes acomodados (descanso e circulação normal)._\n`;
     texto += `📤 *Check-out:* até as 12h.\n\n`;
@@ -205,12 +216,21 @@ export class TabelaOpcoesComponent implements OnInit {
     this.textoPrevia = texto;
   }
 
+  private formatarHorariosRefeicoes() {
+    if (!this.config) return '';
+    return MensagemUtils.formatarHorariosRefeicoes(this.config);
+  }
+
   private calcularTotaisCategoria(
     cat: CategoriaComSelecao,
     d1: Date,
     d2: Date,
     noites: number,
   ): { somaCom: number; somaSem: number; isMisto: boolean } {
+    if (!this.config) {
+      return { somaCom: 0, somaSem: 0, isMisto: false };
+    }
+
     if (this.temporada !== 'auto') {
       const base =
         this.temporada === 'alta'
@@ -264,6 +284,8 @@ export class TabelaOpcoesComponent implements OnInit {
     noites: number,
     diasAlta: number,
   ): string {
+    if (!this.config) return '';
+
     const resultadoPromo = MensagemUtils.processarPromocao(this.config, noites, diasAlta);
 
     if (!resultadoPromo.texto) return '';

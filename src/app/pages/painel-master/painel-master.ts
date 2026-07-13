@@ -70,7 +70,7 @@ export class PainelMasterComponent implements OnInit, OnChanges {
   @Output() onSalvo = new EventEmitter<void>();
   @Output() onAutenticadoChange = new EventEmitter<boolean>();
 
-  config!: ConfiguracaoGeral;
+  config: ConfiguracaoGeral = this.getConfiguracaoPadrao();
   // Propriedades para os datepickers do PrimeNG
   altaInicioDate: Date | null = null;
   altaFimDate: Date | null = null;
@@ -106,9 +106,9 @@ export class PainelMasterComponent implements OnInit, OnChanges {
     private progressService: ProgressService,
   ) {}
 
-  ngOnInit() {
-    this.carregarDados();
-    this.escalaConfig = this.escalaService.getConfiguracao();
+  async ngOnInit() {
+    await this.carregarDados();
+    this.escalaConfig = await this.escalaService.getConfiguracao();
     this.resetarAutenticacao();
   }
 
@@ -121,17 +121,29 @@ export class PainelMasterComponent implements OnInit, OnChanges {
 
   private resetarAutenticacao() {
     // Lógica de autenticação
-    if (this.config.seguranca?.senhaHash) {
-      this.autenticado = false;
-    } else {
+    if (!this.config?.seguranca?.senhaHash) {
       this.autenticado = true;
+    } else {
+      this.autenticado = false;
     }
     this.onAutenticadoChange.emit(this.autenticado);
   }
 
-  carregarDados() {
-    this.config = this.tarifaService.getConfiguracao();
-    this.categorias = this.tarifaService.getCategorias();
+  async carregarDados() {
+    const loadedConfig = await this.tarifaService.getConfiguracao();
+    const defaults = this.getConfiguracaoPadrao();
+    // Deep merge para garantir que objetos aninhados existam
+    this.config = {
+      ...defaults,
+      ...loadedConfig,
+      precos: { ...defaults.precos, ...loadedConfig.precos, refeicoes: { ...defaults.precos.refeicoes, ...(loadedConfig.precos?.refeicoes || {}) } },
+      temporada: { ...defaults.temporada, ...loadedConfig.temporada },
+      horarios: { ...defaults.horarios, ...loadedConfig.horarios },
+      promocao: { ...defaults.promocao, ...loadedConfig.promocao },
+      seguranca: { ...defaults.seguranca, ...loadedConfig.seguranca },
+      orcamento: { ...defaults.orcamento, ...loadedConfig.orcamento, textos: { ...defaults.orcamento.textos, ...(loadedConfig.orcamento?.textos || {}) } },
+    };
+    this.categorias = await this.tarifaService.getCategorias();
 
     // Converte as datas de string para Date para os p-datepicker
     if (this.config.temporada.altaInicio) {
@@ -194,7 +206,7 @@ export class PainelMasterComponent implements OnInit, OnChanges {
     this.categoriaDialog = true;
   }
 
-  salvarCategoria() {
+  async salvarCategoria() {
     if (!this.categoriaEdit || !this.categoriaEdit.nome) {
       this.messageService.add({
         severity: 'warn',
@@ -204,8 +216,8 @@ export class PainelMasterComponent implements OnInit, OnChanges {
       return;
     }
 
-    this.tarifaService.salvarCategoria(this.categoriaEdit);
-    this.carregarDados();
+    await this.tarifaService.salvarCategoria(this.categoriaEdit);
+    await this.carregarDados();
     this.categoriaDialog = false;
     this.messageService.add({
       severity: 'success',
@@ -214,7 +226,7 @@ export class PainelMasterComponent implements OnInit, OnChanges {
     });
   }
 
-  excluirUH(categoria: CategoriaQuarto) {
+  async excluirUH(categoria: CategoriaQuarto) {
     this.confirmationService.confirm({
       message: `Tem certeza que deseja excluir a UH "${categoria.nome}"?`,
       header: 'Confirmar Exclusão',
@@ -222,9 +234,9 @@ export class PainelMasterComponent implements OnInit, OnChanges {
       acceptLabel: 'Sim, Excluir',
       rejectLabel: 'Cancelar',
       acceptButtonStyleClass: 'p-button-danger',
-      accept: () => {
-        this.tarifaService.excluirCategoria(categoria.id);
-        this.carregarDados();
+      accept: async () => {
+        await this.tarifaService.excluirCategoria(categoria.id);
+        await this.carregarDados();
         this.messageService.add({
           severity: 'success',
           summary: 'Excluído',
@@ -258,7 +270,7 @@ export class PainelMasterComponent implements OnInit, OnChanges {
   }
 
   // ===== SEGURANÇA =====
-  alterarSenha() {
+  async alterarSenha() {
     if (this.novaSenhaInput !== this.confirmarSenhaInput) {
       this.messageService.add({
         severity: 'error',
@@ -305,7 +317,7 @@ export class PainelMasterComponent implements OnInit, OnChanges {
       this.config.seguranca.senhaSalt = '';
     }
 
-    this.tarifaService.salvarConfiguracao(this.config);
+    await this.tarifaService.salvarConfiguracao(this.config);
 
     this.messageService.add({
       severity: 'success',
@@ -443,7 +455,7 @@ export class PainelMasterComponent implements OnInit, OnChanges {
   }
 
   // ===== AÇÕES GLOBAIS =====
-  salvarConfiguracoes() {
+  async salvarConfiguracoes() {
     // Converte as datas de Date para string antes de salvar
     if (this.altaInicioDate) {
       this.config.temporada.altaInicio = DateUtils.formatarDataISO(this.altaInicioDate);
@@ -451,8 +463,8 @@ export class PainelMasterComponent implements OnInit, OnChanges {
     if (this.altaFimDate) {
       this.config.temporada.altaFim = DateUtils.formatarDataISO(this.altaFimDate);
     }
-    this.tarifaService.salvarConfiguracao(this.config);
-    this.escalaService.salvarConfiguracao(this.escalaConfig);
+    await this.tarifaService.salvarConfiguracao(this.config);
+    await this.escalaService.salvarConfiguracao(this.escalaConfig);
     this.messageService.add({
       severity: 'success',
       summary: 'Sucesso',
@@ -472,5 +484,46 @@ export class PainelMasterComponent implements OnInit, OnChanges {
 
   fechar() {
     this.onFechar.emit();
+  }
+
+  private getConfiguracaoPadrao(): ConfiguracaoGeral {
+    return {
+      festividade: '🎊 Evento Especial',
+      totalUhs: 50,
+      comodidadesGlobais: 'Frigobar, TV, Ar-condicionado, Wi-Fi, Hidro',
+      precos: {
+        refeicoes: { almoco: 45, janta: 55, lanche: 25 },
+        kwh: 0.89,
+      },
+      temporada: { altaInicio: '2025-12-15', altaFim: '2026-03-15' },
+      horarios: {
+        cafe: { inicio: '07:00', fim: '10:00', ativo: true },
+        almoco: { inicio: '12:00', fim: '14:00', ativo: true },
+        lanche: { inicio: '15:00', fim: '17:00', ativo: true },
+        jantar: { inicio: '19:00', fim: '21:00', ativo: true },
+      },
+      promocao: {
+        ativa: false,
+        desconto: 15,
+        minDiarias: 3,
+        texto: 'Pagamento integral via Pix ou Dinheiro',
+        somenteAlta: true,
+        msgBaixa: false,
+      },
+      seguranca: { senhaHash: '', senhaSalt: '' },
+      orcamento: {
+        textos: {
+          titulo: 'Orçamento de Hospedagem',
+          configTitulo: '1. Configuração de Acomodação e Valores',
+          configDescricao: 'A proposta contempla a estadia com café da manhã incluido...',
+          notaRefeicoes: 'Obs.: As quantidades de refeições descritas na tabela referem-se ao consumo...',
+          cronograma: 'Check-in: {checkinHora} do dia {checkinDataBr}.\nCheck-out: {checkoutHora} do dia {checkoutDataBr}.\n{mensagemHorasExtras}',
+          pagamento: 'Forma de Pagamento: Sinal de {sinalPercentual}% do valor total ({totalGeral})...',
+          observacoes: 'Refeições: O café da manhã é cortesia da casa e já está incluso...',
+          rodape: 'Setor de Reservas - Hotel Plaza',
+        },
+        sinalPercentual: 50,
+      },
+    };
   }
 }

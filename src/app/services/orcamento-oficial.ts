@@ -1,9 +1,11 @@
 import { Injectable } from '@angular/core';
-import { BaseStorageService } from './base-storage';
+import { StorageService } from './storage';
 import { CriptografiaService } from './criptografia';
+import { OrcamentosOficiaisRepository } from './repositories/orcamentos-oficiais-repository';
+import { ConfigRepositoryFactory } from './config-repository-factory';
+import { RepositoryFactory } from './repository-factory';
 import { OrcamentoOficial, OrcamentoOficialCompleto } from '../models/orcamento-oficial.model';
 import { ItemOrcamento } from '../models/item-orcamento.model';
-import { StorageService } from './storage';
 
 export type { OrcamentoOficial, OrcamentoOficialCompleto };
 
@@ -28,15 +30,36 @@ interface OrcamentoOficialImportado {
 @Injectable({
   providedIn: 'root',
 })
-export class OrcamentoOficialService extends BaseStorageService<OrcamentoOficial> {
+export class OrcamentoOficialService {
   protected readonly STORAGE_KEY = 'orcamentos_oficiais';
   protected readonly ENTITY_TYPE = 'orcamento';
 
   constructor(
-    storage: StorageService,
+    private storage: StorageService,
     private criptografia: CriptografiaService,
-  ) {
-    super(storage);
+    private configFactory: ConfigRepositoryFactory,
+    private repoFactory: RepositoryFactory,
+  ) {}
+
+  private get orcamentosRepo(): OrcamentosOficiaisRepository {
+    return this.repoFactory.getOrcamentosOficiaisRepo();
+  }
+
+  protected criarEntidade(dados: Partial<OrcamentoOficial>): OrcamentoOficial {
+    return {
+      ...dados,
+      id: this.storage.generateId(),
+    } as OrcamentoOficial;
+  }
+
+  protected validarEntidade(entidade: unknown): entidade is OrcamentoOficial {
+    return (
+      entidade !== null &&
+      typeof entidade === 'object' &&
+      'id' in entidade &&
+      'tipo' in entidade &&
+      (entidade as Record<string, unknown>)['tipo'] === this.ENTITY_TYPE
+    );
   }
 
   criarOrcamento(titulo: string, cliente: string): OrcamentoOficial {
@@ -91,31 +114,72 @@ export class OrcamentoOficialService extends BaseStorageService<OrcamentoOficial
     return orcamento;
   }
 
-  // Sobrescreve listar para converter datas de string para Date
-  override listar(): OrcamentoOficial[] {
-    const lista = super.listar();
-    return lista.map((orc) => ({
-      ...orc,
-      dataGeracao: new Date(orc.dataGeracao),
-      dataValidade: new Date(orc.dataValidade),
-      dataCheckin: new Date(orc.dataCheckin),
-      dataCheckout: new Date(orc.dataCheckout),
-    }));
+  async listar(): Promise<OrcamentoOficial[]> {
+    try {
+      if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
+        return await this.orcamentosRepo.getAll();
+      }
+    } catch (error) {
+      console.warn('Falha ao buscar orçamentos do Supabase, usando localStorage:', error);
+    }
+    return this.storage.get<OrcamentoOficial[]>(this.STORAGE_KEY) || [];
   }
 
-  // Sobrescreve validarEntidade para validações específicas do orçamento
-  protected override validarEntidade(entidade: unknown): entidade is OrcamentoOficial {
-    const baseValida = super.validarEntidade(entidade);
-    if (!baseValida) return false;
-
-    const orc = entidade as OrcamentoOficial;
-    return (
-      !!orc.titulo &&
-      Array.isArray(orc.itens)
-    );
+  async buscarPorId(id: string): Promise<OrcamentoOficial | null> {
+    try {
+      if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
+        return await this.orcamentosRepo.getById(id);
+      }
+    } catch (error) {
+      console.warn('Falha ao buscar orçamento do Supabase, usando localStorage:', error);
+    }
+    const lista = await this.listar();
+    return lista.find((e) => e.id === id) || null;
   }
 
-  // Métodos específicos de negócio (não genéricos)
+  async salvar(orcamento: OrcamentoOficial): Promise<void> {
+    if (!this.validarEntidade(orcamento)) {
+      throw new Error(`Dados inválidos. O objeto não é um ${this.ENTITY_TYPE} válido.`);
+    }
+
+    try {
+      if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
+        const existing = await this.orcamentosRepo.getById(orcamento.id);
+        if (existing) {
+          await this.orcamentosRepo.update(orcamento.id, orcamento);
+        } else {
+          // Não enviar ID para o Supabase - deixar o banco gerar UUID
+          const { id, ...orcamentoSemId } = orcamento;
+          await this.orcamentosRepo.create(orcamentoSemId);
+        }
+      }
+    } catch (error) {
+      console.warn('Falha ao salvar orçamento no Supabase:', error);
+    }
+
+    // Fallback to localStorage
+    const lista = await this.listar();
+    const index = lista.findIndex((e) => e.id === orcamento.id);
+    if (index >= 0) {
+      lista[index] = orcamento;
+    } else {
+      lista.push(orcamento);
+    }
+    this.storage.set(this.STORAGE_KEY, lista);
+  }
+
+  async excluir(id: string): Promise<void> {
+    try {
+      if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
+        await this.orcamentosRepo.delete(id);
+      }
+    } catch (error) {
+      console.warn('Falha ao excluir orçamento do Supabase:', error);
+    }
+    const lista = (await this.listar()).filter((e) => e.id !== id);
+    this.storage.set(this.STORAGE_KEY, lista);
+  }
+
   calcularTotais(orcamento: OrcamentoOficial): OrcamentoOficialCompleto {
     const subtotal = orcamento.itens.reduce(
       (acc, item) => acc + item.precoDiaria * item.quantidade,
@@ -144,7 +208,7 @@ export class OrcamentoOficialService extends BaseStorageService<OrcamentoOficial
     return orcamento;
   }
 
-  override exportarParaJSON(orcamento: OrcamentoOficial): string {
+  exportarParaJSON(orcamento: OrcamentoOficial): string {
     // Garante que o orçamento tenha a assinatura mais recente antes de exportar
     const { assinatura, ...dados } = orcamento;
     const orcamentoComAssinatura: OrcamentoOficial = {
@@ -235,5 +299,16 @@ export class OrcamentoOficialService extends BaseStorageService<OrcamentoOficial
         mensagem: 'Arquivo de orçamento inválido ou corrompido.',
       };
     }
+  }
+
+  async limpar(): Promise<void> {
+    try {
+      if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
+        // Would need bulk delete - skip for now
+      }
+    } catch (error) {
+      console.warn('Falha ao limpar orçamentos do Supabase:', error);
+    }
+    this.storage.remove(this.STORAGE_KEY);
   }
 }

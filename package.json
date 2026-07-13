@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "watch": "ng build --watch --configuration development",
+    "start": "node generate-env.js && ng serve",
+    "build": "node generate-env.js && ng build",
+    "watch": "node generate-env.js && ng build --watch --configuration development",
     "test": "ng test"
   },
   "prettier": {
@@ -31,6 +31,7 @@
     "@angular/platform-browser": "^21.1.0",
     "@angular/router": "^21.1.0",
     "@primeuix/themes": "^2.0.3",
+    "@supabase/supabase-js": "^2.108.2",
     "crypto-js": "^4.2.0",
     "html2canvas": "^1.4.1",
     "primeflex": "^4.0.0",
@@ -45,7 +46,10 @@
     "@angular/cli": "^21.1.4",
     "@angular/compiler-cli": "^21.1.0",
     "@types/crypto-js": "^4.2.2",
+    "@vercel/node": "^5.8.17",
+    "dotenv": "^17.4.2",
     "jsdom": "^27.1.0",
+    "playwright": "^1.61.1",
     "typescript": "~5.9.2",
     "vitest": "^4.0.8"
   }

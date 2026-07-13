@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -72,8 +72,8 @@ type Refeicao = 'comCafe' | 'comAlmoco' | 'comJanta' | 'comLanche';
   styleUrls: ['./orcamento-oficial.scss'],
 })
 export class OrcamentoOficialComponent implements OnInit {
-  categorias: CategoriaQuarto[] = [];
-  config!: ConfiguracaoGeral;
+  categorias = signal<CategoriaQuarto[]>([]);
+  config = signal<ConfiguracaoGeral | null>(null);
 
   cliente: string = '';
   temporada: 'auto' | 'baixa' | 'alta' = 'auto';
@@ -103,12 +103,14 @@ export class OrcamentoOficialComponent implements OnInit {
     private progressService: ProgressService,
     private router: Router,
     private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef,
   ) {}
 
-  ngOnInit() {
-    this.carregarDados();
+  async ngOnInit() {
+    await this.carregarDados();
     this.verificarOrcamentoSalvo();
-    this.adicionarItem(); // começa com uma linha em branco
+    this.adicionarItem(); // Adiciona primeiro item automaticamente ao abrir
+    this.cdr.detectChanges();
   }
 
   private verificarOrcamentoSalvo() {
@@ -141,11 +143,20 @@ export class OrcamentoOficialComponent implements OnInit {
     }
   }
 
-  abrirOrcamentosSalvos() {
-    this.orcamentosSalvos = this.orcamentoOficialService.listar().sort(
-      (a, b) => new Date(b.dataGeracao).getTime() - new Date(a.dataGeracao).getTime()
-    );
-    this.orcamentosSalvosDialog = true;
+  async abrirOrcamentosSalvos() {
+    try {
+      const orcamentos = await this.orcamentoOficialService.listar();
+      this.orcamentosSalvos = orcamentos.sort(
+        (a, b) => new Date(b.dataGeracao).getTime() - new Date(a.dataGeracao).getTime()
+      );
+      this.orcamentosSalvosDialog = true;
+    } catch (error: any) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erro',
+        detail: error.message || 'Não foi possível carregar os orçamentos salvos.',
+      });
+    }
   }
 
   selecionarOrcamentoSalvo(orcamento: OrcamentoOficial) {
@@ -167,14 +178,22 @@ export class OrcamentoOficialComponent implements OnInit {
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Sim, excluir',
       rejectLabel: 'Cancelar',
-      accept: () => {
-        this.orcamentoOficialService.excluir(orcamento.id);
-        this.orcamentosSalvos = this.orcamentosSalvos.filter((o) => o.id !== orcamento.id);
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Excluído',
-          detail: 'Orçamento removido com sucesso.',
-        });
+      accept: async () => {
+        try {
+          await this.orcamentoOficialService.excluir(orcamento.id);
+          this.orcamentosSalvos = this.orcamentosSalvos.filter((o) => o.id !== orcamento.id);
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Excluído',
+            detail: 'Orçamento removido com sucesso.',
+          });
+        } catch (error: any) {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro',
+            detail: error.message || 'Não foi possível excluir o orçamento.',
+          });
+        }
       },
     });
   }
@@ -188,7 +207,7 @@ export class OrcamentoOficialComponent implements OnInit {
     this.horaEntrada = DateUtils.HORA_CHECKIN;
     this.horaSaida = DateUtils.HORA_CHECKOUT;
     this.itens = [];
-    this.adicionarItem();
+    // this.adicionarItem(); // Não adiciona item automaticamente
     this.onDataChange();
     this.messageService.add({
       severity: 'info',
@@ -229,7 +248,7 @@ export class OrcamentoOficialComponent implements OnInit {
       this.progressService.updateMensagem('Salvando no banco de dados...');
       this.progressService.updateProgress(50);
 
-      this.orcamentoOficialService.salvar(orcamento);
+      await this.orcamentoOficialService.salvar(orcamento);
 
       this.progressService.updateProgress(100);
       this.messageService.add({
@@ -248,9 +267,14 @@ export class OrcamentoOficialComponent implements OnInit {
     }
   }
 
-  carregarDados() {
-    this.categorias = this.tarifaService.getCategorias();
-    this.config = this.tarifaService.getConfiguracao();
+  async carregarDados() {
+    const [cats, cfg] = await Promise.all([
+      this.tarifaService.getCategorias(),
+      this.tarifaService.getConfiguracao(),
+    ]);
+    this.categorias.set(cats);
+    this.config.set(cfg);
+    this.cdr.detectChanges();
   }
 
   /**
@@ -286,6 +310,10 @@ export class OrcamentoOficialComponent implements OnInit {
   getPlaceholderVars(): { [key: string]: string } {
     const noites = this.noitesCalculadas;
     const noitesDesc = this.noitesDescricao;
+    const cfg = this.config();
+    const precosRefeicoes = cfg?.precos?.refeicoes || { almoco: 0, janta: 0, lanche: 0 };
+    const orcamentoConfig = cfg?.orcamento || {};
+    const promocaoConfig = cfg?.promocao || {};
 
     return {
       cliente: this.cliente || '',
@@ -296,33 +324,33 @@ export class OrcamentoOficialComponent implements OnInit {
       noites: noites.toString(),
       noitesDescricao: noitesDesc,
       totalGeral: this.totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-      valorAlmoco: (this.config.precos.refeicoes.almoco || 0).toLocaleString('pt-BR', {
+      valorAlmoco: (precosRefeicoes.almoco || 0).toLocaleString('pt-BR', {
         style: 'currency',
         currency: 'BRL',
       }),
-      valorJanta: (this.config.precos.refeicoes.janta || 0).toLocaleString('pt-BR', {
+      valorJanta: (precosRefeicoes.janta || 0).toLocaleString('pt-BR', {
         style: 'currency',
         currency: 'BRL',
       }),
-      valorLanche: (this.config.precos.refeicoes.lanche || 0).toLocaleString('pt-BR', {
+      valorLanche: (precosRefeicoes.lanche || 0).toLocaleString('pt-BR', {
         style: 'currency',
         currency: 'BRL',
       }),
-      sinalPercentual: this.config.orcamento.sinalPercentual?.toString() || '50',
+      sinalPercentual: (orcamentoConfig as any).sinalPercentual?.toString() || '50',
       temporada: this.temporada,
       horasExtras: this.horasExtras.toFixed(0),
       mensagemHorasExtras:
         this.horasExtras > 0
           ? `<strong>Horas Extras (Day Use):</strong> Estão contabilizadas ${this.horasExtras.toFixed(0)} horas de prolongamento na estadia após o vencimento da diária.`
           : '',
-      percentualDesconto: this.config.promocao.desconto?.toString() || '0',
-      minimoDiarias: this.config.promocao.minDiarias?.toString() || '0',
-      textoPromocao: this.config.promocao.texto || '',
+      percentualDesconto: (promocaoConfig as any).desconto?.toString() || '0',
+      minimoDiarias: (promocaoConfig as any).minDiarias?.toString() || '0',
+      textoPromocao: (promocaoConfig as any).texto || '',
     };
   }
 
   adicionarItem() {
-    if (this.categorias.length === 0) {
+    if (this.categorias().length === 0) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Atenção',
@@ -332,9 +360,9 @@ export class OrcamentoOficialComponent implements OnInit {
     }
     const novoItem: ItemOrcamento = {
       quantidade: 1,
-      categoriaId: this.categorias[0].id,
-      categoriaNome: this.categorias[0].nome,
-      camasDescricao: this.formatarCamas(this.categorias[0]),
+      categoriaId: this.categorias()[0].id,
+      categoriaNome: this.categorias()[0].nome,
+      camasDescricao: this.formatarCamas(this.categorias()[0]),
       descricao: '',
       comCafe: true,
       comAlmoco: false,
@@ -367,7 +395,7 @@ export class OrcamentoOficialComponent implements OnInit {
   }
 
   onCategoriaChange(item: ItemOrcamento) {
-    const cat = this.categorias.find((c) => c.id === item.categoriaId);
+    const cat = this.categorias().find((c) => c.id === item.categoriaId);
     if (cat) {
       item.categoriaNome = cat.nome;
       item.camasDescricao = this.formatarCamas(cat);
@@ -383,11 +411,13 @@ export class OrcamentoOficialComponent implements OnInit {
   }
 
   calcularItem(item: ItemOrcamento) {
-    const cat = this.categorias.find((c) => c.id === item.categoriaId);
+    const cat = this.categorias().find((c) => c.id === item.categoriaId);
     if (!cat) return;
 
     const noites = this.noitesCalculadas;
     const isMesmoDia = this.isDayUse;
+    const cfg = this.config();
+    if (!cfg) return;
 
     if (noites <= 0) {
       item.precoDiaria = 0;
@@ -399,14 +429,18 @@ export class OrcamentoOficialComponent implements OnInit {
     // Cálculo da hospedagem (diárias)
     let totalBaseHospedagem = 0;
 
+    const cfgTemporada = cfg?.temporada || {};
+    const altaInicio = cfgTemporada.altaInicio || '2025-12-15';
+    const altaFim = cfgTemporada.altaFim || '2026-03-15';
+
     if (this.temporada === 'auto') {
       let current = new Date(this.dataCheckin);
       current.setHours(0, 0, 0, 0);
       for (let i = 0; i < noites; i++) {
         const isAlta = DateUtils.isAltaTemporada(
           current,
-          this.config.temporada.altaInicio,
-          this.config.temporada.altaFim,
+          altaInicio,
+          altaFim,
         );
         const pAltaCafe = Number(cat.precoAltaCafe) || 0;
         const pAltaSemCafe = Number(cat.precoAltaSemCafe) || 0;
@@ -445,20 +479,20 @@ export class OrcamentoOficialComponent implements OnInit {
     // Aplicar promoção se ativa (Ignora se for Day Use conforme solicitado: "sem abatimentos")
     if (
       !isMesmoDia &&
-      this.config.promocao.ativa &&
-      noites >= (this.config.promocao.minDiarias || 1)
+      cfg.promocao.ativa &&
+      noites >= (cfg.promocao.minDiarias || 1)
     ) {
       const isPeriodoAlta =
         this.temporada === 'alta' ||
         (this.temporada === 'auto' &&
           DateUtils.isAltaTemporada(
             this.dataCheckin,
-            this.config.temporada.altaInicio,
-            this.config.temporada.altaFim,
+            altaInicio,
+            altaFim,
           ));
 
-      if (!this.config.promocao.somenteAlta || isPeriodoAlta) {
-        const desconto = totalBaseHospedagem * (this.config.promocao.desconto / 100);
+      if (!cfg.promocao.somenteAlta || isPeriodoAlta) {
+        const desconto = totalBaseHospedagem * (cfg.promocao.desconto / 100);
         totalBaseHospedagem -= desconto;
       }
     }
@@ -483,52 +517,52 @@ export class OrcamentoOficialComponent implements OnInit {
       let count = 0;
       if (isMesmoDia) {
         if (
-          arrMin <= this.parseTime(this.config.horarios.almoco.fim) &&
-          depMin >= this.parseTime(this.config.horarios.almoco.inicio)
+          arrMin <= this.parseTime(cfg.horarios.almoco.fim) &&
+          depMin >= this.parseTime(cfg.horarios.almoco.inicio)
         ) {
           count = 1;
         }
       } else {
-        if (arrMin <= this.parseTime(this.config.horarios.almoco.fim)) count++;
-        if (depMin >= this.parseTime(this.config.horarios.almoco.inicio)) count++;
+        if (arrMin <= this.parseTime(cfg.horarios.almoco.fim)) count++;
+        if (depMin >= this.parseTime(cfg.horarios.almoco.inicio)) count++;
         count += middleDays;
       }
       qtdAlmoco = count;
-      custoAlmoco = count * (this.config.precos.refeicoes.almoco || 0) * capacidade;
+      custoAlmoco = count * (cfg.precos.refeicoes.almoco || 0) * capacidade;
     }
     if (item.comJanta) {
       let count = 0;
       if (isMesmoDia) {
         if (
-          arrMin <= this.parseTime(this.config.horarios.jantar.fim) &&
-          depMin >= this.parseTime(this.config.horarios.jantar.inicio)
+          arrMin <= this.parseTime(cfg.horarios.jantar.fim) &&
+          depMin >= this.parseTime(cfg.horarios.jantar.inicio)
         ) {
           count = 1;
         }
       } else {
-        if (arrMin <= this.parseTime(this.config.horarios.jantar.fim)) count++;
-        if (depMin >= this.parseTime(this.config.horarios.jantar.inicio)) count++;
+        if (arrMin <= this.parseTime(cfg.horarios.jantar.fim)) count++;
+        if (depMin >= this.parseTime(cfg.horarios.jantar.inicio)) count++;
         count += middleDays;
       }
       qtdJanta = count;
-      custoJanta = count * (this.config.precos.refeicoes.janta || 0) * capacidade;
+      custoJanta = count * (cfg.precos.refeicoes.janta || 0) * capacidade;
     }
     if (item.comLanche) {
       let count = 0;
       if (isMesmoDia) {
         if (
-          arrMin <= this.parseTime(this.config.horarios.lanche.fim) &&
-          depMin >= this.parseTime(this.config.horarios.lanche.inicio)
+          arrMin <= this.parseTime(cfg.horarios.lanche.fim) &&
+          depMin >= this.parseTime(cfg.horarios.lanche.inicio)
         ) {
           count = 1;
         }
       } else {
-        if (arrMin <= this.parseTime(this.config.horarios.lanche.fim)) count++;
-        if (depMin >= this.parseTime(this.config.horarios.lanche.inicio)) count++;
+        if (arrMin <= this.parseTime(cfg.horarios.lanche.fim)) count++;
+        if (depMin >= this.parseTime(cfg.horarios.lanche.inicio)) count++;
         count += middleDays;
       }
       qtdLanche = count;
-      custoLanche = count * (this.config.precos.refeicoes.lanche || 0) * capacidade;
+      custoLanche = count * (cfg.precos.refeicoes.lanche || 0) * capacidade;
     }
 
     const totalRefeicoes = custoAlmoco + custoJanta + custoLanche;

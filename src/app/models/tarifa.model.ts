@@ -60,4 +60,6 @@ export interface ConfiguracaoGeral {
     textos: ConfigTextosOrcamento;
     sinalPercentual: number;
   };
+  criado_em?: string;
+  atualizado_em?: string;
 }

@@ -1,4 +1,4 @@
-import { EscalaConfig } from '../services/escala';
+import { EscalaConfig } from './escala-config.model';
 import { CategoriaQuarto } from './categoria-quarto.model';
 import { ConfiguracaoGeral } from './tarifa.model';
 

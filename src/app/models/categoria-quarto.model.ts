@@ -10,12 +10,9 @@ export interface CategoriaQuarto {
   descricao?: string;
   camasCasal?: number;
   camasSolteiro?: number;
-  tipoOcupacaoPadrao?: '' | 'casal' | 'solteiro';
+  tipoOcupacaoPadrao?: string;
   numeros?: string[];
   comodidadesSelecionadas?: string[];
-}
-
-export interface CategoriaComPreco extends CategoriaQuarto {
-  precoFinal: number;
-  tipoTemporada?: 'alta' | 'baixa' | 'misto';
+  criado_em?: string;
+  atualizado_em?: string;
 }

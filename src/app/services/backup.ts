@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { TarifaService } from './tarifa';
 import { EscalaService } from './escala';
 import { CriptografiaService } from './criptografia';
+import { supabaseApi } from './supabase-client';
 import { BackupData } from '../models/backup.model';
 
 @Injectable({ providedIn: 'root' })
@@ -14,15 +15,15 @@ export class BackupService {
     private criptografia: CriptografiaService,
   ) {}
 
-  // Exportar todos os dados
-  exportarDados(): BackupData {
+  // Exportar todos os dados (local - uses services)
+  async exportarDados(): Promise<BackupData> {
     const dados: Omit<BackupData, 'assinatura'> = {
       tipo: 'backup',
       versao: this.VERSAO,
       dataExportacao: new Date(),
-      configuracaoGeral: this.tarifaService.getConfiguracao(),
-      categorias: this.tarifaService.getCategorias(),
-      escalaConfig: this.escalaService.getConfiguracao(),
+      configuracaoGeral: await this.tarifaService.getConfiguracao(),
+      categorias: await this.tarifaService.getCategorias(),
+      escalaConfig: await this.escalaService.getConfiguracao(),
     };
 
     const backup: BackupData = {
@@ -90,7 +91,7 @@ export class BackupService {
   }
 
   async exportarArquivoCompleto(nomeArquivo: string = 'backup'): Promise<void> {
-    const backup = this.exportarDados();
+    const backup = await this.exportarDados();
     await this.downloadBackup(backup, nomeArquivo);
   }
 
@@ -157,5 +158,64 @@ export class BackupService {
     }
 
     return this.importarDados(backup);
+  }
+
+  // ========== MÉTODOS SUPABASE (NOVO) ==========
+
+  /**
+   * Exporta backup completo do Supabase (inclui orçamentos, chaves, etc.)
+   */
+  async exportarSupabase(): Promise<BackupData> {
+    const backup = await supabaseApi.exportBackup();
+    return backup;
+  }
+
+  /**
+   * Importa backup completo no Supabase
+   */
+  async importarSupabase(backup: BackupData): Promise<{ sucesso: boolean; mensagem: string }> {
+    try {
+      if (backup.tipo !== 'backup') {
+        return { sucesso: false, mensagem: 'Arquivo inválido. Tipo de backup incorreto.' };
+      }
+
+      await supabaseApi.importBackup(backup);
+      return { sucesso: true, mensagem: 'Backup importado no Supabase com sucesso!' };
+    } catch (error: any) {
+      console.error('Erro na importação Supabase:', error);
+      return { sucesso: false, mensagem: error.message || 'Erro ao importar no Supabase' };
+    }
+  }
+
+  /**
+   * Download de backup do Supabase (versão completa)
+   */
+  async downloadBackupSupabase(nomeArquivo: string = 'backup_supabase'): Promise<void> {
+    const backup = await this.exportarSupabase();
+    const encryptedData = await this.criptografia.criptografarDados(backup, true);
+    const blob = new Blob([encryptedData], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${nomeArquivo}_${this.formatarDataLocal()}.btf`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  /**
+   * Importa arquivo .btf para o Supabase
+   */
+  async importarArquivoSupabase(arquivo: File): Promise<{ sucesso: boolean; mensagem: string }> {
+    const rawContent = await arquivo.text();
+    if (!rawContent) {
+      return { sucesso: false, mensagem: 'O arquivo está vazio.' };
+    }
+
+    const backup = (await this.criptografia.descriptografarDados(rawContent, true)) as BackupData | null;
+    if (!backup) {
+      return { sucesso: false, mensagem: 'Formato de arquivo inválido ou corrompido.' };
+    }
+
+    return this.importarSupabase(backup);
   }
 }

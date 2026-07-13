@@ -1,7 +1,7 @@
 <div class="orcamento-rapido-container p-1 border-round align-items-center mb-1">
   <!-- Título -->
   <div class="orcamento-rapido-titulo surface-card p-1 border-round shadow-6 text-center mb-3">
-    <h1 class="text-2xl font-bold">⚡ Orçamento Rápido - {{ config.festividade }}</h1>
+    <h1 class="text-2xl font-bold">⚡ Orçamento Rápido - {{ config()?.festividade || 'Evento' }}</h1>
   </div>
 
   <!-- Formulário -->
@@ -13,7 +13,7 @@
           <p-select
             id="categoria"
             [(ngModel)]="categoriaId"
-            [options]="categorias"
+            [options]="categorias()"
             optionLabel="nome"
             optionValue="id"
             placeholder="Selecione"
@@ -47,7 +47,7 @@
             [(ngModel)]="dataCheckout"
             [showIcon]="true"
             dateFormat="dd/mm/yy"
-            [minDate]="dataCheckin || hoje"
+            [minDate]="dataCheckin() || hoje"
             (onSelect)="onDataChange()"
             styleClass="w-full"
             appendTo="body"
@@ -65,7 +65,7 @@
         icon="pi pi-whatsapp"
         styleClass="p-button-success"
         (click)="copiarWhatsApp()"
-        [disabled]="!textoOrcamento"
+        [disabled]="!textoOrcamento()"
       ></p-button>
       <p-button
         label="Voltar"
@@ -77,7 +77,7 @@
   </div>
 
   <!-- Prévia do orçamento -->
-  <div class="previa surface-ground shadow-2 p-3 border-round mt-3" *ngIf="textoOrcamento">
-    <pre class="whitespace-pre-wrap font-normal text-sm">{{ textoOrcamento }}</pre>
+  <div class="previa surface-ground shadow-2 p-3 border-round mt-3" *ngIf="textoOrcamento()">
+    <pre class="whitespace-pre-wrap font-normal text-sm">{{ textoOrcamento() }}</pre>
   </div>
 </div>

@@ -1,64 +1,71 @@
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject, signal, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import html2canvas from 'html2canvas';
 
 // PrimeNG
 import { ButtonModule } from 'primeng/button';
 import { DatePicker } from 'primeng/datepicker';
 import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
 
 // Services
 import { EscalaService, EscalaConfig } from '../../services/escala';
 import { DateUtils } from '../../utils/date-utils';
 import { ImpressaoService } from '../../utils/impressao-service';
-
-// Model impressão
 import { IMPRESSAO_ESCALA_CSS } from '../../utils/print-styles';
 
 @Component({
   selector: 'app-escala-noturna',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, DatePicker],
-  providers: [],
+  imports: [CommonModule, FormsModule, ButtonModule, DatePicker, ToastModule],
+  providers: [MessageService],
   templateUrl: './escala-noturna.html',
   styleUrls: ['./escala-noturna.scss'],
   encapsulation: ViewEncapsulation.None,
 })
 export class EscalaNoturnaComponent implements OnInit {
-  escalaConfig!: EscalaConfig;
-  dataInicio: Date = DateUtils.hoje();
-  dataFim: Date = DateUtils.adicionarDias(DateUtils.hoje(), 41);
-  tabelaHTML: string = '';
+  // Signals for reactive state
+  escalaConfig = signal<EscalaConfig | null>(null);
+  dataInicio = signal<Date>(DateUtils.hoje());
+  dataFim = signal<Date>(DateUtils.adicionarDias(DateUtils.hoje(), 41));
+  tabelaHTML = signal<string>('');
+  carregando = signal(false);
+  imprimindo = signal(false);
+  exportandoImagem = signal(false);
 
   constructor(
     private escalaService: EscalaService,
     private impressaoService: ImpressaoService,
     private messageService: MessageService,
     private router: Router,
+    private cdr: ChangeDetectorRef,
   ) {}
 
-  ngOnInit() {
-    this.escalaConfig = this.escalaService.getConfiguracao();
+  async ngOnInit() {
+    this.carregando.set(true);
+    await this.carregarConfiguracao();
     this.ajustarDatasParaSemanaCompleta();
     this.gerarEscala();
+    this.carregando.set(false);
+    this.cdr.detectChanges();
   }
 
   // Ajusta a data de início para o domingo anterior e a data de fim para o sábado posterior
   private ajustarDatasParaSemanaCompleta() {
     // Ajusta dataInicio para o domingo da semana
-    this.dataInicio = DateUtils.ajustarParaDomingo(this.dataInicio);
+    this.dataInicio.set(DateUtils.ajustarParaDomingo(this.dataInicio()));
 
     // Calcula o sábado mínimo (domingo + 6)
-    const sabadoMinimo = DateUtils.adicionarDias(this.dataInicio, 6);
+    const sabadoMinimo = DateUtils.adicionarDias(this.dataInicio(), 6);
 
     // Se dataFim for menor que o sábado mínimo, ajusta para ele
-    if (this.dataFim < sabadoMinimo) {
-      this.dataFim = sabadoMinimo;
+    if (this.dataFim() < sabadoMinimo) {
+      this.dataFim.set(sabadoMinimo);
     } else {
       // Garante que dataFim seja um sábado
-      this.dataFim = DateUtils.ajustarParaSabado(this.dataFim);
+      this.dataFim.set(DateUtils.ajustarParaSabado(this.dataFim()));
     }
   }
 
@@ -67,17 +74,31 @@ export class EscalaNoturnaComponent implements OnInit {
     this.gerarEscala();
   }
 
+  async carregarConfiguracao() {
+    try {
+      const cfg = await this.escalaService.getConfiguracao();
+      this.escalaConfig.set(cfg);
+    } catch (error) {
+      console.error('Erro ao carregar configuração:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erro',
+        detail: 'Não foi possível carregar a configuração da escala.',
+      });
+    }
+  }
+
   gerarEscala() {
-    if (!this.escalaConfig) return;
+    if (!this.escalaConfig()) return;
 
-    const p1 = this.escalaConfig.p1 || 'P1';
-    const p2 = this.escalaConfig.p2 || 'P2';
-    const diasFolga = this.escalaConfig.folgas;
-    const quemFolgaPrimeiro = this.escalaConfig.quemFolgaPrimeiro;
-    const dataInicioFolgas = new Date(this.escalaConfig.dataInicioFolgas);
+    const p1 = this.escalaConfig()!.p1 || 'P1';
+    const p2 = this.escalaConfig()!.p2 || 'P2';
+    const diasFolga = this.escalaConfig()!.folgas;
+    const quemFolgaPrimeiro = this.escalaConfig()!.quemFolgaPrimeiro;
+    const dataInicioFolgas = new Date(this.escalaConfig()!.dataInicioFolgas);
 
-    const inicio = new Date(this.dataInicio);
-    const fim = new Date(this.dataFim);
+    const inicio = new Date(this.dataInicio());
+    const fim = new Date(this.dataFim());
     inicio.setHours(0, 0, 0, 0);
     fim.setHours(0, 0, 0, 0);
 
@@ -175,23 +196,30 @@ export class EscalaNoturnaComponent implements OnInit {
     }
 
     html += '</tbody></table>';
-    this.tabelaHTML = html;
+    this.tabelaHTML.set(html);
+    this.cdr.detectChanges();
   }
 
-  imprimir() {
-    const elemento = document.querySelector('.tabela-area') as HTMLElement;
-    if (elemento) {
-      this.impressaoService.imprimirElemento(elemento, 'Escala Noturna', IMPRESSAO_ESCALA_CSS);
-    } else {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Erro',
-        detail: 'Tabela não encontrada para impressão.',
-      });
+  async imprimir() {
+    this.imprimindo.set(true);
+    try {
+      const elemento = document.querySelector('.tabela-area') as HTMLElement;
+      if (elemento) {
+        this.impressaoService.imprimirElemento(elemento, 'Escala Noturna', IMPRESSAO_ESCALA_CSS);
+      } else {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Tabela não encontrada para impressão.',
+        });
+      }
+    } finally {
+      this.imprimindo.set(false);
     }
   }
 
-  exportarImagem() {
+  async exportarImagem() {
+    this.exportandoImagem.set(true);
     const element = document.querySelector('.tabela-area') as HTMLElement;
     if (!element) {
       this.messageService.add({
@@ -199,6 +227,7 @@ export class EscalaNoturnaComponent implements OnInit {
         summary: 'Aviso',
         detail: 'Tabela não encontrada para gerar imagem.',
       });
+      this.exportandoImagem.set(false);
       return;
     }
 
@@ -214,40 +243,43 @@ export class EscalaNoturnaComponent implements OnInit {
       detail: 'Gerando imagem...',
     });
 
-    html2canvas(element, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: null,
-      logging: true, // ative para depuração
-      allowTaint: false,
-      imageTimeout: 15000,
-    })
-      .then((canvas) => {
-        // Restaura
-        element.style.overflowX = originalOverflow;
-        element.style.width = ''; // remove largura fixa
-
-        const webpDataUrl = canvas.toDataURL('image/webp', 0.95);
-        const link = document.createElement('a');
-        link.download = `escala-equipe-${new Date().toISOString().split('T')[0]}.webp`;
-        link.href = webpDataUrl;
-        link.click();
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Sucesso',
-          detail: 'Imagem WEBP gerada com sucesso!',
-        });
-      })
-      .catch((error) => {
-        element.style.overflowX = originalOverflow;
-        element.style.width = '';
-        console.error('Erro ao gerar imagem:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Erro',
-          detail: 'Falha ao gerar imagem. Verifique o console.',
-        });
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: null,
+        logging: true,
+        allowTaint: false,
+        imageTimeout: 15000,
       });
+
+      // Restaura
+      element.style.overflowX = originalOverflow;
+      element.style.width = '';
+
+      const webpDataUrl = canvas.toDataURL('image/webp', 0.95);
+      const link = document.createElement('a');
+      link.download = `escala-equipe-${new Date().toISOString().split('T')[0]}.webp`;
+      link.href = webpDataUrl;
+      link.click();
+
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Sucesso',
+        detail: 'Imagem WEBP gerada com sucesso!',
+      });
+    } catch (error) {
+      element.style.overflowX = originalOverflow;
+      element.style.width = '';
+      console.error('Erro ao gerar imagem:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erro',
+        detail: 'Falha ao gerar imagem. Verifique o console.',
+      });
+    } finally {
+      this.exportandoImagem.set(false);
+    }
   }
 
   voltar() {

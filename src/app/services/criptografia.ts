@@ -1,23 +1,55 @@
 import { Injectable } from '@angular/core';
 import * as CryptoJS from 'crypto-js';
+import { CriptografiaRepository } from './repositories/criptografia-repository';
+import { ConfigRepositoryFactory } from './config-repository-factory';
+import { RepositoryFactory } from './repository-factory';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CriptografiaService {
-  private readonly FILE_SECRET_KEY = 'tarifario360_file_secret';
+  private readonly FILE_SECRET_KEY = 'file_secret';
   private readonly BACKUP_SECRET_KEY = 'tarifario360_backup_secret_v2';
   private readonly PBKDF2_ITERATIONS = 600000;
   private readonly KEY_SIZE = 256;
 
-  constructor() {}
+  constructor(
+    private configFactory: ConfigRepositoryFactory,
+    private repoFactory: RepositoryFactory,
+  ) {}
 
-  private getFileSecret(): string {
+  private get criptografiaRepo(): CriptografiaRepository {
+    return this.repoFactory.getCriptografiaRepo();
+  }
+
+  private async getFileSecret(): Promise<string> {
+    // Try Supabase first if enabled
+    if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
+      try {
+        const keyData = await this.criptografiaRepo.getKey(this.FILE_SECRET_KEY);
+        if (keyData?.chave) return keyData.chave;
+      } catch (error) {
+        console.warn('Falha ao buscar segredo do Supabase, usando localStorage:', error);
+      }
+    }
+    // Fallback to localStorage
     const stored = localStorage.getItem(this.FILE_SECRET_KEY);
     if (stored) return stored;
     const generated = CryptoJS.lib.WordArray.random(256 / 8).toString();
     localStorage.setItem(this.FILE_SECRET_KEY, generated);
+    // Also try to sync to Supabase
+    await this.syncFileSecretToSupabase(generated);
     return generated;
+  }
+
+  private async syncFileSecretToSupabase(secret: string): Promise<void> {
+    if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
+      try {
+        await this.criptografiaRepo.setKey(this.FILE_SECRET_KEY, secret);
+      } catch (error) {
+        console.warn('Falha ao sincronizar segredo com Supabase:', error);
+      }
+    }
   }
 
   /**
@@ -228,7 +260,7 @@ export class CriptografiaService {
     const iv = crypto.getRandomValues(new Uint8Array(16));
 
     // Deriva chave de forma assíncrona (PBKDF2 nativo - não bloqueia)
-    const secret = usarBackupSecret ? this.getBackupSecret() : this.getFileSecret();
+    const secret = usarBackupSecret ? this.getBackupSecret() : await this.getFileSecret();
     const key = await this.deriveKey(secret, this.bufferToHex(salt.buffer as ArrayBuffer));
 
     // Criptografa com AES-CBC
@@ -261,7 +293,7 @@ export class CriptografiaService {
       const ciphertext = this.hexToBuffer(ciphertextHex);
 
       // Deriva chave de forma assíncrona
-      const secret = usarBackupSecret ? this.getBackupSecret() : this.getFileSecret();
+      const secret = usarBackupSecret ? this.getBackupSecret() : await this.getFileSecret();
       const key = await this.deriveKey(secret, saltHex);
 
       // Descriptografa com AES-CBC
@@ -283,13 +315,25 @@ export class CriptografiaService {
    * Descriptografa dados no formato legado (apenas FILE_SECRET hardcoded).
    * Usado para migração de backups antigos.
    */
-  private descriptografarDadosLegacy(dadosCriptografados: string): unknown {
+  private async descriptografarDadosLegacy(dadosCriptografados: string): Promise<unknown> {
     try {
-      const bytes = CryptoJS.AES.decrypt(dadosCriptografados, this.getFileSecret());
+      const bytes = CryptoJS.AES.decrypt(dadosCriptografados, await this.getFileSecret());
       const decryptedData = bytes.toString(CryptoJS.enc.Utf8);
       return JSON.parse(decryptedData);
     } catch {
       return null;
+    }
+  }
+
+  /**
+   * Migra chaves de criptografia do localStorage para o Supabase
+   * Útil para tornar o segredo de arquivo portável entre máquinas
+   */
+  async migrarChavesParaSupabase(): Promise<void> {
+    const secret = localStorage.getItem(this.FILE_SECRET_KEY);
+    const backend = this.configFactory.getBackend();
+    if (secret && (backend === 'supabase' || backend === 'supabase-direct')) {
+      await this.syncFileSecretToSupabase(secret);
     }
   }
 }

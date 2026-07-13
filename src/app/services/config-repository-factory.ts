@@ -2,11 +2,13 @@ import { Injectable } from '@angular/core';
 import { ConfigRepository } from './config-repository';
 import { LocalStorageConfigRepository } from './config-repository-local';
 import { SupabaseConfigRepository } from './config-repository-supabase';
+import { SupabaseDirectConfigRepository } from './config-repository-supabase-direct';
+import { environment } from '../../environments/environment';
 
 /**
  * Tipo de armazenamento ativo
  */
-export type StorageBackend = 'local' | 'supabase';
+export type StorageBackend = 'local' | 'supabase' | 'supabase-direct';
 
 /**
  * Factory para escolher implementação do ConfigRepository.
@@ -19,8 +21,16 @@ export class ConfigRepositoryFactory {
 
   constructor(
     private localRepo: LocalStorageConfigRepository,
-    private supabaseRepo: SupabaseConfigRepository
-  ) {}
+    private supabaseRepo: SupabaseConfigRepository,
+    private supabaseDirectRepo: SupabaseDirectConfigRepository
+  ) {
+    // Auto-detect backend baseado no ambiente
+    if (environment.production) {
+      this.backend = 'supabase';
+    } else if (environment.supabaseUrl && environment.supabaseAnonKey) {
+      this.backend = 'supabase-direct';
+    }
+  }
 
   /**
    * Define qual backend usar ('local' ou 'supabase')
@@ -44,9 +54,18 @@ export class ConfigRepositoryFactory {
    */
   getRepository(): ConfigRepository {
     if (!this.instance) {
-      this.instance = this.backend === 'supabase'
-        ? this.supabaseRepo
-        : this.localRepo;
+      switch (this.backend) {
+        case 'supabase':
+          this.instance = this.supabaseRepo;
+          break;
+        case 'supabase-direct':
+          this.instance = this.supabaseDirectRepo;
+          break;
+        case 'local':
+        default:
+          this.instance = this.localRepo;
+          break;
+      }
     }
     return this.instance;
   }
@@ -57,6 +76,19 @@ export class ConfigRepositoryFactory {
   async switchBackend(backend: StorageBackend): Promise<ConfigRepository> {
     this.setBackend(backend);
     return this.getRepository();
+  }
+
+  /**
+   * Força re-detecção do backend (útil após mudanças de environment)
+   */
+  detectBackend(): void {
+    if (environment.production) {
+      this.setBackend('supabase');
+    } else if (environment.supabaseUrl && environment.supabaseAnonKey) {
+      this.setBackend('supabase-direct');
+    } else {
+      this.setBackend('local');
+    }
   }
 }
 

@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { ConfigRepository } from './config-repository';
+import { supabaseApi } from './supabase-client';
 
 /**
- * Implementação usando Supabase (PostgreSQL + JSONB) - para uso futuro.
+ * Implementação usando Supabase via Vercel API Routes.
  *
- * Tabela necessária no Supabase:
+ * Tabela necessária no Supabase (já criada via migration 001_initial_schema.sql):
  *
  * CREATE TABLE configuracoes (
  *   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -16,84 +17,34 @@ import { ConfigRepository } from './config-repository';
  *   UNIQUE(categoria, chave)
  * );
  *
- * -- Índice para busca rápida dentro do JSONB
  * CREATE INDEX idx_config_dados_gin ON configuracoes USING GIN (dados);
- *
- * -- Habilitar RLS (Row Level Security) se necessário
- * ALTER TABLE configuracoes ENABLE ROW LEVEL SECURITY;
+ * CREATE INDEX idx_config_categoria ON configuracoes (categoria);
  */
 @Injectable({ providedIn: 'root' })
 export class SupabaseConfigRepository implements ConfigRepository {
-  // private supabase: SupabaseClient; // Injetar via construtor quando usar
-
-  constructor() {
-    // TODO: Injetar SupabaseClient quando migrar
-    // this.supabase = inject(SupabaseClient);
-  }
-
   async get<T>(categoria: string, chave: string): Promise<T | null> {
-    // const { data, error } = await this.supabase
-    //   .from('configuracoes')
-    //   .select('dados')
-    //   .eq('categoria', categoria)
-    //   .eq('chave', chave)
-    //   .single();
-    //
-    // if (error || !data) return null;
-    // return data.dados as T;
-
-    console.warn('SupabaseConfigRepository não implementado - usando fallback');
-    return null;
+    try {
+      return await supabaseApi.getConfig<T>(categoria, chave);
+    } catch (error: any) {
+      if (error.message.includes('404') || error.message.includes('Not found')) return null;
+      throw error;
+    }
   }
 
   async set<T>(categoria: string, chave: string, dados: T): Promise<void> {
-    // const { error } = await this.supabase
-    //   .from('configuracoes')
-    //   .upsert({
-    //     categoria,
-    //     chave,
-    //     dados,
-    //     atualizado_em: new Date().toISOString()
-    //   }, { onConflict: 'categoria,chave' });
-    //
-    // if (error) throw error;
-
-    console.warn('SupabaseConfigRepository não implementado');
+    await supabaseApi.setConfig(categoria, chave, dados);
   }
 
   async list(categoria: string): Promise<Array<{ chave: string; dados: any }>> {
-    // const { data, error } = await this.supabase
-    //   .from('configuracoes')
-    //   .select('chave, dados')
-    //   .eq('categoria', categoria);
-    //
-    // if (error) throw error;
-    // return data?.map(d => ({ chave: d.chave, dados: d.dados })) ?? [];
-
-    console.warn('SupabaseConfigRepository não implementado');
-    return [];
+    const result = await supabaseApi.listConfig(categoria);
+    return Object.entries(result).map(([chave, dados]) => ({ chave, dados }));
   }
 
   async delete(categoria: string, chave: string): Promise<void> {
-    // const { error } = await this.supabase
-    //   .from('configuracoes')
-    //   .delete()
-    //   .eq('categoria', categoria)
-    //   .eq('chave', chave);
-    //
-    // if (error) throw error;
-
-    console.warn('SupabaseConfigRepository não implementado');
+    await supabaseApi.deleteConfig(categoria, chave);
   }
 
   async clearCategoria(categoria: string): Promise<void> {
-    // const { error } = await this.supabase
-    //   .from('configuracoes')
-    //   .delete()
-    //   .eq('categoria', categoria);
-    //
-    // if (error) throw error;
-
-    console.warn('SupabaseConfigRepository não implementado');
+    await supabaseApi.clearConfig(categoria);
   }
 }

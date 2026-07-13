@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -38,27 +38,32 @@ interface GrupoUHs {
   styleUrls: ['./tabela-precos.scss'],
 })
 export class TabelaPrecosComponent implements OnInit {
-  temporadaAtual: 'alta' | 'baixa' = 'baixa';
-  categorias: CategoriaQuarto[] = [];
-  grupos: GrupoUHs[] = [];
-  config!: ConfiguracaoGeral;
+  temporadaAtual = signal<'alta' | 'baixa'>('baixa');
+  categorias = signal<CategoriaQuarto[]>([]);
+  grupos = signal<GrupoUHs[]>([]);
+  config = signal<ConfiguracaoGeral | undefined>(undefined);
+  carregando = signal(false);
 
   constructor(
     private tarifaService: TarifaService,
     private messageService: MessageService,
     private impressaoService: ImpressaoService,
     private router: Router,
+    private cdr: ChangeDetectorRef,
   ) {}
 
-  ngOnInit() {
-    this.carregarDados();
-    this.gerarTabela(this.temporadaAtual);
+  async ngOnInit() {
+    this.carregando.set(true);
+    await this.carregarDados();
+    this.gerarTabela(this.temporadaAtual());
+    this.carregando.set(false);
+    this.cdr.detectChanges();
   }
 
-  carregarDados() {
-    const categoriasRaw = this.tarifaService.getCategorias();
-    this.categorias = categoriasRaw.map((cat) => this.normalizarCategoria(cat));
-    this.config = this.tarifaService.getConfiguracao();
+  async carregarDados() {
+    const categoriasRaw = await this.tarifaService.getCategorias();
+    this.categorias.set(categoriasRaw.map((cat) => this.normalizarCategoria(cat)));
+    this.config.set(await this.tarifaService.getConfiguracao());
   }
 
   private normalizarCategoria(cat: CategoriaQuarto): CategoriaQuarto {
@@ -73,9 +78,9 @@ export class TabelaPrecosComponent implements OnInit {
   }
 
   gerarTabela(temporada: 'alta' | 'baixa') {
-    this.temporadaAtual = temporada;
+    this.temporadaAtual.set(temporada);
 
-    if (this.categorias.length === 0) {
+    if (this.categorias().length === 0) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Atenção',
@@ -84,14 +89,14 @@ export class TabelaPrecosComponent implements OnInit {
       return;
     }
 
-    const categoriasComUHs = this.categorias.filter((c) => c.numeros && c.numeros.length > 0);
+    const categoriasComUHs = this.categorias().filter((c) => c.numeros && c.numeros.length > 0);
 
     if (categoriasComUHs.length === 0) {
-      this.grupos = [];
+      this.grupos.set([]);
       return;
     }
 
-    this.grupos = this.agruparCategorias(categoriasComUHs);
+    this.grupos.set(this.agruparCategorias(categoriasComUHs));
   }
 
   agruparCategorias(categorias: CategoriaQuarto[]): GrupoUHs[] {
@@ -136,7 +141,7 @@ export class TabelaPrecosComponent implements OnInit {
   }
 
   getPreco(item: CategoriaQuarto): [number, number] {
-    if (this.temporadaAtual === 'alta') {
+    if (this.temporadaAtual() === 'alta') {
       return [item.precoAltaCafe, item.precoAltaSemCafe];
     } else {
       return [item.precoBaixaCafe, item.precoBaixaSemCafe];
@@ -170,13 +175,13 @@ export class TabelaPrecosComponent implements OnInit {
   }
 
   getTituloTemporada(): string {
-    return this.temporadaAtual === 'alta' ? 'ALTA' : 'BAIXA';
+    return this.temporadaAtual() === 'alta' ? 'ALTA' : 'BAIXA';
   }
 
   imprimir() {
     const elemento = document.getElementById('folha-a4');
     if (elemento) {
-      const temporada = this.temporadaAtual === 'alta' ? 'Alta' : 'Baixa';
+      const temporada = this.temporadaAtual() === 'alta' ? 'Alta' : 'Baixa';
       this.impressaoService.imprimirElemento(
         elemento,
         `Tabela de Preços - ${temporada} Temporada`,

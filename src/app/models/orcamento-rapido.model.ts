@@ -1,15 +1,17 @@
 export interface OrcamentoRapido {
-  tipo: 'orcamento_rapido';
   id: string;
-  dataGeracao: Date;
+  tipo: 'orcamento_rapido';
+  dataGeracao: string;
   categoriaId: string;
-  dataCheckin: Date;
-  dataCheckout: Date;
+  dataCheckin: string;
+  dataCheckout: string;
   numeroNoites: number;
   quantidade: number;
   valorDiaria: number;
   tipoTemporada: 'alta' | 'baixa' | 'misto';
   valorTotal: number;
+  criado_em: string;
+  atualizado_em: string;
 }
 
 export interface OrcamentoRapidoRequest {

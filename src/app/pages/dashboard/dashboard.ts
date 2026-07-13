@@ -1,4 +1,4 @@
-import { Component, OnInit, LOCALE_ID } from '@angular/core';
+import { Component, OnInit, LOCALE_ID, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, registerLocaleData } from '@angular/common';
 import localePt from '@angular/common/locales/pt';
 import { RouterModule } from '@angular/router';
@@ -65,6 +65,7 @@ export class Dashboard implements OnInit {
     private confirmationService: ConfirmationService,
     private criptografia: CriptografiaService,
     private primeng: PrimeNG,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit() {
@@ -113,10 +114,13 @@ export class Dashboard implements OnInit {
     });
   }
 
-  carregarResumos() {
-    this.totalCategorias = this.tarifaService.getCategorias().length;
-    this.config = this.tarifaService.getConfiguracao();
-    this.totalPromocoes = this.config.promocao?.ativa ? 1 : 0;
+  async carregarResumos() {
+    const categorias = await this.tarifaService.getCategorias();
+    this.totalCategorias = categorias.length;
+    const config = await this.tarifaService.getConfiguracao();
+    this.config = config;
+    this.totalPromocoes = config.promocao?.ativa ? 1 : 0;
+    this.cdr.detectChanges();
   }
 
   // ===== CONTROLE DE ACESSO =====
@@ -124,10 +128,10 @@ export class Dashboard implements OnInit {
     this.configDialogVisible = true;
   }
 
-  fecharConfiguracoes() {
+  async fecharConfiguracoes() {
     this.configDialogVisible = false;
     this.isPainelAutenticado = false; // Reseta o estado para a próxima abertura
-    this.carregarResumos();
+    await this.carregarResumos();
   }
 
   /**

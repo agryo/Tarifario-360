@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -14,6 +14,7 @@ import { TarifaService } from '../../services/tarifa';
 import { OrcamentoRapidoService } from '../../services/orcamento-rapido';
 import { DateUtils } from '../../utils/date-utils';
 import { ConfiguracaoGeral } from '../../models/tarifa.model';
+import { CategoriaQuarto } from '../../models/categoria-quarto.model';
 
 @Component({
   selector: 'app-orcamento-rapido',
@@ -24,81 +25,91 @@ import { ConfiguracaoGeral } from '../../models/tarifa.model';
   styleUrls: ['./orcamento-rapido.scss'],
 })
 export class OrcamentoRapidoComponent implements OnInit {
-  categorias: any[] = [];
-  config!: ConfiguracaoGeral;
+  // Signals para evitar ExpressionChangedAfterItHasBeenCheckedError
+  categorias = signal<CategoriaQuarto[]>([]);
+  config = signal<ConfiguracaoGeral | null>(null);
+  carregando = signal(true);
 
-  categoriaId: string | null = null;
-  dataCheckin: Date = DateUtils.hoje();
-  dataCheckout: Date = DateUtils.amanha();
+  categoriaId = signal<string | null>(null);
+  dataCheckin = signal<Date>(DateUtils.hoje());
+  dataCheckout = signal<Date>(DateUtils.amanha());
 
-  textoOrcamento: string = '';
-  hoje: Date = DateUtils.hoje();
+  textoOrcamento = signal<string>('');
+  hoje = DateUtils.hoje();
 
   constructor(
     private tarifaService: TarifaService,
     private orcamentoService: OrcamentoRapidoService,
     private messageService: MessageService,
     private router: Router,
+    private cdr: ChangeDetectorRef,
   ) {}
 
-  ngOnInit() {
-    this.carregarDados();
+  async ngOnInit() {
+    await this.carregarDados();
     this.gerarOrcamento();
   }
 
-  carregarDados() {
-    this.categorias = this.tarifaService.getCategorias();
-    this.config = this.tarifaService.getConfiguracao();
+  async carregarDados() {
+    this.carregando.set(true);
+    const [cats, cfg] = await Promise.all([
+      this.tarifaService.getCategorias(),
+      this.tarifaService.getConfiguracao(),
+    ]);
+    this.categorias.set(cats);
+    this.config.set(cfg);
 
-    if (this.categorias.length) {
-      this.categoriaId = this.categorias[0].id;
+    if (cats.length) {
+      this.categoriaId.set(cats[0].id);
     }
+    this.carregando.set(false);
+    this.cdr.detectChanges();
   }
 
   onCheckinSelect() {
-    if (this.dataCheckin) {
+    if (this.dataCheckin()) {
       // Ao mudar o check-in, sugere check-out para o dia seguinte por padrão
-      const amanha = new Date(this.dataCheckin);
+      const amanha = new Date(this.dataCheckin());
       amanha.setDate(amanha.getDate() + 1);
-      this.dataCheckout = amanha;
+      this.dataCheckout.set(amanha);
     }
     this.onDataChange();
   }
 
-  onDataChange() {
-    if (this.dataCheckin && this.dataCheckout) {
+  async onDataChange() {
+    if (this.dataCheckin() && this.dataCheckout()) {
       // Só força o ajuste automático se o checkout for ANTES do checkin.
-      if (this.dataCheckout < this.dataCheckin) {
-        this.dataCheckout = DateUtils.ajustarDataSaida(this.dataCheckin, this.dataCheckout);
+      if (this.dataCheckout() < this.dataCheckin()) {
+        this.dataCheckout.set(DateUtils.ajustarDataSaida(this.dataCheckin(), this.dataCheckout()));
       }
     }
-    this.gerarOrcamento();
+    await this.gerarOrcamento();
   }
 
-  gerarOrcamento() {
+  async gerarOrcamento() {
     // Converter strings para Date se necessário (PrimeNG 21 pode retornar string)
-    const checkin = this.dataCheckin instanceof Date ? this.dataCheckin : new Date(this.dataCheckin);
-    const checkout = this.dataCheckout instanceof Date ? this.dataCheckout : new Date(this.dataCheckout);
+    const checkin = this.dataCheckin() instanceof Date ? this.dataCheckin() : new Date(this.dataCheckin());
+    const checkout = this.dataCheckout() instanceof Date ? this.dataCheckout() : new Date(this.dataCheckout());
 
     if (
-      !this.categoriaId ||
+      !this.categoriaId() ||
       !checkin ||
       !checkout ||
       checkout < checkin
     ) {
-      this.textoOrcamento = '';
+      this.textoOrcamento.set('');
       return;
     }
 
     try {
-      const resultado = this.orcamentoService.gerarOrcamento({
-        categoriaId: this.categoriaId,
+      const resultado = await this.orcamentoService.gerarOrcamento({
+        categoriaId: this.categoriaId()!,
         dataCheckin: checkin,
         dataCheckout: checkout,
         quantidade: 1, // fixo
         incluirCafe: true, // fixo
       });
-      this.textoOrcamento = resultado.textoWhatsApp;
+      this.textoOrcamento.set(resultado.textoWhatsApp);
     } catch (error: any) {
       console.error('Erro ao gerar orçamento:', error);
       this.messageService.add({
@@ -110,8 +121,8 @@ export class OrcamentoRapidoComponent implements OnInit {
   }
 
   copiarWhatsApp() {
-    if (!this.textoOrcamento) return;
-    navigator.clipboard.writeText(this.textoOrcamento).then(() => {
+    if (!this.textoOrcamento()) return;
+    navigator.clipboard.writeText(this.textoOrcamento()).then(() => {
       this.messageService.add({
         severity: 'success',
         summary: 'Copiado!',

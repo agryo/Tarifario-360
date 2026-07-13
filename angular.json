@@ -59,7 +59,13 @@
               "node_modules/primeicons/primeicons.css"
             ],
             "allowedCommonJsDependencies": ["crypto-js", "html2canvas"],
-            "scripts": []
+            "scripts": [],
+            "fileReplacements": [
+              {
+                "replace": "src/environments/environment.ts",
+                "with": "src/environments/environment.development.ts"
+              }
+            ]
           },
           "configurations": {
             "production": {
@@ -92,7 +98,8 @@
               "buildTarget": "Tarifario-360:build:production"
             },
             "development": {
-              "buildTarget": "Tarifario-360:build:development"
+              "buildTarget": "Tarifario-360:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"

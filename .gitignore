@@ -32,6 +32,9 @@ yarn-error.log
 # Miscellaneous
 /.angular/cache
 .sass-cache/
+
+# Generated environment files (contains secrets from .env.local)
+/src/environments/environment.development.ts
 /connect.lock
 /coverage
 /libpeerconnection.log
@@ -42,3 +45,4 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+.vercel

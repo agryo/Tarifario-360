@@ -4,6 +4,8 @@
     <h1 class="text-2xl font-bold">🌙 Escala Noturna</h1>
   </div>
 
+  <p-toast position="top-center"></p-toast>
+
   <!-- Barra de controles -->
   <div
     class="main-bar surface-card p-3 border-round mb-3 flex flex-wrap gap-2 align-items-center justify-content-center"
@@ -25,7 +27,7 @@
         [(ngModel)]="dataFim"
         [showIcon]="true"
         dateFormat="dd/mm/yy"
-        [minDate]="dataInicio"
+        [minDate]="dataInicio()"
         styleClass="w-full"
         (onSelect)="onDataChange()"
         appendTo="body"
@@ -36,12 +38,14 @@
       icon="pi pi-print"
       styleClass="p-button-success"
       (click)="imprimir()"
+      [disabled]="imprimindo()"
     ></p-button>
     <p-button
       label="Imagem WEBP"
       icon="pi pi-image"
       styleClass="p-button-contrast"
       (click)="exportarImagem()"
+      [disabled]="exportandoImagem()"
     ></p-button>
     <p-button
       label="Voltar"
@@ -52,9 +56,9 @@
   </div>
 
   <!-- Tabela gerada -->
-  <div class="tabela-area surface-card p-3 border-round shadow-2" *ngIf="tabelaHTML">
+  <div class="tabela-area surface-card p-3 border-round shadow-2" *ngIf="tabelaHTML()">
     <div class="tabela-scroll-wrapper">
-      <div [innerHTML]="tabelaHTML" class="tabela-escala"></div>
+      <div [innerHTML]="tabelaHTML()" class="tabela-escala"></div>
     </div>
   </div>
 </div>
