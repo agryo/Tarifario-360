@@ -115,23 +115,15 @@ export class OrcamentoOficialService {
   }
 
   async listar(): Promise<OrcamentoOficial[]> {
-    try {
-      if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
-        return await this.orcamentosRepo.getAll();
-      }
-    } catch (error) {
-      console.warn('Falha ao buscar orçamentos do Supabase, usando localStorage:', error);
+    if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
+      return await this.orcamentosRepo.getAll();
     }
     return this.storage.get<OrcamentoOficial[]>(this.STORAGE_KEY) || [];
   }
 
   async buscarPorId(id: string): Promise<OrcamentoOficial | null> {
-    try {
-      if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
-        return await this.orcamentosRepo.getById(id);
-      }
-    } catch (error) {
-      console.warn('Falha ao buscar orçamento do Supabase, usando localStorage:', error);
+    if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
+      return await this.orcamentosRepo.getById(id);
     }
     const lista = await this.listar();
     return lista.find((e) => e.id === id) || null;
@@ -142,42 +134,36 @@ export class OrcamentoOficialService {
       throw new Error(`Dados inválidos. O objeto não é um ${this.ENTITY_TYPE} válido.`);
     }
 
-    try {
-      if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
-        const existing = await this.orcamentosRepo.getById(orcamento.id);
-        if (existing) {
-          await this.orcamentosRepo.update(orcamento.id, orcamento);
-        } else {
-          // Não enviar ID para o Supabase - deixar o banco gerar UUID
-          const { id, ...orcamentoSemId } = orcamento;
-          await this.orcamentosRepo.create(orcamentoSemId);
-        }
-      }
-    } catch (error) {
-      console.warn('Falha ao salvar orçamento no Supabase:', error);
-    }
+    const isSupabase = this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct';
 
-    // Fallback to localStorage
-    const lista = await this.listar();
-    const index = lista.findIndex((e) => e.id === orcamento.id);
-    if (index >= 0) {
-      lista[index] = orcamento;
+    if (isSupabase) {
+      // Para Supabase: não verificar ID existente (nanoid vs UUID), sempre criar novo
+      // O banco gera UUID automaticamente
+      const { id, ...orcamentoSemId } = orcamento;
+      await this.orcamentosRepo.create(orcamentoSemId);
     } else {
-      lista.push(orcamento);
+      // Fallback to localStorage only for local backend
+      const lista = await this.listar();
+      const index = lista.findIndex((e) => e.id === orcamento.id);
+      if (index >= 0) {
+        lista[index] = orcamento;
+      } else {
+        lista.push(orcamento);
+      }
+      this.storage.set(this.STORAGE_KEY, lista);
     }
-    this.storage.set(this.STORAGE_KEY, lista);
   }
 
   async excluir(id: string): Promise<void> {
-    try {
-      if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
-        await this.orcamentosRepo.delete(id);
-      }
-    } catch (error) {
-      console.warn('Falha ao excluir orçamento do Supabase:', error);
+    const isSupabase = this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct';
+
+    if (isSupabase) {
+      await this.orcamentosRepo.delete(id);
+    } else {
+      // Fallback to localStorage only for local backend
+      const lista = (await this.listar()).filter((e) => e.id !== id);
+      this.storage.set(this.STORAGE_KEY, lista);
     }
-    const lista = (await this.listar()).filter((e) => e.id !== id);
-    this.storage.set(this.STORAGE_KEY, lista);
   }
 
   calcularTotais(orcamento: OrcamentoOficial): OrcamentoOficialCompleto {

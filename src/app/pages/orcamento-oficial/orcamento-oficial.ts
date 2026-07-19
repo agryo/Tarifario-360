@@ -150,6 +150,7 @@ export class OrcamentoOficialComponent implements OnInit {
         (a, b) => new Date(b.dataGeracao).getTime() - new Date(a.dataGeracao).getTime()
       );
       this.orcamentosSalvosDialog = true;
+      this.cdr.detectChanges();
     } catch (error: any) {
       this.messageService.add({
         severity: 'error',
@@ -162,6 +163,7 @@ export class OrcamentoOficialComponent implements OnInit {
   selecionarOrcamentoSalvo(orcamento: OrcamentoOficial) {
     this.carregarOrcamentoSalvo(orcamento);
     this.orcamentosSalvosDialog = false;
+    this.cdr.detectChanges();
     this.messageService.add({
       severity: 'success',
       summary: 'Orçamento Carregado',
@@ -182,6 +184,7 @@ export class OrcamentoOficialComponent implements OnInit {
         try {
           await this.orcamentoOficialService.excluir(orcamento.id);
           this.orcamentosSalvos = this.orcamentosSalvos.filter((o) => o.id !== orcamento.id);
+          this.cdr.detectChanges();
           this.messageService.add({
             severity: 'success',
             summary: 'Excluído',

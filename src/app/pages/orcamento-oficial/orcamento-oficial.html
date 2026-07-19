@@ -415,10 +415,11 @@
 <p-dialog
   [(visible)]="orcamentosSalvosDialog"
   header="Orçamentos Salvos"
-  [modal]="true"
   [style]="{ width: '800px' }"
   [draggable]="false"
   [resizable]="false"
+  [appendTo]="'body'"
+  [dismissableMask]="true"
 >
   <div *ngIf="orcamentosSalvos.length === 0" class="text-center p-4">
     <p class="text-color-secondary">Nenhum orçamento salvo encontrado.</p>

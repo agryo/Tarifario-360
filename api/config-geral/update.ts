@@ -18,17 +18,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let result;
     let error;
 
+    const mappedConfig = {
+      ...config,
+      total_uhs: config.totalUhs,
+      comodidades_globais: config.comodidadesGlobais,
+      criado_em: config.criado_em,
+      atualizado_em: config.atualizado_em,
+    };
+
     if (existing) {
       ({ data: result, error } = await supabase
         .from('config_geral')
-        .update({ ...config, atualizado_em: new Date().toISOString() })
+        .update({ ...mappedConfig, atualizado_em: new Date().toISOString() })
         .eq('id', existing.id)
         .select()
         .single());
     } else {
       ({ data: result, error } = await supabase
         .from('config_geral')
-        .insert({ ...config, criado_em: new Date().toISOString(), atualizado_em: new Date().toISOString() })
+        .insert({ ...mappedConfig, criado_em: new Date().toISOString(), atualizado_em: new Date().toISOString() })
         .select()
         .single());
     }

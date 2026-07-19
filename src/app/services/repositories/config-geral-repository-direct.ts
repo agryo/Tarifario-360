@@ -33,6 +33,28 @@ export class SupabaseDirectConfigGeralRepository implements ConfigGeralRepositor
     };
   }
 
+  private toCamelCase(obj: any): any {
+    if (!obj || typeof obj !== 'object') return obj;
+    if (Array.isArray(obj)) return obj.map((v) => this.toCamelCase(v));
+    const result: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+      result[camelKey] = this.toCamelCase(value);
+    }
+    return result;
+  }
+
+  private toSnakeCase(obj: any): any {
+    if (!obj || typeof obj !== 'object') return obj;
+    if (Array.isArray(obj)) return obj.map((v) => this.toSnakeCase(v));
+    const result: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+      result[snakeKey] = this.toSnakeCase(value);
+    }
+    return result;
+  }
+
   private unmapConfig(config: Partial<ConfiguracaoGeral>): any {
     const result: any = {};
     if (config.festividade !== undefined) result.festividade = config.festividade;
