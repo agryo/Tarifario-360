@@ -1,13 +1,9 @@
 import { Injectable } from '@angular/core';
-import { StorageService } from './storage';
 import { TarifaService } from './tarifa';
-import { OrcamentosRapidosRepository } from './repositories/orcamentos-rapidos-repository';
-import { ConfigRepositoryFactory } from './config-repository-factory';
-import { RepositoryFactory } from './repository-factory';
 import {
-  OrcamentoRapido,
   OrcamentoRapidoRequest,
   OrcamentoRapidoResultado,
+  ResultadoCategoriaOrcamento,
 } from '../models/orcamento-rapido.model';
 import { DadosGeracaoTexto } from '../models/dados-geracao-texto.model';
 import { CategoriaQuarto } from '../models/categoria-quarto.model';
@@ -17,26 +13,9 @@ import { MensagemUtils } from '../utils/mensagem-utils';
   providedIn: 'root',
 })
 export class OrcamentoRapidoService {
-  protected readonly STORAGE_KEY = 'orcamentos_rapidos';
-  protected readonly ENTITY_TYPE = 'orcamento_rapido';
-
   constructor(
-    private storage: StorageService,
     private tarifaService: TarifaService,
-    private configFactory: ConfigRepositoryFactory,
-    private repoFactory: RepositoryFactory,
   ) {}
-
-  private get orcamentosRepo(): OrcamentosRapidosRepository {
-    return this.repoFactory.getOrcamentosRapidosRepo();
-  }
-
-  protected criarEntidade(dados: Partial<OrcamentoRapido>): OrcamentoRapido {
-    return {
-      ...dados,
-      id: this.storage.generateId(),
-    } as OrcamentoRapido;
-  }
 
   async gerarOrcamento(request: OrcamentoRapidoRequest): Promise<OrcamentoRapidoResultado> {
     console.log('=== orcamento-rapido.service gerarOrcamento ===');
@@ -122,6 +101,19 @@ export class OrcamentoRapidoService {
       valorFinalSemCafe = totalAltaSem * fatorDesconto + totalBaixaSem;
     }
 
+    // Construir resultados por categoria para o componente
+    const resultadoCategoria: ResultadoCategoriaOrcamento = {
+      categoriaId: categoria.id,
+      categoriaNome: categoria.nome,
+      capacidadeMaxima: categoria.capacidadeMaxima,
+      precoDiaria: request.incluirCafe ? (somaComCafe / numeroNoites) : (somaSemCafe / numeroNoites),
+      precoComDesconto: request.incluirCafe ? (valorFinalComCafe / numeroNoites) : (valorFinalSemCafe / numeroNoites),
+      desconto: resultadoPromo.aplicada ? Math.round(resultadoPromo.desconto * 100) : 0,
+      valorTotal: request.incluirCafe ? valorFinalComCafe : valorFinalSemCafe,
+      camasCasal: categoria.camasCasal ?? 0,
+      camasSolteiro: categoria.camasSolteiro ?? 0,
+    };
+
     const textoWhatsApp = this.gerarTextoWhatsApp(categoria, {
       request,
       checkin,
@@ -140,23 +132,7 @@ export class OrcamentoRapidoService {
       config,
     });
 
-    const orcamento: OrcamentoRapido = {
-      ...this.criarEntidade({}),
-      tipo: this.ENTITY_TYPE,
-      dataGeracao: new Date().toISOString(),
-      categoriaId: request.categoriaId,
-      dataCheckin: request.dataCheckin instanceof Date ? request.dataCheckin.toISOString() : request.dataCheckin,
-      dataCheckout: request.dataCheckout instanceof Date ? request.dataCheckout.toISOString() : request.dataCheckout,
-      numeroNoites,
-      quantidade: request.quantidade,
-      valorDiaria: (somaComCafe / numeroNoites) * request.quantidade, // média por noite
-      tipoTemporada,
-      valorTotal: request.incluirCafe ? valorFinalComCafe : valorFinalSemCafe,
-    };
-
-    // Orçamentos rápidos NÃO são salvos no banco - são apenas para gerar texto WhatsApp
-    // Apenas orçamentos oficiais precisam ser persistidos
-    return { orcamento, textoWhatsApp };
+    return { resultados: [resultadoCategoria], textoWhatsApp };
   }
 
   private isAltaTemporada(data: Date, altaInicio: string, altaFim: string): boolean {
@@ -169,82 +145,6 @@ export class OrcamentoRapidoService {
   private calcularNoites(checkin: Date, checkout: Date): number {
     const diff = checkout.getTime() - checkin.getTime();
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
-  }
-
-  async listar(): Promise<OrcamentoRapido[]> {
-    try {
-      if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
-        return await this.orcamentosRepo.getAll();
-      }
-    } catch (error) {
-      console.warn('Falha ao buscar orçamentos rápidos do Supabase, usando localStorage:', error);
-    }
-    return this.storage.get<OrcamentoRapido[]>(this.STORAGE_KEY) || [];
-  }
-
-  async buscarPorId(id: string): Promise<OrcamentoRapido | null> {
-    try {
-      if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
-        return await this.orcamentosRepo.getById(id);
-      }
-    } catch (error) {
-      console.warn('Falha ao buscar orçamento rápido do Supabase, usando localStorage:', error);
-    }
-    const lista = await this.listar();
-    return lista.find((e) => e.id === id) || null;
-  }
-
-  async salvar(orcamento: OrcamentoRapido): Promise<void> {
-    if (!this.validarEntidade(orcamento)) {
-      throw new Error(`Dados inválidos. O objeto não é um ${this.ENTITY_TYPE} válido.`);
-    }
-
-    try {
-      if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
-        const existing = await this.orcamentosRepo.getById(orcamento.id);
-        if (existing) {
-          await this.orcamentosRepo.update(orcamento.id, orcamento);
-        } else {
-          // Não enviar ID para o Supabase - deixar o banco gerar UUID
-          const { id, ...orcamentoSemId } = orcamento;
-          await this.orcamentosRepo.create(orcamentoSemId);
-        }
-      }
-    } catch (error) {
-      console.warn('Falha ao salvar orçamento rápido no Supabase:', error);
-    }
-
-    // Fallback to localStorage
-    const lista = await this.listar();
-    const index = lista.findIndex((e) => e.id === orcamento.id);
-    if (index >= 0) {
-      lista[index] = orcamento;
-    } else {
-      lista.push(orcamento);
-    }
-    this.storage.set(this.STORAGE_KEY, lista);
-  }
-
-  async excluir(id: string): Promise<void> {
-    try {
-      if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
-        await this.orcamentosRepo.delete(id);
-      }
-    } catch (error) {
-      console.warn('Falha ao excluir orçamento rápido do Supabase:', error);
-    }
-    const lista = (await this.listar()).filter((e) => e.id !== id);
-    this.storage.set(this.STORAGE_KEY, lista);
-  }
-
-  protected validarEntidade(entidade: unknown): entidade is OrcamentoRapido {
-    return (
-      entidade !== null &&
-      typeof entidade === 'object' &&
-      'id' in entidade &&
-      'tipo' in entidade &&
-      (entidade as Record<string, unknown>)['tipo'] === this.ENTITY_TYPE
-    );
   }
 
   private gerarTextoWhatsApp(categoria: CategoriaQuarto, dados: DadosGeracaoTexto & { checkin: Date; checkout: Date }): string {
@@ -282,14 +182,10 @@ export class OrcamentoRapidoService {
       texto += `\n`;
     }
 
-    texto += `🛏️ *Configuração:* ${MensagemUtils.formatarCamas(categoria)}\n`;
+    texto += `🛏️ *Configuração:* ${MensagemUtils.formatarCamas({ camasCasal: categoria.camasCasal ?? 0, camasSolteiro: categoria.camasSolteiro ?? 0 } as CategoriaQuarto)}\n`;
 
     // Capacidade (lógica do JS: se grupo solteiro, exibe 1 pessoa; senão, usa capacidadeMaxima)
-    // No JS antigo, usava q.grupo === "solteiro" ? 1 : q.cap
-    // Vamos manter isso: se não tiver grupo, inferimos pelo número de camas?
-    // Por simplicidade, usaremos a capacidadeMaxima mesmo, mas tentaremos replicar a lógica.
     let capacidadeExibida = categoria.capacidadeMaxima;
-    // Se for uma categoria claramente de solteiro (camasSolteiro > 0 e camasCasal === 0) e capacidade 1?
     if (
       (categoria.camasCasal ?? 0) === 0 &&
       (categoria.camasSolteiro ?? 0) > 0 &&
@@ -348,16 +244,5 @@ export class OrcamentoRapidoService {
     texto += `*Deseja garantir sua reserva agora?*`;
 
     return texto;
-  }
-
-  async limpar(): Promise<void> {
-    try {
-      if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
-        // Would need bulk delete - skip for now
-      }
-    } catch (error) {
-      console.warn('Falha ao limpar orçamentos rápidos do Supabase:', error);
-    }
-    this.storage.remove(this.STORAGE_KEY);
   }
 }

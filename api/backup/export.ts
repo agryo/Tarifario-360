@@ -7,12 +7,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const [categorias, configGeral, escalaConfig, orcamentosOficiais, orcamentosRapidos, chaves] = await Promise.all([
+    const [categorias, configGeral, escalaConfig, orcamentosOficiais, chaves] = await Promise.all([
       supabase.from('categorias').select('*'),
       supabase.from('config_geral').select('*').limit(1).single(),
       supabase.from('escala_config').select('configuracao').limit(1).single(),
       supabase.from('orcamentos_oficiais').select('*'),
-      supabase.from('orcamentos_rapidos').select('*'),
       supabase.from('chaves_criptografia').select('*'),
     ]);
 
@@ -23,7 +22,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       config_geral: configGeral.data ?? null,
       escala_config: escalaConfig.data?.configuracao ?? null,
       orcamentos_oficiais: orcamentosOficiais.data ?? [],
-      orcamentos_rapidos: orcamentosRapidos.data ?? [],
       chaves_criptografia: chaves.data ?? [],
     };
 

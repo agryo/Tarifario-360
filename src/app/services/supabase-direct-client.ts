@@ -3,7 +3,6 @@ import { environment } from '../../environments/environment';
 import { CategoriaQuarto } from '../models/categoria-quarto.model';
 import { ConfiguracaoGeral } from '../models/tarifa.model';
 import { OrcamentoOficial } from '../models/orcamento-oficial.model';
-import { OrcamentoRapido } from '../models/orcamento-rapido.model';
 import { EscalaConfig } from '../models/escala-config.model';
 
 export class SupabaseDirectClient {
@@ -184,68 +183,13 @@ export class SupabaseDirectClient {
     if (error) throw error;
   }
 
-  // Orçamentos Rápidos
-  async getOrcamentosRapidos(): Promise<OrcamentoRapido[]> {
-    const { data, error } = await this.client
-      .from('orcamentos_rapidos')
-      .select('*')
-      .order('criado_em', { ascending: false });
-    if (error) throw error;
-    return (data ?? []).map(this.mapOrcamentoRapido);
-  }
-
-  async getOrcamentoRapido(id: string): Promise<OrcamentoRapido | null> {
-    const { data, error } = await this.client
-      .from('orcamentos_rapidos')
-      .select('*')
-      .eq('id', id)
-      .single();
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      throw error;
-    }
-    return data ? this.mapOrcamentoRapido(data) : null;
-  }
-
-  async createOrcamentoRapido(orcamento: Omit<OrcamentoRapido, 'id' | 'criado_em'>): Promise<OrcamentoRapido> {
-    // Não enviar ID - deixar o Supabase gerar UUID automaticamente
-    const { id, ...orcamentoSemId } = orcamento as any;
-    const { data, error } = await this.client
-      .from('orcamentos_rapidos')
-      .insert(this.unmapOrcamentoRapido(orcamentoSemId))
-      .select()
-      .single();
-    if (error) throw error;
-    return this.mapOrcamentoRapido(data);
-  }
-
-  async updateOrcamentoRapido(id: string, orcamento: Partial<OrcamentoRapido>): Promise<OrcamentoRapido> {
-    const { data, error } = await this.client
-      .from('orcamentos_rapidos')
-      .update(this.unmapOrcamentoRapido(orcamento))
-      .eq('id', id)
-      .select()
-      .single();
-    if (error) throw error;
-    return this.mapOrcamentoRapido(data);
-  }
-
-  async deleteOrcamentoRapido(id: string): Promise<void> {
-    const { error } = await this.client
-      .from('orcamentos_rapidos')
-      .delete()
-      .eq('id', id);
-    if (error) throw error;
-  }
-
   // Backup
   async exportBackup(): Promise<any> {
-    const [categorias, configGeral, escalaConfig, orcamentosOficiais, orcamentosRapidos, chaves] = await Promise.all([
+    const [categorias, configGeral, escalaConfig, orcamentosOficiais, chaves] = await Promise.all([
       this.client.from('categorias').select('*'),
       this.client.from('config_geral').select('*').limit(1).single(),
       this.client.from('escala_config').select('configuracao').limit(1).single(),
       this.client.from('orcamentos_oficiais').select('*'),
-      this.client.from('orcamentos_rapidos').select('*'),
       this.client.from('chaves_criptografia').select('*'),
     ]);
 
@@ -256,7 +200,6 @@ export class SupabaseDirectClient {
       config_geral: configGeral.data ?? null,
       escala_config: escalaConfig.data?.configuracao ?? null,
       orcamentos_oficiais: orcamentosOficiais.data ?? [],
-      orcamentos_rapidos: orcamentosRapidos.data ?? [],
       chaves_criptografia: chaves.data ?? [],
     };
   }
@@ -407,40 +350,6 @@ export class SupabaseDirectClient {
     if (orc.observacoes !== undefined) result.observacoes = orc.observacoes;
     if (orc.status !== undefined) result.status = orc.status;
     if (orc.assinatura !== undefined) result.assinatura = orc.assinatura;
-    return result;
-  }
-
-  private mapOrcamentoRapido(row: any): OrcamentoRapido {
-    return {
-      id: row.id,
-      tipo: row.tipo,
-      dataGeracao: row.data_geracao,
-      categoriaId: row.categoria_id,
-      dataCheckin: row.data_checkin,
-      dataCheckout: row.data_checkout,
-      numeroNoites: row.numero_noites,
-      quantidade: row.quantidade,
-      valorDiaria: Number(row.valor_diaria),
-      tipoTemporada: row.tipo_temporada,
-      valorTotal: Number(row.valor_total),
-      criado_em: row.criado_em,
-      atualizado_em: row.atualizado_em,
-    };
-  }
-
-  private unmapOrcamentoRapido(orc: Partial<OrcamentoRapido>): any {
-    const result: any = {};
-    if (orc.tipo !== undefined) result.tipo = orc.tipo;
-    if (orc.dataGeracao !== undefined) result.data_geracao = orc.dataGeracao;
-    if (orc.categoriaId !== undefined) result.categoria_id = orc.categoriaId;
-    if (orc.dataCheckin !== undefined) result.data_checkin = orc.dataCheckin;
-    if (orc.dataCheckout !== undefined) result.data_checkout = orc.dataCheckout;
-    if (orc.numeroNoites !== undefined) result.numero_noites = orc.numeroNoites;
-    if (orc.quantidade !== undefined) result.quantidade = orc.quantidade;
-    if (orc.valorDiaria !== undefined) result.valor_diaria = orc.valorDiaria;
-    if (orc.tipoTemporada !== undefined) result.tipo_temporada = orc.tipoTemporada;
-    if (orc.valorTotal !== undefined) result.valor_total = orc.valorTotal;
-    if (orc.atualizado_em !== undefined) result.atualizado_em = orc.atualizado_em;
     return result;
   }
 }

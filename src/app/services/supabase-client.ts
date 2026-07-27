@@ -141,35 +141,6 @@ class SupabaseApiClient {
     });
   }
 
-  // Orcamentos Rapidos endpoints
-  async getOrcamentosRapidos(): Promise<any[]> {
-    return this.request<any[]>('/orcamentos-rapidos');
-  }
-
-  async getOrcamentoRapido(id: string): Promise<any> {
-    return this.request<any>(`/orcamentos-rapidos?id=${encodeURIComponent(id)}`);
-  }
-
-  async createOrcamentoRapido(orcamento: any): Promise<any> {
-    return this.request<any>('/orcamentos-rapidos', {
-      method: 'POST',
-      body: JSON.stringify(orcamento),
-    });
-  }
-
-  async updateOrcamentoRapido(id: string, orcamento: any): Promise<any> {
-    return this.request<any>(`/orcamentos-rapidos?id=${encodeURIComponent(id)}`, {
-      method: 'PUT',
-      body: JSON.stringify(orcamento),
-    });
-  }
-
-  async deleteOrcamentoRapido(id: string): Promise<void> {
-    return this.request(`/orcamentos-rapidos?id=${encodeURIComponent(id)}`, {
-      method: 'DELETE',
-    });
-  }
-
   // Backup endpoints
   async exportBackup(): Promise<any> {
     return this.request<any>('/backup/export');

@@ -13,7 +13,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Invalid backup format' });
     }
 
-    // Import in order: categorias first (referenced by orcamentos_rapidos)
+    // Import in order: categorias first (referenced by orcamentos_oficiais)
     if (backup.categorias?.length) {
       const { error } = await supabase.from('categorias').upsert(backup.categorias, { onConflict: 'id' });
       if (error) throw error;
@@ -34,11 +34,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (backup.orcamentos_oficiais?.length) {
       const { error } = await supabase.from('orcamentos_oficiais').upsert(backup.orcamentos_oficiais, { onConflict: 'id' });
-      if (error) throw error;
-    }
-
-    if (backup.orcamentos_rapidos?.length) {
-      const { error } = await supabase.from('orcamentos_rapidos').upsert(backup.orcamentos_rapidos, { onConflict: 'id' });
       if (error) throw error;
     }
 

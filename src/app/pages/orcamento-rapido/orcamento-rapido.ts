@@ -103,11 +103,16 @@ export class OrcamentoRapidoComponent implements OnInit {
 
     try {
       const resultado = await this.orcamentoService.gerarOrcamento({
+        cliente: '',
+        evento: '',
         categoriaId: this.categoriaId()!,
         dataCheckin: checkin,
         dataCheckout: checkout,
-        quantidade: 1, // fixo
-        incluirCafe: true, // fixo
+        horaEntrada: '14:00',
+        horaSaida: '12:00',
+        quantidade: 1,
+        incluirCafe: true,
+        observacoes: '',
       });
       this.textoOrcamento.set(resultado.textoWhatsApp);
     } catch (error: any) {
