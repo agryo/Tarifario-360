@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { ConfigRepository } from './config-repository';
-import { LocalStorageConfigRepository } from './config-repository-local';
 import { SupabaseConfigRepository } from './config-repository-supabase';
 import { SupabaseDirectConfigRepository } from './config-repository-supabase-direct';
 import { environment } from '../../environments/environment';
@@ -8,7 +7,7 @@ import { environment } from '../../environments/environment';
 /**
  * Tipo de armazenamento ativo
  */
-export type StorageBackend = 'local' | 'supabase' | 'supabase-direct';
+export type StorageBackend = 'supabase' | 'supabase-direct';
 
 /**
  * Factory para escolher implementação do ConfigRepository.
@@ -17,10 +16,9 @@ export type StorageBackend = 'local' | 'supabase' | 'supabase-direct';
 @Injectable({ providedIn: 'root' })
 export class ConfigRepositoryFactory {
   private instance: ConfigRepository | null = null;
-  private backend: StorageBackend = 'local'; // Padrão: localStorage
+  private backend: StorageBackend = 'supabase-direct'; // Padrão: Supabase Direct (dev)
 
   constructor(
-    private localRepo: LocalStorageConfigRepository,
     private supabaseRepo: SupabaseConfigRepository,
     private supabaseDirectRepo: SupabaseDirectConfigRepository
   ) {
@@ -61,10 +59,6 @@ export class ConfigRepositoryFactory {
         case 'supabase-direct':
           this.instance = this.supabaseDirectRepo;
           break;
-        case 'local':
-        default:
-          this.instance = this.localRepo;
-          break;
       }
     }
     return this.instance;
@@ -87,7 +81,7 @@ export class ConfigRepositoryFactory {
     } else if (environment.supabaseUrl && environment.supabaseAnonKey) {
       this.setBackend('supabase-direct');
     } else {
-      this.setBackend('local');
+      throw new Error('Configure supabaseUrl/supabaseAnonKey no environment para desenvolvimento');
     }
   }
 }
