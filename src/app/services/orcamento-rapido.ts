@@ -8,6 +8,7 @@ import {
 import { DadosGeracaoTexto } from '../models/dados-geracao-texto.model';
 import { CategoriaQuarto } from '../models/categoria-quarto.model';
 import { MensagemUtils } from '../utils/mensagem-utils';
+import { DateUtils } from '../utils/date-utils';
 
 @Injectable({
   providedIn: 'root',
@@ -33,7 +34,7 @@ export class OrcamentoRapidoService {
     console.log('categoria encontrada:', categoria);
     if (!categoria) throw new Error('Categoria não encontrada');
 
-    const noitesReais = this.calcularNoites(checkin, checkout);
+    const noitesReais = DateUtils.calcularDiasEntre(checkin, checkout);
     const isDayUse = noitesReais === 0 && !!checkin && !!checkout;
     const numeroNoites = isDayUse ? 1 : noitesReais;
     const config = await this.tarifaService.getConfiguracao();
@@ -52,7 +53,7 @@ export class OrcamentoRapidoService {
 
     // Usamos um loop baseado no número de diárias para garantir que Day Use (1 diária) funcione
     for (let i = 0; i < numeroNoites; i++) {
-      const isAlta = this.isAltaTemporada(
+      const isAlta = DateUtils.isAltaTemporada(
         dataAtual,
         config.temporada.altaInicio,
         config.temporada.altaFim,
@@ -133,18 +134,6 @@ export class OrcamentoRapidoService {
     });
 
     return { resultados: [resultadoCategoria], textoWhatsApp };
-  }
-
-  private isAltaTemporada(data: Date, altaInicio: string, altaFim: string): boolean {
-    if (!altaInicio || !altaFim) return false;
-    const inicio = new Date(altaInicio);
-    const fim = new Date(altaFim);
-    return data >= inicio && data <= fim;
-  }
-
-  private calcularNoites(checkin: Date, checkout: Date): number {
-    const diff = checkout.getTime() - checkin.getTime();
-    return Math.ceil(diff / (1000 * 60 * 60 * 24));
   }
 
   private gerarTextoWhatsApp(categoria: CategoriaQuarto, dados: DadosGeracaoTexto & { checkin: Date; checkout: Date }): string {
