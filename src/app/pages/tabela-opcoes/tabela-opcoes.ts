@@ -103,10 +103,61 @@ export class TabelaOpcoesComponent implements OnInit {
   }
 
   get categoriasSolteiro() {
-    return this.categorias.filter((c) => c.grupo === 'solteiro');
+    return this.categorias
+      .filter((c) => c.grupo === 'solteiro')
+      .sort((a, b) => this.getOrdenacaoComposta(a) - this.getOrdenacaoComposta(b));
   }
   get categoriasCasal() {
-    return this.categorias.filter((c) => c.grupo === 'casal');
+    return this.categorias
+      .filter((c) => c.grupo === 'casal')
+      .sort((a, b) => this.getOrdenacaoComposta(a) - this.getOrdenacaoComposta(b));
+  }
+
+  private getOrdenacaoComposta(cat: CategoriaComSelecao): number {
+    if (!this.config) return 0;
+
+    // 1. Preço base (menor primeiro)
+    const preco = this.getPrecoBase(cat);
+
+    // 2. Capacidade (menor primeiro) - multiplicamos por 10000 para ter prioridade sobre preço
+    const capacidade = cat.capacidadeMaxima * 10000;
+
+    // 3. Tipo de cama: camas de solteiro primeiro (0), camas de casal depois (100000)
+    // Se tem camas de solteiro e não tem camas de casal = prioridade 0
+    // Se tem camas de casal e não tem camas de solteiro = prioridade 100000
+    // Se tem ambos = prioridade 50000 (meio termo)
+    let tipoCama = 0;
+    const temSolteiro = (cat.camasSolteiro ?? 0) > 0;
+    const temCasal = (cat.camasCasal ?? 0) > 0;
+    if (temCasal && !temSolteiro) {
+      tipoCama = 100000;
+    } else if (temCasal && temSolteiro) {
+      tipoCama = 50000;
+    }
+    // Se só tem solteiro, tipoCama = 0 (prioridade máxima)
+
+    return preco + capacidade + tipoCama;
+  }
+
+  private getPrecoBase(cat: CategoriaComSelecao): number {
+    if (!this.config) return 0;
+
+    // Se temporada fixa, usa o preço da temporada selecionada
+    if (this.temporada === 'alta') {
+      return cat.precoAltaSemCafe;
+    }
+    if (this.temporada === 'baixa') {
+      return cat.precoBaixaSemCafe;
+    }
+
+    // Se 'auto', usa o preço da temporada atual (baseado na data de check-in)
+    const checkin = this.dataCheckin || new Date();
+    const isAlta = DateUtils.isAltaTemporada(
+      checkin,
+      this.config.temporada.altaInicio,
+      this.config.temporada.altaFim,
+    );
+    return isAlta ? cat.precoAltaSemCafe : cat.precoBaixaSemCafe;
   }
 
   toggleGrupo(grupo: 'solteiro' | 'casal') {
