@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ConfigRepository } from './config-repository';
-import { getSupabaseDirect } from './supabase-direct-client';
+import { getSupabaseClient } from './supabase-client';
 import { environment } from '../../environments/environment';
 
 /**
@@ -10,11 +10,7 @@ import { environment } from '../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class SupabaseDirectConfigRepository implements ConfigRepository {
   private getClient() {
-    const client = getSupabaseDirect();
-    if (!client) {
-      throw new Error('Supabase Direct Client não disponível em produção');
-    }
-    return client['client'];
+    return getSupabaseClient();
   }
 
   async get<T>(categoria: string, chave: string): Promise<T | null> {

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { getSupabaseDirect } from '../supabase-direct-client';
+import { getSupabaseClient } from '../../services/supabase-client';
 
 export interface CriptografiaRepository {
   getKey(nome: string): Promise<{ nome: string; chave: string; iv?: string; salt?: string } | null>;
@@ -10,11 +10,7 @@ export interface CriptografiaRepository {
 @Injectable({ providedIn: 'root' })
 export class SupabaseDirectCriptografiaRepository implements CriptografiaRepository {
   private getClient() {
-    const client = getSupabaseDirect();
-    if (!client) {
-      throw new Error('Supabase Direct Client não disponível em produção');
-    }
-    return client['client'];
+    return getSupabaseClient();
   }
 
   private mapRow(row: any): { nome: string; chave: string; iv?: string; salt?: string } {

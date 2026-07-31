@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { getSupabaseDirect } from '../supabase-direct-client';
+import { getSupabaseClient } from '../../services/supabase-client';
 import { ConfiguracaoGeral } from '../../models/tarifa.model';
 
 export interface ConfigGeralRepository {
@@ -10,11 +10,7 @@ export interface ConfigGeralRepository {
 @Injectable({ providedIn: 'root' })
 export class SupabaseDirectConfigGeralRepository implements ConfigGeralRepository {
   private getClient() {
-    const client = getSupabaseDirect();
-    if (!client) {
-      throw new Error('Supabase Direct Client não disponível em produção');
-    }
-    return client['client'];
+    return getSupabaseClient();
   }
 
   private mapRow(row: any): ConfiguracaoGeral {

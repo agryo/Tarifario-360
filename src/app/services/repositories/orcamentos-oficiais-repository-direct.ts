@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { getSupabaseDirect } from '../supabase-direct-client';
+import { getSupabaseClient } from '../../services/supabase-client';
 import { OrcamentoOficial } from '../../models/orcamento-oficial.model';
 
 export interface OrcamentosOficiaisRepository {
@@ -13,11 +13,7 @@ export interface OrcamentosOficiaisRepository {
 @Injectable({ providedIn: 'root' })
 export class SupabaseDirectOrcamentosOficiaisRepository implements OrcamentosOficiaisRepository {
   private getClient() {
-    const client = getSupabaseDirect();
-    if (!client) {
-      throw new Error('Supabase Direct Client não disponível em produção');
-    }
-    return client['client'];
+    return getSupabaseClient();
   }
 
   private mapRow(row: any): OrcamentoOficial {

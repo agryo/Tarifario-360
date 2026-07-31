@@ -1,4 +1,5 @@
 import { environment } from '../../environments/environment';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const API_BASE = environment.apiUrl || '/api';
 
@@ -31,7 +32,19 @@ class SupabaseApiClient {
     return response.json();
   }
 
-  // Config endpoints
+  // Config Geral endpoints
+  async getConfigGeral(): Promise<any> {
+    return this.request<any>('/config/geral');
+  }
+
+  async updateConfigGeral(config: any): Promise<any> {
+    return this.request<any>('/config/geral', {
+      method: 'PUT',
+      body: JSON.stringify(config),
+    });
+  }
+
+  // Config endpoints (generic)
   async getConfig<T>(categoria: string, chave: string): Promise<T | null> {
     return this.request<T>(`/config?categoria=${encodeURIComponent(categoria)}&chave=${encodeURIComponent(chave)}`);
   }
@@ -88,31 +101,19 @@ class SupabaseApiClient {
     });
   }
 
-  // Config Geral endpoints
-  async getConfigGeral(): Promise<any> {
-    return this.request<any>('/config-geral');
-  }
-
-  async updateConfigGeral(config: any): Promise<any> {
-    return this.request<any>('/config-geral', {
-      method: 'PUT',
-      body: JSON.stringify(config),
-    });
-  }
-
   // Escala endpoints
   async getEscala(): Promise<any> {
     return this.request<any>('/escala');
   }
 
-  async updateEscala(configuracao: any): Promise<any> {
+  async updateEscala(escala: any): Promise<any> {
     return this.request<any>('/escala', {
       method: 'PUT',
-      body: JSON.stringify(configuracao),
+      body: JSON.stringify(escala),
     });
   }
 
-  // Orcamentos Oficiais endpoints
+  // Orçamentos Oficiais endpoints
   async getOrcamentosOficiais(): Promise<any[]> {
     return this.request<any[]>('/orcamentos-oficiais');
   }
@@ -141,6 +142,18 @@ class SupabaseApiClient {
     });
   }
 
+  // Criptografia endpoints
+  async getChaveCriptografia(nome: string): Promise<any> {
+    return this.request<any>(`/criptografia/chave?nome=${encodeURIComponent(nome)}`);
+  }
+
+  async setChaveCriptografia(nome: string, chave: string, iv?: string, salt?: string): Promise<any> {
+    return this.request<any>('/criptografia/chave', {
+      method: 'POST',
+      body: JSON.stringify({ nome, chave, iv, salt }),
+    });
+  }
+
   // Backup endpoints
   async exportBackup(): Promise<any> {
     return this.request<any>('/backup/export');
@@ -153,22 +166,42 @@ class SupabaseApiClient {
     });
   }
 
-  // Criptografia endpoints
-  async getChaveCriptografia(nome: string): Promise<any> {
-    return this.request<any>(`/criptografia/key?nome=${encodeURIComponent(nome)}`);
-  }
-
-  async setChaveCriptografia(nome: string, chave: string, iv?: string, salt?: string): Promise<any> {
-    return this.request<any>('/criptografia/key', {
-      method: 'POST',
-      body: JSON.stringify({ nome, chave, iv, salt }),
-    });
-  }
-
-  // Health check
   async healthCheck(): Promise<any> {
     return this.request<any>('/health');
   }
 }
 
 export const supabaseApi = new SupabaseApiClient();
+
+let _supabaseClient: SupabaseClient | null = null;
+
+/**
+ * Cria ou retorna instância singleton do cliente Supabase.
+ * Usado apenas em desenvolvimento (supabase-direct).
+ * Em produção, usa API Routes via Vercel.
+ */
+export function getSupabaseClient(): SupabaseClient {
+  if (environment.production) {
+    throw new Error('Cliente Supabase direto não disponível em produção. Use API Routes.');
+  }
+
+  if (!_supabaseClient) {
+    const url = environment.supabaseUrl;
+    const key = environment.supabaseAnonKey;
+
+    if (!url || !key) {
+      throw new Error('supabaseUrl e supabaseAnonKey são obrigatórios no environment');
+    }
+
+    _supabaseClient = createClient(url, key);
+  }
+
+  return _supabaseClient;
+}
+
+/**
+ * Limpa instância (útil para testes)
+ */
+export function resetSupabaseClient(): void {
+  _supabaseClient = null;
+}

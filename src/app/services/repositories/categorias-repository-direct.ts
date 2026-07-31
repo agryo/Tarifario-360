@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { getSupabaseDirect } from '../supabase-direct-client';
+import { getSupabaseClient } from '../../services/supabase-client';
 import { CategoriaQuarto } from '../../models/categoria-quarto.model';
 
 export interface CategoriasRepository {
@@ -13,11 +13,7 @@ export interface CategoriasRepository {
 @Injectable({ providedIn: 'root' })
 export class SupabaseDirectCategoriasRepository implements CategoriasRepository {
   private getClient() {
-    const client = getSupabaseDirect();
-    if (!client) {
-      throw new Error('Supabase Direct Client não disponível em produção');
-    }
-    return client['client'];
+    return getSupabaseClient();
   }
 
   private mapRow(row: any): CategoriaQuarto {

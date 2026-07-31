@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { getSupabaseDirect } from '../supabase-direct-client';
+import { getSupabaseClient } from '../../services/supabase-client';
 import { EscalaConfig } from '../../models/escala-config.model';
 
 export interface EscalaRepository {
@@ -10,11 +10,7 @@ export interface EscalaRepository {
 @Injectable({ providedIn: 'root' })
 export class SupabaseDirectEscalaRepository implements EscalaRepository {
   private getClient() {
-    const client = getSupabaseDirect();
-    if (!client) {
-      throw new Error('Supabase Direct Client não disponível em produção');
-    }
-    return client['client'];
+    return getSupabaseClient();
   }
 
   async get(): Promise<EscalaConfig | null> {
