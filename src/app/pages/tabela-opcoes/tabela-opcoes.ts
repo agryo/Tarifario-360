@@ -47,7 +47,6 @@ interface CategoriaComSelecao {
     CheckboxModule,
     TooltipModule,
   ],
-  providers: [MessageService],
   templateUrl: './tabela-opcoes.html',
   styleUrls: ['./tabela-opcoes.scss'],
 })
