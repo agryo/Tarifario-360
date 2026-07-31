@@ -58,6 +58,11 @@ npm start
 ```
 
 > **Nota:** O comando `npm start` executa automaticamente o script `generate-env.js` (que lê o `.env.local` e atualiza o `environment.development.ts`) antes de iniciar o `ng serve`.
+>
+> ⚠️ **Importante:** Se você usar `ng serve` **diretamente** (sem `npm start`), o arquivo `environment.development.ts` **não será gerado/atualizado** automaticamente. Nesse caso, rode manualmente:
+> ```bash
+> node generate-env.js
+> ```
 
 Após a compilação, acesse `http://localhost:4200/` no seu navegador. A aplicação recarregará automaticamente se você modificar qualquer arquivo fonte.
 
