@@ -13,6 +13,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Invalid backup format' });
     }
 
+    // PRIMEIRO: Limpar todas as tabelas (ordem inversa de dependência)
+    const tablesToClear = [
+      'orcamentos_oficiais',
+      'chaves_criptografia',
+      'escala_config',
+      'config_geral',
+      'categorias',
+    ];
+    for (const table of tablesToClear) {
+      const { error } = await supabase.from(table).delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      if (error) console.warn(`Warning clearing ${table}:`, error);
+    }
+
     // Import in order: categorias first (referenced by orcamentos_oficiais)
     if (backup.categorias?.length) {
       const { error } = await supabase.from('categorias').upsert(backup.categorias, { onConflict: 'id' });
@@ -25,10 +38,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (backup.escala_config) {
-      const { error } = await supabase.from('escala_config').upsert(
-        { id: 'default', configuracao: backup.escala_config },
-        { onConflict: 'id' }
-      );
+      // escala_config has UUID primary key - delete existing row first, then insert new
+      const { error: deleteError } = await supabase.from('escala_config').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      if (deleteError) console.warn('Warning clearing escala_config:', deleteError);
+
+      const { error } = await supabase.from('escala_config').insert({ configuracao: backup.escala_config });
       if (error) throw error;
     }
 

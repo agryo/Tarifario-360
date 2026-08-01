@@ -3,7 +3,10 @@ import { TarifaService } from './tarifa';
 import { EscalaService } from './escala';
 import { CriptografiaService } from './criptografia';
 import { supabaseApi } from './supabase-client';
+import { getSupabaseClient, environment } from './supabase-client';
 import { BackupData } from '../models/backup.model';
+import { OrcamentoOficial } from '../models/orcamento-oficial.model';
+import { ChaveCriptografia } from '../models/chave-criptografia.model';
 
 @Injectable({ providedIn: 'root' })
 export class BackupService {
@@ -15,27 +18,71 @@ export class BackupService {
     private criptografia: CriptografiaService,
   ) {}
 
-  // Exportar todos os dados (local - uses services)
+  // Verifica se está em desenvolvimento local
+  private isLocalDev(): boolean {
+    return !environment.production;
+  }
+
+  // Exportar todos os dados do Supabase (completo)
   async exportarDados(): Promise<BackupData> {
+    if (this.isLocalDev()) {
+      // Desenvolvimento local: usa cliente direto do Supabase
+      return this.exportarDadosLocal();
+    }
+    // Produção: usa API Vercel
+    return this.exportarDadosAPI();
+  }
+
+  private async exportarDadosLocal(): Promise<BackupData> {
+    const client = getSupabaseClient();
+
+    const [categorias, configGeral, escalaConfig, orcamentosOficiais, chaves] = await Promise.all([
+      client.from('categorias').select('*'),
+      client.from('config_geral').select('*').limit(1).single(),
+      client.from('escala_config').select('configuracao').limit(1).single(),
+      client.from('orcamentos_oficiais').select('*'),
+      client.from('chaves_criptografia').select('*'),
+    ]);
+
     const dados: Omit<BackupData, 'assinatura'> = {
       tipo: 'backup',
       versao: this.VERSAO,
       dataExportacao: new Date(),
-      configuracaoGeral: await this.tarifaService.getConfiguracao(),
-      categorias: await this.tarifaService.getCategorias(),
-      escalaConfig: await this.escalaService.getConfiguracao(),
+      configuracaoGeral: configGeral.data ?? null,
+      categorias: categorias.data ?? [],
+      escalaConfig: escalaConfig.data?.configuracao ?? null,
+      orcamentosOficiais: orcamentosOficiais.data ?? [],
+      chavesCriptografia: chaves.data ?? [],
     };
 
-    const backup: BackupData = {
+    return {
       ...dados,
       assinatura: this.criptografia.gerarHash(JSON.stringify(dados)),
     };
-
-    return backup;
   }
 
-  // Importar dados (substitui todos)
-  importarDados(backup: BackupData): { sucesso: boolean; mensagem: string } {
+  private async exportarDadosAPI(): Promise<BackupData> {
+    const response = await supabaseApi.exportBackup();
+
+    const dados: Omit<BackupData, 'assinatura'> = {
+      tipo: 'backup',
+      versao: this.VERSAO,
+      dataExportacao: new Date(response.data_exportacao || new Date()),
+      configuracaoGeral: response.config_geral,
+      categorias: response.categorias ?? [],
+      escalaConfig: response.escala_config ?? undefined,
+      orcamentosOficiais: response.orcamentos_oficiais ?? [],
+      chavesCriptografia: response.chaves_criptografia ?? [],
+    };
+
+    return {
+      ...dados,
+      assinatura: this.criptografia.gerarHash(JSON.stringify(dados)),
+    };
+  }
+
+  // Importar dados (substitui tudo no Supabase)
+  async importarDados(backup: BackupData): Promise<{ sucesso: boolean; mensagem: string }> {
     try {
       // 0. Verifica o tipo do arquivo
       if (backup.tipo !== 'backup') {
@@ -65,29 +112,84 @@ export class BackupService {
         };
       }
 
-      // Substitui configurações gerais
-      if (backup.configuracaoGeral) {
-        const configMigrada = this.tarifaService.migrarConfiguracaoSeNecessario(
-          backup.configuracaoGeral,
-        );
-        this.tarifaService.salvarConfiguracao(configMigrada);
+      // 2. Importa tudo (desenvolvimento local ou produção)
+      if (this.isLocalDev()) {
+        await this.importarDadosLocal(backup);
+      } else {
+        await this.importarDadosAPI(backup);
       }
 
-      // Substitui categorias completamente
-      if (backup.categorias) {
-        this.tarifaService.setCategorias(backup.categorias);
-      }
+      // 3. Atualiza cache local (recarrega serviços)
+      await this.tarifaService.recarregarDoSupabase();
+      await this.escalaService.recarregarDoSupabase();
 
-      // Escala (substituição)
-      if (backup.escalaConfig) {
-        this.escalaService.salvarConfiguracao(backup.escalaConfig);
-      }
-
-      return { sucesso: true, mensagem: 'Backup importado com sucesso!' };
+      return { sucesso: true, mensagem: 'Backup importado com sucesso! Todas as tabelas foram restauradas.' };
     } catch (error) {
       console.error('Erro na importação:', error);
-      return { sucesso: false, mensagem: 'Erro ao processar o arquivo.' };
+      const errorMsg = error instanceof Error ? error.message : JSON.stringify(error);
+      return { sucesso: false, mensagem: `Erro ao processar o arquivo: ${errorMsg}` };
     }
+  }
+
+  private async importarDadosLocal(backup: BackupData): Promise<void> {
+    const client = getSupabaseClient();
+
+    // PRIMEIRO: Limpar todas as tabelas (ordem inversa de dependência)
+    const tablesToClear = [
+      'orcamentos_oficiais',
+      'chaves_criptografia',
+      'escala_config',
+      'config_geral',
+      'categorias',
+    ];
+    for (const table of tablesToClear) {
+      const { error } = await client.from(table).delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      if (error) console.warn(`Aviso ao limpar ${table}:`, error);
+    }
+
+    // Import in order: categorias first (referenced by orcamentos_oficiais)
+    if (backup.categorias?.length) {
+      const { error } = await client.from('categorias').upsert(backup.categorias, { onConflict: 'id' });
+      if (error) throw error;
+    }
+
+    if (backup.configuracaoGeral) {
+      const { error } = await client.from('config_geral').upsert(backup.configuracaoGeral, { onConflict: 'id' });
+      if (error) throw error;
+    }
+
+    if (backup.escalaConfig) {
+      // escala_config has UUID primary key - delete existing row first, then insert new
+      const { error: deleteError } = await client.from('escala_config').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      if (deleteError) console.warn('Warning clearing escala_config:', deleteError);
+
+      const { error } = await client.from('escala_config').insert({ configuracao: backup.escalaConfig });
+      if (error) throw error;
+    }
+
+    if (backup.orcamentosOficiais?.length) {
+      const { error } = await client.from('orcamentos_oficiais').upsert(backup.orcamentosOficiais, { onConflict: 'id' });
+      if (error) throw error;
+    }
+
+    if (backup.chavesCriptografia?.length) {
+      const { error } = await client.from('chaves_criptografia').upsert(backup.chavesCriptografia, { onConflict: 'nome' });
+      if (error) throw error;
+    }
+  }
+
+  private async importarDadosAPI(backup: BackupData): Promise<void> {
+    const backupParaApi = {
+      versao: backup.versao,
+      data_exportacao: backup.dataExportacao,
+      categorias: backup.categorias,
+      config_geral: backup.configuracaoGeral,
+      escala_config: backup.escalaConfig,
+      orcamentos_oficiais: backup.orcamentosOficiais,
+      chaves_criptografia: backup.chavesCriptografia,
+    };
+
+    await supabaseApi.importBackup(backupParaApi);
   }
 
   async exportarArquivoCompleto(nomeArquivo: string = 'backup'): Promise<void> {

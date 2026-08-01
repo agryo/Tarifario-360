@@ -1,6 +1,8 @@
 import { environment } from '../../environments/environment';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
+export { environment };
+
 const API_BASE = environment.apiUrl || '/api';
 
 class SupabaseApiClient {
@@ -113,6 +115,12 @@ class SupabaseApiClient {
     });
   }
 
+  async clearEscala(): Promise<void> {
+    return this.request('/escala', {
+      method: 'DELETE',
+    });
+  }
+
   // Orçamentos Oficiais endpoints
   async getOrcamentosOficiais(): Promise<any[]> {
     return this.request<any[]>('/orcamentos-oficiais');
@@ -163,6 +171,13 @@ class SupabaseApiClient {
     return this.request<any>('/backup/import', {
       method: 'POST',
       body: JSON.stringify(backup),
+    });
+  }
+
+  // Limpar banco de dados
+  async clearDatabase(): Promise<any> {
+    return this.request<any>('/database/clear', {
+      method: 'POST',
     });
   }
 

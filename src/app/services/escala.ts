@@ -5,6 +5,7 @@ import { EscalaRepository } from './repositories/escala-repository';
 import { ConfigRepositoryFactory } from './config-repository-factory';
 import { RepositoryFactory } from './repository-factory';
 import { EscalaConfig } from '../models/escala-config.model';
+import { environment, getSupabaseClient, supabaseApi } from './supabase-client';
 export type { EscalaConfig } from '../models/escala-config.model';
 
 @Injectable({
@@ -34,7 +35,17 @@ export class EscalaService {
 
     try {
       if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
-        const config = await this.escalaRepo.get();
+        let config: EscalaConfig | null = null;
+        if (!environment.production) {
+          // Desenvolvimento local: cliente direto
+          const client = getSupabaseClient();
+          const { data, error } = await client.from('escala_config').select('configuracao').limit(1).single();
+          if (error && !error.message.includes('PGRST116')) throw error;
+          config = data?.configuracao ?? null;
+        } else {
+          // Produção: API Vercel
+          config = await supabaseApi.getEscala();
+        }
         if (config) return config;
       }
     } catch (error) {
@@ -47,11 +58,32 @@ export class EscalaService {
   async salvarConfiguracao(config: EscalaConfig): Promise<void> {
     try {
       if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
-        await this.escalaRepo.update(config);
+        if (!environment.production) {
+          // Desenvolvimento local: cliente direto
+          const client = getSupabaseClient();
+          const { error } = await client.from('escala_config').upsert(
+            { id: 'default', configuracao: config },
+            { onConflict: 'id' }
+          );
+          if (error) throw error;
+        } else {
+          // Produção: API Vercel
+          await supabaseApi.updateEscala(config);
+        }
       }
     } catch (error) {
       console.warn('Falha ao salvar escala no Supabase:', error);
     }
     this.storage.set(this.STORAGE_KEY, config);
+  }
+
+  // Recarrega dados do Supabase para atualizar o cache local
+  async recarregarDoSupabase(): Promise<void> {
+    try {
+      this.storage.remove(this.STORAGE_KEY);
+      await this.getConfiguracao();
+    } catch (error) {
+      console.warn('Falha ao recarregar escala do Supabase:', error);
+    }
   }
 }

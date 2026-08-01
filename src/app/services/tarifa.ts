@@ -5,6 +5,7 @@ import { CategoriasRepository } from './repositories/categorias-repository';
 import { ConfigGeralRepository } from './repositories/config-geral-repository';
 import { ConfigRepositoryFactory } from './config-repository-factory';
 import { RepositoryFactory } from './repository-factory';
+import { supabaseApi } from './supabase-client';
 import { CategoriaQuarto } from '../models/categoria-quarto.model';
 import { ConfiguracaoGeral } from '../models/tarifa.model';
 
@@ -243,13 +244,37 @@ export class TarifaService {
   async limparCache(): Promise<void> {
     try {
       if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
-        // Clear would need a bulk delete - for now just local
+        // Limpa TUDO no Supabase (usa API em produção, cliente direto em dev local)
+        const { environment } = await import('../../environments/environment');
+        const { getSupabaseClient } = await import('./supabase-client');
+
+        if (!environment.production) {
+          // Desenvolvimento local: cliente direto
+          const client = getSupabaseClient();
+          const tables = [
+            'orcamentos_oficiais',
+            'chaves_criptografia',
+            'escala_config',
+            'config_geral',
+            'categorias',
+          ];
+          for (const table of tables) {
+            const { error } = await client.from(table).delete().neq('id', '00000000-0000-0000-0000-000000000000');
+            if (error) console.warn(`Error clearing ${table}:`, error);
+          }
+        } else {
+          // Produção: API Vercel
+          const { supabaseApi } = await import('./supabase-client');
+          await supabaseApi.clearDatabase();
+        }
       }
     } catch (error) {
-      console.warn('Falha ao limpar cache do Supabase:', error);
+      console.warn('Falha ao limpar banco do Supabase:', error);
     }
+    // Limpa localStorage
     this.storage.remove(this.STORAGE_CATEGORIAS);
     this.storage.remove(this.STORAGE_CONFIG);
+    // Recria dados padrão
     await this.inicializarDadosPadrao();
   }
 
@@ -343,5 +368,16 @@ export class TarifaService {
         sinalPercentual: 50,
       },
     };
+  }
+
+  // Recarrega dados do Supabase para atualizar o cache local
+  async recarregarDoSupabase(): Promise<void> {
+    try {
+      this.storage.remove(this.STORAGE_CATEGORIAS);
+      this.storage.remove(this.STORAGE_CONFIG);
+      await this.inicializarDadosPadrao();
+    } catch (error) {
+      console.warn('Falha ao recarregar do Supabase:', error);
+    }
   }
 }
