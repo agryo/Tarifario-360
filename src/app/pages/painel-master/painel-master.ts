@@ -70,7 +70,59 @@ export class PainelMasterComponent implements OnInit, OnChanges {
   @Output() onSalvo = new EventEmitter<void>();
   @Output() onAutenticadoChange = new EventEmitter<boolean>();
 
-  config: ConfiguracaoGeral = this.getConfiguracaoPadrao();
+  config: ConfiguracaoGeral = PainelMasterComponent.getConfiguracaoPadraoStatic();
+
+  private static getConfiguracaoPadraoStatic(): ConfiguracaoGeral {
+    // Data padrão: uma semana à frente de hoje
+    const hoje = new Date();
+    const umaSemana = new Date(hoje);
+    umaSemana.setDate(hoje.getDate() + 7);
+    const altaInicio = umaSemana.toISOString().split('T')[0];
+
+    const altaFim = new Date(umaSemana);
+    altaFim.setDate(umaSemana.getDate() + 90); // 90 dias de alta temporada
+    const altaFimStr = altaFim.toISOString().split('T')[0];
+
+    return {
+      festividade: '🎊 Evento Especial',
+      totalUhs: 50,
+      comodidadesGlobais: 'Frigobar, TV, Ar-condicionado, Wi-Fi, Hidro',
+      precos: {
+        refeicoes: { almoco: 45, janta: 55, lanche: 25 },
+        kwh: 0.89,
+      },
+      temporada: { altaInicio, altaFim: altaFimStr },
+      horarios: {
+        cafe: { inicio: '07:00', fim: '10:00', ativo: true },
+        almoco: { inicio: '12:00', fim: '14:00', ativo: true },
+        lanche: { inicio: '15:00', fim: '17:00', ativo: true },
+        jantar: { inicio: '19:00', fim: '21:00', ativo: true },
+      },
+      promocao: {
+        ativa: false,
+        desconto: 15,
+        minDiarias: 3,
+        texto: 'Pagamento integral via Pix ou Dinheiro',
+        somenteAlta: true,
+        msgBaixa: false,
+      },
+      seguranca: { senhaHash: '', senhaSalt: '' },
+      orcamento: {
+        textos: {
+          titulo: 'Orçamento de Hospedagem',
+          configTitulo: '1. Configuração de Acomodação e Valores',
+          configDescricao: 'A proposta contempla a estadia com café da manhã incluso...',
+          notaRefeicoes: 'Obs.: As quantidades de refeições descritas na tabela referem-se ao consumo...',
+          cronograma: 'Check-in: {checkinHora} do dia {checkinDataBr}.\nCheck-out: {checkoutHora} do dia {checkoutDataBr}.\n{mensagemHorasExtras}',
+          pagamento: 'Forma de Pagamento: Sinal de {sinalPercentual}% do valor total ({totalGeral})...',
+          observacoes: 'Refeições: O café da manhã é cortesia da casa e já está incluso...',
+          rodape: 'Setor de Reservas - Hotel Plaza',
+        },
+        sinalPercentual: 50,
+      },
+    };
+  }
+
   // Propriedades para os datepickers do PrimeNG
   altaInicioDate: Date | null = null;
   altaFimDate: Date | null = null;
@@ -115,7 +167,7 @@ export class PainelMasterComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     // Garante que o estado de autenticação seja resetado sempre que o dialog for reaberto.
     if (changes['isVisible'] && !changes['isVisible'].firstChange && this.isVisible) {
-      this.resetarAutenticacao();
+      this.carregarDados().then(() => this.resetarAutenticacao());
     }
   }
 
@@ -132,7 +184,15 @@ export class PainelMasterComponent implements OnInit, OnChanges {
   async carregarDados() {
     const loadedConfig = await this.tarifaService.getConfiguracao();
     const defaults = this.getConfiguracaoPadrao();
-    // Deep merge para garantir que objetos aninhados existam
+    // Deep merge para garantir que objetos aninhados existam, mas preserva senhaHash/senhaSalt vazios
+    const dbSeguranca = loadedConfig.seguranca ?? {};
+    const seguranca = {
+      ...defaults.seguranca,
+      ...dbSeguranca,
+      // Usa verificação explícita de undefined/null pois string vazia "" é falsy
+      senhaHash: dbSeguranca.senhaHash !== undefined && dbSeguranca.senhaHash !== null ? dbSeguranca.senhaHash : defaults.seguranca.senhaHash,
+      senhaSalt: dbSeguranca.senhaSalt !== undefined && dbSeguranca.senhaSalt !== null ? dbSeguranca.senhaSalt : defaults.seguranca.senhaSalt,
+    };
     this.config = {
       ...defaults,
       ...loadedConfig,
@@ -140,7 +200,7 @@ export class PainelMasterComponent implements OnInit, OnChanges {
       temporada: { ...defaults.temporada, ...loadedConfig.temporada },
       horarios: { ...defaults.horarios, ...loadedConfig.horarios },
       promocao: { ...defaults.promocao, ...loadedConfig.promocao },
-      seguranca: { ...defaults.seguranca, ...loadedConfig.seguranca },
+      seguranca,
       orcamento: { ...defaults.orcamento, ...loadedConfig.orcamento, textos: { ...defaults.orcamento.textos, ...(loadedConfig.orcamento?.textos || {}) } },
     };
     this.categorias = await this.tarifaService.getCategorias();
@@ -317,13 +377,21 @@ export class PainelMasterComponent implements OnInit, OnChanges {
       this.config.seguranca.senhaSalt = '';
     }
 
-    await this.tarifaService.salvarConfiguracao(this.config);
-
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Sucesso',
-      detail: this.novaSenhaInput ? 'Senha alterada com sucesso' : 'Senha removida com sucesso',
-    });
+    try {
+      await this.tarifaService.salvarConfiguracao(this.config);
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Sucesso',
+        detail: this.novaSenhaInput ? 'Senha alterada com sucesso' : 'Senha removida com sucesso',
+      });
+    } catch (error: any) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erro ao salvar',
+        detail: error.message || 'Falha ao salvar no banco de dados. Verifique as permissões (RLS).',
+      });
+      return;
+    }
 
     // Limpa os campos de senha
     this.senhaAtualInput = '';
@@ -340,15 +408,23 @@ export class PainelMasterComponent implements OnInit, OnChanges {
         acceptLabel: 'Sim, Remover',
         rejectLabel: 'Cancelar',
         acceptButtonStyleClass: 'p-button-danger',
-        accept: () => {
-          this.config.seguranca.senhaHash = ''; // em vez de delete
+        accept: async () => {
+          this.config.seguranca.senhaHash = '';
           this.config.seguranca.senhaSalt = '';
-          this.tarifaService.salvarConfiguracao(this.config);
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Senha removida',
-            detail: 'Acesso ao painel agora é livre',
-          });
+          try {
+            await this.tarifaService.salvarConfiguracao(this.config);
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Senha removida',
+              detail: 'Acesso ao painel agora é livre',
+            });
+          } catch (error: any) {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Erro ao salvar',
+              detail: error.message || 'Falha ao salvar no banco de dados. Verifique as permissões (RLS).',
+            });
+          }
         },
       });
     } else {
@@ -433,7 +509,7 @@ export class PainelMasterComponent implements OnInit, OnChanges {
     }
   }
 
-  limparCache() {
+  async limparCache() {
     this.confirmationService.confirm({
       message:
         'Tem certeza que deseja limpar todo o cache do sistema? Esta ação irá restaurar todas as configurações para os valores padrão e não pode ser desfeita!',
@@ -442,9 +518,9 @@ export class PainelMasterComponent implements OnInit, OnChanges {
       acceptLabel: 'Sim, Limpar Tudo',
       rejectLabel: 'Cancelar',
       acceptButtonStyleClass: 'p-button-danger',
-      accept: () => {
-        this.tarifaService.limparCache();
-        this.carregarDados();
+      accept: async () => {
+        await this.tarifaService.limparCache();
+        await this.carregarDados();
         this.messageService.add({
           severity: 'success',
           summary: 'Cache Limpo',
@@ -463,15 +539,23 @@ export class PainelMasterComponent implements OnInit, OnChanges {
     if (this.altaFimDate) {
       this.config.temporada.altaFim = DateUtils.formatarDataISO(this.altaFimDate);
     }
-    await this.tarifaService.salvarConfiguracao(this.config);
-    await this.escalaService.salvarConfiguracao(this.escalaConfig);
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Sucesso',
-      detail: 'Configurações salvas com sucesso',
-    });
-    this.onSalvo.emit();
-    this.onFechar.emit();
+    try {
+      await this.tarifaService.salvarConfiguracao(this.config);
+      await this.escalaService.salvarConfiguracao(this.escalaConfig);
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Sucesso',
+        detail: 'Configurações salvas com sucesso',
+      });
+      this.onSalvo.emit();
+      this.onFechar.emit();
+    } catch (error: any) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erro ao salvar',
+        detail: error.message || 'Falha ao salvar no banco de dados. Verifique as permissões (RLS).',
+      });
+    }
   }
 
   // ===== CONTROLE DE DATAS DA ALTA TEMPORADA =====
@@ -487,6 +571,16 @@ export class PainelMasterComponent implements OnInit, OnChanges {
   }
 
   private getConfiguracaoPadrao(): ConfiguracaoGeral {
+    // Data padrão: uma semana à frente de hoje (igual ao service)
+    const hoje = new Date();
+    const umaSemana = new Date(hoje);
+    umaSemana.setDate(hoje.getDate() + 7);
+    const altaInicio = umaSemana.toISOString().split('T')[0];
+
+    const altaFim = new Date(umaSemana);
+    altaFim.setDate(umaSemana.getDate() + 90); // 90 dias de alta temporada
+    const altaFimStr = altaFim.toISOString().split('T')[0];
+
     return {
       festividade: '🎊 Evento Especial',
       totalUhs: 50,
@@ -495,7 +589,7 @@ export class PainelMasterComponent implements OnInit, OnChanges {
         refeicoes: { almoco: 45, janta: 55, lanche: 25 },
         kwh: 0.89,
       },
-      temporada: { altaInicio: '2025-12-15', altaFim: '2026-03-15' },
+      temporada: { altaInicio, altaFim: altaFimStr },
       horarios: {
         cafe: { inicio: '07:00', fim: '10:00', ativo: true },
         almoco: { inicio: '12:00', fim: '14:00', ativo: true },

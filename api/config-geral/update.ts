@@ -24,6 +24,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       comodidades_globais: config.comodidadesGlobais,
       criado_em: config.criado_em,
       atualizado_em: config.atualizado_em,
+      // SEMPRE incluir seguranca para evitar DEFAULT do banco sobrescrever
+      seguranca: config.seguranca ?? { senhaHash: '', senhaSalt: '' },
     };
 
     if (existing) {

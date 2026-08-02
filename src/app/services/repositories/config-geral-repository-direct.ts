@@ -60,7 +60,8 @@ export class SupabaseDirectConfigGeralRepository implements ConfigGeralRepositor
     if (config.temporada !== undefined) result.temporada = config.temporada;
     if (config.horarios !== undefined) result.horarios = config.horarios;
     if (config.promocao !== undefined) result.promocao = config.promocao;
-    if (config.seguranca !== undefined) result.seguranca = config.seguranca;
+    // SEMPRE incluir seguranca para evitar DEFAULT do banco sobrescrever
+    result.seguranca = config.seguranca ?? { senhaHash: '', senhaSalt: '' };
     if (config.orcamento !== undefined) result.orcamento = config.orcamento;
     if (config.criado_em !== undefined) result.criado_em = config.criado_em;
     if (config.atualizado_em !== undefined) result.atualizado_em = config.atualizado_em;

@@ -137,8 +137,17 @@ export class TarifaService {
       if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
         const config = await this.configGeralRepo.get();
         if (config) {
-          // Deep merge com defaults para garantir que objetos aninhados existam
+          // Deep merge com defaults, mas preserva senhaHash/senhaSalt vazios (sem senha)
           const defaults = this.getConfiguracaoPadrao();
+          const dbSeguranca = config.seguranca ?? {};
+          const seguranca = {
+            ...defaults.seguranca,
+            ...dbSeguranca,
+            // Se veio vazio do banco (usuário removeu senha), mantém vazio
+            // Usa verificação explícita de undefined/null pois string vazia "" é falsy
+            senhaHash: dbSeguranca.senhaHash !== undefined && dbSeguranca.senhaHash !== null ? dbSeguranca.senhaHash : defaults.seguranca.senhaHash,
+            senhaSalt: dbSeguranca.senhaSalt !== undefined && dbSeguranca.senhaSalt !== null ? dbSeguranca.senhaSalt : defaults.seguranca.senhaSalt,
+          };
           return {
             ...defaults,
             ...config,
@@ -146,13 +155,16 @@ export class TarifaService {
             temporada: { ...defaults.temporada, ...config.temporada },
             horarios: { ...defaults.horarios, ...config.horarios },
             promocao: { ...defaults.promocao, ...config.promocao },
-            seguranca: { ...defaults.seguranca, ...config.seguranca },
+            seguranca,
             orcamento: { ...defaults.orcamento, ...config.orcamento, textos: { ...defaults.orcamento.textos, ...(config.orcamento?.textos || {}) } },
           };
         }
+        // No config in Supabase (empty table) - return defaults, DON'T fall back to localStorage
+        return this.getConfiguracaoPadrao();
       }
     } catch (error) {
-      console.warn('Falha ao buscar config do Supabase, usando localStorage:', error);
+      console.error('Falha ao buscar config do Supabase:', error);
+      throw error;
     }
 
     let stored = this.storage.get<any>(this.STORAGE_CONFIG);
@@ -168,7 +180,22 @@ export class TarifaService {
       stored = migrated;
     }
 
-    return { ...defaults, ...stored } as ConfiguracaoGeral;
+    // Merge com nullish coalescing para seguranca - preserva strings vazias explícitas
+    const storedSeguranca = stored.seguranca ?? {};
+    const mergedSeguranca = {
+      ...defaults.seguranca,
+      ...storedSeguranca,
+      // Se o usuário removeu a senha (string vazia explícita), preserva vazio
+      // Usa verificação explícita de undefined/null pois string vazia "" é falsy
+      senhaHash: storedSeguranca.senhaHash !== undefined && storedSeguranca.senhaHash !== null ? storedSeguranca.senhaHash : defaults.seguranca.senhaHash,
+      senhaSalt: storedSeguranca.senhaSalt !== undefined && storedSeguranca.senhaSalt !== null ? storedSeguranca.senhaSalt : defaults.seguranca.senhaSalt,
+    };
+
+    return {
+      ...defaults,
+      ...stored,
+      seguranca: mergedSeguranca,
+    } as ConfiguracaoGeral;
   }
 
   /**
@@ -230,46 +257,38 @@ export class TarifaService {
   }
 
   async salvarConfiguracao(config: ConfiguracaoGeral): Promise<void> {
-    try {
-      if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
-        await this.configGeralRepo.update(config);
-      }
-    } catch (error) {
-      console.warn('Falha ao salvar config no Supabase:', error);
+    if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
+      await this.configGeralRepo.update(config);
     }
     this.storage.set(this.STORAGE_CONFIG, config);
   }
 
   // ===== LIMPAR CACHE =====
   async limparCache(): Promise<void> {
-    try {
-      if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
-        // Limpa TUDO no Supabase (usa API em produção, cliente direto em dev local)
-        const { environment } = await import('../../environments/environment');
-        const { getSupabaseClient } = await import('./supabase-client');
+    if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
+      // Limpa TUDO no Supabase (usa API em produção, cliente direto em dev local)
+      const { environment } = await import('../../environments/environment');
+      const { getSupabaseClient } = await import('./supabase-client');
 
-        if (!environment.production) {
-          // Desenvolvimento local: cliente direto
-          const client = getSupabaseClient();
-          const tables = [
-            'orcamentos_oficiais',
-            'chaves_criptografia',
-            'escala_config',
-            'config_geral',
-            'categorias',
-          ];
-          for (const table of tables) {
-            const { error } = await client.from(table).delete().neq('id', '00000000-0000-0000-0000-000000000000');
-            if (error) console.warn(`Error clearing ${table}:`, error);
-          }
-        } else {
-          // Produção: API Vercel
-          const { supabaseApi } = await import('./supabase-client');
-          await supabaseApi.clearDatabase();
+      if (!environment.production) {
+        // Desenvolvimento local: cliente direto
+        const client = getSupabaseClient();
+        const tables = [
+          'orcamentos_oficiais',
+          'chaves_criptografia',
+          'escala_config',
+          'config_geral',
+          'categorias',
+        ];
+        for (const table of tables) {
+          const { error } = await client.from(table).delete().neq('id', '00000000-0000-0000-0000-000000000000');
+          if (error) throw new Error(`Erro ao limpar ${table}: ${error.message}`);
         }
+      } else {
+        // Produção: API Vercel
+        const { supabaseApi } = await import('./supabase-client');
+        await supabaseApi.clearDatabase();
       }
-    } catch (error) {
-      console.warn('Falha ao limpar banco do Supabase:', error);
     }
     // Limpa localStorage
     this.storage.remove(this.STORAGE_CATEGORIAS);
@@ -322,14 +341,24 @@ export class TarifaService {
     }
 
     const config = await this.getConfiguracao();
-    if (!config || Object.keys(config).length === 0) {
-      await this.salvarConfiguracao(this.getConfiguracaoPadrao());
-    }
+    // Força salvar config padrão (já que acabamos de limpar o banco)
+    await this.salvarConfiguracao(this.getConfiguracaoPadrao());
   }
 
   private getConfiguracaoPadrao(): ConfiguracaoGeral {
     const salt = this.criptografia.gerarSalt();
     const hash = this.criptografia.hashSenha('1234', salt);
+
+    // Data padrão: uma semana à frente de hoje
+    const hoje = new Date();
+    const umaSemana = new Date(hoje);
+    umaSemana.setDate(hoje.getDate() + 7);
+    const altaInicio = umaSemana.toISOString().split('T')[0];
+
+    const altaFim = new Date(umaSemana);
+    altaFim.setDate(umaSemana.getDate() + 90); // 90 dias de alta temporada
+    const altaFimStr = altaFim.toISOString().split('T')[0];
+
     return {
       festividade: '🎊 Evento Especial',
       totalUhs: 50,
@@ -338,7 +367,7 @@ export class TarifaService {
         refeicoes: { almoco: 45, janta: 55, lanche: 25 },
         kwh: 0.89,
       },
-      temporada: { altaInicio: '2025-12-15', altaFim: '2026-03-15' },
+      temporada: { altaInicio, altaFim: altaFimStr },
       horarios: {
         cafe: { inicio: '07:00', fim: '10:00', ativo: true },
         almoco: { inicio: '12:00', fim: '14:00', ativo: true },
