@@ -1,6 +1,17 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { supabase, handleError, corsHeaders, handleOptions } from '../_lib/supabase';
 
+function toSnakeCase(obj: any): any {
+  if (!obj || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map((v) => toSnakeCase(v));
+  const result: any = {};
+  for (const [key, value] of Object.entries(obj)) {
+    const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+    result[snakeKey] = toSnakeCase(value);
+  }
+  return result;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   Object.entries(corsHeaders()).forEach(([key, value]) => res.setHeader(key, value));
   if (req.method === 'OPTIONS') return handleOptions(res);
@@ -28,12 +39,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Import in order: categorias first (referenced by orcamentos_oficiais)
     if (backup.categorias?.length) {
-      const { error } = await supabase.from('categorias').upsert(backup.categorias, { onConflict: 'id' });
+      const { error } = await supabase.from('categorias').upsert(toSnakeCase(backup.categorias), { onConflict: 'id' });
       if (error) throw error;
     }
 
     if (backup.config_geral) {
-      const { error } = await supabase.from('config_geral').upsert(backup.config_geral, { onConflict: 'id' });
+      // config_geral is a single-row table - delete existing row first, then insert new
+      // This avoids duplicate rows when backup UUID differs from existing UUID
+      const { error: deleteError } = await supabase.from('config_geral').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      if (deleteError) console.warn('Warning clearing config_geral:', deleteError);
+
+      // The config_geral table has DIRECT columns (not JSONB configuracao):
+      // id, festividade, total_uhs, comodidades_globais, precos (JSONB), temporada (JSONB),
+      // horarios (JSONB), promocao (JSONB), seguranca (JSONB), orcamento (JSONB), criado_em, atualizado_em
+      const config = backup.config_geral;
+
+      // Convert camelCase to snake_case for JSONB fields before inserting
+      const { error } = await supabase.from('config_geral').insert({
+        festividade: config.festividade ?? '',
+        total_uhs: config.totalUhs ?? 0,
+        comodidades_globais: config.comodidadesGlobais ?? '',
+        precos: toSnakeCase(config.precos),
+        temporada: toSnakeCase(config.temporada),
+        horarios: toSnakeCase(config.horarios),
+        promocao: toSnakeCase(config.promocao),
+        seguranca: toSnakeCase(config.seguranca || { senhaHash: '', senhaSalt: '' }),
+        orcamento: toSnakeCase(config.orcamento),
+      });
       if (error) throw error;
     }
 
@@ -47,12 +79,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (backup.orcamentos_oficiais?.length) {
-      const { error } = await supabase.from('orcamentos_oficiais').upsert(backup.orcamentos_oficiais, { onConflict: 'id' });
+      const { error } = await supabase.from('orcamentos_oficiais').upsert(toSnakeCase(backup.orcamentos_oficiais), { onConflict: 'id' });
       if (error) throw error;
     }
 
     if (backup.chaves_criptografia?.length) {
-      const { error } = await supabase.from('chaves_criptografia').upsert(backup.chaves_criptografia, { onConflict: 'nome' });
+      const { error } = await supabase.from('chaves_criptografia').upsert(toSnakeCase(backup.chaves_criptografia), { onConflict: 'nome' });
       if (error) throw error;
     }
 

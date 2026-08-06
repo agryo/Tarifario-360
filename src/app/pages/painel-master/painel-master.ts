@@ -33,6 +33,7 @@ import { TarifaService } from '../../services/tarifa';
 import { CriptografiaService } from '../../services/criptografia';
 import { EscalaService, EscalaConfig } from '../../services/escala';
 import { BackupService } from '../../services/backup';
+import { OrcamentoOficialService } from '../../services/orcamento-oficial';
 import { ProgressService } from '../../services/progress';
 import { CategoriaQuarto } from '../../models/categoria-quarto.model';
 import { ConfiguracaoGeral } from '../../models/tarifa.model';
@@ -154,6 +155,7 @@ export class PainelMasterComponent implements OnInit, OnChanges {
     private confirmationService: ConfirmationService,
     private criptografia: CriptografiaService,
     private escalaService: EscalaService,
+    private orcamentoOficialService: OrcamentoOficialService,
     private messageService: MessageService,
     private progressService: ProgressService,
   ) {}
@@ -481,18 +483,34 @@ export class PainelMasterComponent implements OnInit, OnChanges {
       this.progressService.updateMensagem('Descriptografando e validando dados...');
       this.progressService.updateProgress(30);
 
-      const resultado = await this.backupService.importarArquivo(file);
+      // Carrega o backup para a UI (sem persistir no banco ainda)
+      const resultado = await this.backupService.carregarBackupParaUI(file);
 
-      this.progressService.updateMensagem('Restaurando configurações no sistema...');
-      this.progressService.updateProgress(80);
+      this.progressService.updateMensagem('Preenchendo interface com dados do backup...');
+      this.progressService.updateProgress(60);
 
-      if (resultado.sucesso) {
-        this.carregarDados(); // Recarrega os dados na tela
+      if (resultado.sucesso && resultado.backup) {
+        // Armazena o backup no service para preencher a UI
+        this.tarifaService.setBackupState({
+          configuracaoGeral: resultado.backup.configuracaoGeral,
+          categorias: resultado.backup.categorias,
+          escalaConfig: resultado.backup.escalaConfig,
+          orcamentosOficiais: resultado.backup.orcamentosOficiais,
+        });
+
+        // Recarrega os dados na tela (agora virão do backup state)
+        await this.carregarDados();
+
+        // Também carrega a escala config se houver
+        if (resultado.backup.escalaConfig) {
+          this.escalaConfig = resultado.backup.escalaConfig;
+        }
+
         this.progressService.updateProgress(100);
         this.messageService.add({
           severity: 'success',
           summary: 'Sucesso',
-          detail: resultado.mensagem,
+          detail: 'Backup carregado na interface! Clique em "SALVAR TODAS AS ALTERAÇÕES" para persistir no banco.',
         });
       } else {
         this.messageService.add({ severity: 'error', summary: 'Erro', detail: resultado.mensagem });
@@ -540,8 +558,37 @@ export class PainelMasterComponent implements OnInit, OnChanges {
       this.config.temporada.altaFim = DateUtils.formatarDataISO(this.altaFimDate);
     }
     try {
+      const backupState = this.tarifaService.getBackupState();
+
+      // Se há backup carregado, limpa TUDO no banco antes de inserir os dados do backup
+      if (backupState) {
+        await this.limparBancoParaBackup();
+      }
+
+      // Salva configuração geral
       await this.tarifaService.salvarConfiguracao(this.config);
       await this.escalaService.salvarConfiguracao(this.escalaConfig);
+
+      // Se há backup carregado, salva também as categorias e orçamentos oficiais
+      if (backupState) {
+        // Salva categorias
+        if (backupState.categorias?.length) {
+          for (const cat of backupState.categorias) {
+            await this.tarifaService.salvarCategoria(cat);
+          }
+        }
+
+        // Salva orçamentos oficiais (se houver) - usa service injetado
+        if (backupState.orcamentosOficiais?.length) {
+          for (const orc of backupState.orcamentosOficiais) {
+            await this.orcamentoOficialService.salvar(orc);
+          }
+        }
+
+        // Limpa o estado do backup após salvar
+        this.tarifaService.clearBackupState();
+      }
+
       this.messageService.add({
         severity: 'success',
         summary: 'Sucesso',
@@ -555,6 +602,33 @@ export class PainelMasterComponent implements OnInit, OnChanges {
         summary: 'Erro ao salvar',
         detail: error.message || 'Falha ao salvar no banco de dados. Verifique as permissões (RLS).',
       });
+    }
+  }
+
+  /**
+   * Limpa todas as tabelas do Supabase antes de restaurar um backup
+   * Ordem inversa de dependência para evitar erros de foreign key
+   */
+  private async limparBancoParaBackup(): Promise<void> {
+    if (this.tarifaService['configFactory'].getBackend() !== 'supabase' &&
+        this.tarifaService['configFactory'].getBackend() !== 'supabase-direct') {
+      return; // Só limpa no Supabase
+    }
+
+    const { getSupabaseClient } = await import('../../services/supabase-client');
+    const client = getSupabaseClient();
+
+    const tablesToClear = [
+      'orcamentos_oficiais',
+      'chaves_criptografia',
+      'escala_config',
+      'config_geral',
+      'categorias',
+    ];
+
+    for (const table of tablesToClear) {
+      const { error } = await client.from(table).delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      if (error) console.warn(`Aviso ao limpar ${table}:`, error);
     }
   }
 

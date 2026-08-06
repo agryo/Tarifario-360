@@ -14,6 +14,14 @@ export class TarifaService {
   private readonly STORAGE_CATEGORIAS = 'categorias';
   private readonly STORAGE_CONFIG = 'config';
 
+  // Estado temporário do backup carregado na UI (não persistido no banco)
+  private backupState: {
+    configuracaoGeral?: ConfiguracaoGeral;
+    categorias?: CategoriaQuarto[];
+    escalaConfig?: any;
+    orcamentosOficiais?: any[];
+  } | null = null;
+
   constructor(
     private storage: StorageService,
     private criptografia: CriptografiaService,
@@ -45,6 +53,11 @@ export class TarifaService {
    * @returns Um array com todas as categorias de quarto. Retorna um array vazio se nenhuma for encontrada.
    */
   async getCategorias(): Promise<CategoriaQuarto[]> {
+    // Se há backup carregado na UI, retorna ele
+    if (this.backupState?.categorias) {
+      return this.backupState.categorias;
+    }
+
     try {
       if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
         return await this.categoriasRepo.getAll();
@@ -133,6 +146,11 @@ export class TarifaService {
 
   // ===== CONFIGURAÇÃO GERAL =====
   async getConfiguracao(): Promise<ConfiguracaoGeral> {
+    // Se há backup carregado na UI, retorna ele
+    if (this.backupState?.configuracaoGeral) {
+      return this.backupState.configuracaoGeral;
+    }
+
     try {
       if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
         const config = await this.configGeralRepo.get();
@@ -299,6 +317,11 @@ export class TarifaService {
 
   // ===== DADOS INICIAIS =====
   private async inicializarDadosPadrao(): Promise<void> {
+    // Se backup carregado na UI, não inicializa padrão
+    if (this.backupState) {
+      return;
+    }
+
     const categorias = await this.getCategorias();
     if (categorias.length === 0) {
       const categoriasPadrao: CategoriaQuarto[] = [
@@ -404,9 +427,37 @@ export class TarifaService {
     try {
       this.storage.remove(this.STORAGE_CATEGORIAS);
       this.storage.remove(this.STORAGE_CONFIG);
+      this.backupState = null; // Limpa backup state ao recarregar
       await this.inicializarDadosPadrao();
     } catch (error) {
       console.warn('Falha ao recarregar do Supabase:', error);
     }
+  }
+
+  /**
+   * Define o estado do backup carregado na UI (sem persistir no banco)
+   * Usado quando o usuário importa um backup para preencher o Painel Master
+   */
+  setBackupState(backup: {
+    configuracaoGeral?: ConfiguracaoGeral;
+    categorias?: CategoriaQuarto[];
+    escalaConfig?: any;
+    orcamentosOficiais?: any[];
+  }): void {
+    this.backupState = backup;
+  }
+
+  /**
+   * Limpa o estado do backup carregado na UI
+   */
+  clearBackupState(): void {
+    this.backupState = null;
+  }
+
+  /**
+   * Retorna o estado do backup carregado (para uso no Painel Master)
+   */
+  getBackupState() {
+    return this.backupState;
   }
 }

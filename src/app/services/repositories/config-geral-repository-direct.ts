@@ -14,16 +14,21 @@ export class SupabaseDirectConfigGeralRepository implements ConfigGeralRepositor
   }
 
   private mapRow(row: any): ConfiguracaoGeral {
+    const rawSeguranca = row.seguranca;
+    // Check if seguranca is null/undefined OR an empty object (which would cause merge to fallback to defaults)
+    const hasSegurancaData = rawSeguranca && typeof rawSeguranca === 'object' && Object.keys(rawSeguranca).length > 0;
     return {
       festividade: row.festividade,
       totalUhs: row.total_uhs,
       comodidadesGlobais: row.comodidades_globais,
-      precos: row.precos,
-      temporada: row.temporada,
-      horarios: row.horarios,
-      promocao: row.promocao,
-      seguranca: row.seguranca,
-      orcamento: row.orcamento,
+      precos: this.toCamelCase(row.precos),
+      temporada: this.toCamelCase(row.temporada),
+      horarios: this.toCamelCase(row.horarios),
+      promocao: this.toCamelCase(row.promocao),
+      // IMPORTANTE: Se seguranca vier null/undefined OU objeto vazio do banco, retorna objeto com strings vazias
+      // para evitar que o merge posterior caia no default "1234"
+      seguranca: hasSegurancaData ? this.toCamelCase(rawSeguranca) : { senhaHash: '', senhaSalt: '' },
+      orcamento: this.toCamelCase(row.orcamento),
       criado_em: row.criado_em,
       atualizado_em: row.atualizado_em,
     };
@@ -56,13 +61,13 @@ export class SupabaseDirectConfigGeralRepository implements ConfigGeralRepositor
     if (config.festividade !== undefined) result.festividade = config.festividade;
     if (config.totalUhs !== undefined) result.total_uhs = config.totalUhs;
     if (config.comodidadesGlobais !== undefined) result.comodidades_globais = config.comodidadesGlobais;
-    if (config.precos !== undefined) result.precos = config.precos;
-    if (config.temporada !== undefined) result.temporada = config.temporada;
-    if (config.horarios !== undefined) result.horarios = config.horarios;
-    if (config.promocao !== undefined) result.promocao = config.promocao;
+    if (config.precos !== undefined) result.precos = this.toSnakeCase(config.precos);
+    if (config.temporada !== undefined) result.temporada = this.toSnakeCase(config.temporada);
+    if (config.horarios !== undefined) result.horarios = this.toSnakeCase(config.horarios);
+    if (config.promocao !== undefined) result.promocao = this.toSnakeCase(config.promocao);
     // SEMPRE incluir seguranca para evitar DEFAULT do banco sobrescrever
-    result.seguranca = config.seguranca ?? { senhaHash: '', senhaSalt: '' };
-    if (config.orcamento !== undefined) result.orcamento = config.orcamento;
+    result.seguranca = this.toSnakeCase(config.seguranca ?? { senhaHash: '', senhaSalt: '' });
+    if (config.orcamento !== undefined) result.orcamento = this.toSnakeCase(config.orcamento);
     if (config.criado_em !== undefined) result.criado_em = config.criado_em;
     if (config.atualizado_em !== undefined) result.atualizado_em = config.atualizado_em;
     return result;
