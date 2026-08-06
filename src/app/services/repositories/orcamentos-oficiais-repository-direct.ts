@@ -10,6 +10,28 @@ export interface OrcamentosOficiaisRepository {
   delete(id: string): Promise<void>;
 }
 
+function toCamelCase(obj: any): any {
+  if (!obj || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map((v) => toCamelCase(v));
+  const result: any = {};
+  for (const [key, value] of Object.entries(obj)) {
+    const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+    result[camelKey] = toCamelCase(value);
+  }
+  return result;
+}
+
+function toSnakeCase(obj: any): any {
+  if (!obj || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map((v) => toSnakeCase(v));
+  const result: any = {};
+  for (const [key, value] of Object.entries(obj)) {
+    const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+    result[snakeKey] = toSnakeCase(value);
+  }
+  return result;
+}
+
 @Injectable({ providedIn: 'root' })
 export class SupabaseDirectOrcamentosOficiaisRepository implements OrcamentosOficiaisRepository {
   private getClient() {
@@ -30,7 +52,7 @@ export class SupabaseDirectOrcamentosOficiaisRepository implements OrcamentosOfi
       horaEntrada: row.hora_entrada,
       horaSaida: row.hora_saida,
       temporada: row.temporada,
-      itens: row.itens,
+      itens: toCamelCase(row.itens),
       observacoes: row.observacoes,
       status: row.status,
       assinatura: row.assinatura,
@@ -52,7 +74,7 @@ export class SupabaseDirectOrcamentosOficiaisRepository implements OrcamentosOfi
     if (orcamento.horaEntrada !== undefined) result.hora_entrada = orcamento.horaEntrada;
     if (orcamento.horaSaida !== undefined) result.hora_saida = orcamento.horaSaida;
     if (orcamento.temporada !== undefined) result.temporada = orcamento.temporada;
-    if (orcamento.itens !== undefined) result.itens = orcamento.itens;
+    if (orcamento.itens !== undefined) result.itens = toSnakeCase(orcamento.itens);
     if (orcamento.observacoes !== undefined) result.observacoes = orcamento.observacoes;
     if (orcamento.status !== undefined) result.status = orcamento.status;
     if (orcamento.assinatura !== undefined) result.assinatura = orcamento.assinatura;
