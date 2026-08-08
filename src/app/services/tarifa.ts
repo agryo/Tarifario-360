@@ -363,9 +363,12 @@ export class TarifaService {
       }
     }
 
-    const config = await this.getConfiguracao();
-    // Força salvar config padrão (já que acabamos de limpar o banco)
-    await this.salvarConfiguracao(this.getConfiguracaoPadrao());
+    // Só salva config padrão se NÃO existir nada no banco
+    // getConfiguracao() retorna null se tabela vazia (PGRST116)
+    const configExistente = await this.configGeralRepo.get();
+    if (!configExistente) {
+      await this.salvarConfiguracao(this.getConfiguracaoPadrao());
+    }
   }
 
   private getConfiguracaoPadrao(): ConfiguracaoGeral {

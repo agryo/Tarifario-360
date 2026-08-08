@@ -386,6 +386,11 @@ export class PainelMasterComponent implements OnInit, OnChanges {
         summary: 'Sucesso',
         detail: this.novaSenhaInput ? 'Senha alterada com sucesso' : 'Senha removida com sucesso',
       });
+      // Se removeu a senha (nova senha vazia), libera acesso imediato
+      if (!this.novaSenhaInput) {
+        this.autenticado = true;
+        this.onAutenticadoChange.emit(true);
+      }
     } catch (error: any) {
       this.messageService.add({
         severity: 'error',
@@ -420,6 +425,9 @@ export class PainelMasterComponent implements OnInit, OnChanges {
               summary: 'Senha removida',
               detail: 'Acesso ao painel agora é livre',
             });
+            // Se removeu a senha, libera acesso imediato sem precisar fechar/abrir
+            this.autenticado = true;
+            this.onAutenticadoChange.emit(true);
           } catch (error: any) {
             this.messageService.add({
               severity: 'error',
