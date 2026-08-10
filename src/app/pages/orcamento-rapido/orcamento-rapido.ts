@@ -16,6 +16,10 @@ import { DateUtils } from '../../utils/date-utils';
 import { ConfiguracaoGeral } from '../../models/tarifa.model';
 import { CategoriaQuarto } from '../../models/categoria-quarto.model';
 
+interface CategoriaComOrdenacao extends CategoriaQuarto {
+  _ordenacao: number;
+}
+
 @Component({
   selector: 'app-orcamento-rapido',
   standalone: true,
@@ -26,7 +30,7 @@ import { CategoriaQuarto } from '../../models/categoria-quarto.model';
 })
 export class OrcamentoRapidoComponent implements OnInit {
   // Signals para evitar ExpressionChangedAfterItHasBeenCheckedError
-  categorias = signal<CategoriaQuarto[]>([]);
+  categorias = signal<CategoriaComOrdenacao[]>([]);
   config = signal<ConfiguracaoGeral | null>(null);
   carregando = signal(true);
 
@@ -50,17 +54,63 @@ export class OrcamentoRapidoComponent implements OnInit {
     this.gerarOrcamento();
   }
 
+  private getOrdenacaoComposta(cat: CategoriaQuarto): number {
+    const config = this.config();
+    if (!config) return 0;
+
+    // 1. Capacidade (menor primeiro) - PRIORIDADE PRINCIPAL
+    const capacidade = (cat.capacidadeMaxima ?? 1) * 100000;
+
+    // 2. Preço base (menor primeiro) - dentro da mesma capacidade
+    const preco = this.getPrecoBase(cat);
+
+    // 3. Tipo de cama: camas de solteiro primeiro (0), camas de casal depois (1000)
+    let tipoCama = 0;
+    const temSolteiro = (cat.camasSolteiro ?? 0) > 0;
+    const temCasal = (cat.camasCasal ?? 0) > 0;
+    if (temCasal && !temSolteiro) {
+      tipoCama = 1000;
+    } else if (temCasal && temSolteiro) {
+      tipoCama = 500;
+    }
+
+    return capacidade + preco + tipoCama;
+  }
+
+  private getPrecoBase(cat: CategoriaQuarto): number {
+    const config = this.config();
+    if (!config) return 0;
+
+    // Usa temporada automática baseada na data de check-in
+    const checkin = this.dataCheckin() || new Date();
+    const isAlta = DateUtils.isAltaTemporada(
+      checkin,
+      config.temporada.altaInicio,
+      config.temporada.altaFim,
+    );
+    return isAlta ? (cat.precoAltaSemCafe ?? 0) : (cat.precoBaixaSemCafe ?? 0);
+  }
+
   async carregarDados() {
     this.carregando.set(true);
     const [cats, cfg] = await Promise.all([
       this.tarifaService.getCategorias(),
       this.tarifaService.getConfiguracao(),
     ]);
-    this.categorias.set(cats);
     this.config.set(cfg);
 
-    if (cats.length) {
-      this.categoriaId.set(cats[0].id);
+    // Aplicar ordenação: capacidade → preço → tipo de cama
+    const categoriasOrdenadas = cats
+      .map((cat) => ({
+        ...cat,
+        _ordenacao: this.getOrdenacaoComposta(cat),
+      }))
+      .sort((a, b) => a._ordenacao - b._ordenacao);
+
+    this.categorias.set(categoriasOrdenadas);
+
+    if (categoriasOrdenadas.length) {
+      this.categoriaId.set(categoriasOrdenadas[0].id);
     }
     this.carregando.set(false);
     this.cdr.detectChanges();
