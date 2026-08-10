@@ -116,27 +116,28 @@ export class TabelaOpcoesComponent implements OnInit {
   private getOrdenacaoComposta(cat: CategoriaComSelecao): number {
     if (!this.config) return 0;
 
-    // 1. Preço base (menor primeiro)
+    // 1. Capacidade (menor primeiro) - PRIORIDADE PRINCIPAL
+    // Multiplicamos por um valor alto para garantir que capacidade tenha prioridade sobre preço
+    const capacidade = cat.capacidadeMaxima * 100000;
+
+    // 2. Preço base (menor primeiro) - dentro da mesma capacidade
     const preco = this.getPrecoBase(cat);
 
-    // 2. Capacidade (menor primeiro) - multiplicamos por 10000 para ter prioridade sobre preço
-    const capacidade = cat.capacidadeMaxima * 10000;
-
-    // 3. Tipo de cama: camas de solteiro primeiro (0), camas de casal depois (100000)
+    // 3. Tipo de cama: camas de solteiro primeiro (0), camas de casal depois (1000)
     // Se tem camas de solteiro e não tem camas de casal = prioridade 0
-    // Se tem camas de casal e não tem camas de solteiro = prioridade 100000
-    // Se tem ambos = prioridade 50000 (meio termo)
+    // Se tem camas de casal e não tem camas de solteiro = prioridade 1000
+    // Se tem ambos = prioridade 500 (meio termo)
     let tipoCama = 0;
     const temSolteiro = (cat.camasSolteiro ?? 0) > 0;
     const temCasal = (cat.camasCasal ?? 0) > 0;
     if (temCasal && !temSolteiro) {
-      tipoCama = 100000;
+      tipoCama = 1000;
     } else if (temCasal && temSolteiro) {
-      tipoCama = 50000;
+      tipoCama = 500;
     }
     // Se só tem solteiro, tipoCama = 0 (prioridade máxima)
 
-    return preco + capacidade + tipoCama;
+    return capacidade + preco + tipoCama;
   }
 
   private getPrecoBase(cat: CategoriaComSelecao): number {
