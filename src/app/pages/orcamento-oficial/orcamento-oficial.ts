@@ -49,6 +49,11 @@ interface OrcamentoOficialImportado {
 
 type Refeicao = 'comCafe' | 'comAlmoco' | 'comJanta' | 'comLanche';
 
+// Interface para categoria com ordenação
+interface CategoriaComOrdenacao extends CategoriaQuarto {
+  _ordenacao: number;
+}
+
 @Component({
   selector: 'app-orcamento-oficial',
   standalone: true,
@@ -72,7 +77,7 @@ type Refeicao = 'comCafe' | 'comAlmoco' | 'comJanta' | 'comLanche';
   styleUrls: ['./orcamento-oficial.scss'],
 })
 export class OrcamentoOficialComponent implements OnInit {
-  categorias = signal<CategoriaQuarto[]>([]);
+  categorias = signal<CategoriaComOrdenacao[]>([]);
   config = signal<ConfiguracaoGeral | null>(null);
 
   cliente: string = '';
@@ -111,6 +116,43 @@ export class OrcamentoOficialComponent implements OnInit {
     this.verificarOrcamentoSalvo();
     this.adicionarItem(); // Adiciona primeiro item automaticamente ao abrir
     this.cdr.detectChanges();
+  }
+
+  private getOrdenacaoComposta(cat: CategoriaQuarto): number {
+    const config = this.config();
+    if (!config) return 0;
+
+    // 1. Capacidade (menor primeiro) - PRIORIDADE PRINCIPAL
+    const capacidade = (cat.capacidadeMaxima ?? 1) * 100000;
+
+    // 2. Preço base (menor primeiro) - dentro da mesma capacidade
+    const preco = this.getPrecoBase(cat);
+
+    // 3. Tipo de cama: camas de solteiro primeiro (0), camas de casal depois (1000)
+    let tipoCama = 0;
+    const temSolteiro = (cat.camasSolteiro ?? 0) > 0;
+    const temCasal = (cat.camasCasal ?? 0) > 0;
+    if (temCasal && !temSolteiro) {
+      tipoCama = 1000;
+    } else if (temCasal && temSolteiro) {
+      tipoCama = 500;
+    }
+
+    return capacidade + preco + tipoCama;
+  }
+
+  private getPrecoBase(cat: CategoriaQuarto): number {
+    const config = this.config();
+    if (!config) return 0;
+
+    // Usa temporada automática baseada na data de check-in
+    const checkin = this.dataCheckin || new Date();
+    const isAlta = DateUtils.isAltaTemporada(
+      checkin,
+      config.temporada.altaInicio,
+      config.temporada.altaFim,
+    );
+    return isAlta ? (cat.precoAltaSemCafe ?? 0) : (cat.precoBaixaSemCafe ?? 0);
   }
 
   private verificarOrcamentoSalvo() {
@@ -275,8 +317,17 @@ export class OrcamentoOficialComponent implements OnInit {
       this.tarifaService.getCategorias(),
       this.tarifaService.getConfiguracao(),
     ]);
-    this.categorias.set(cats);
     this.config.set(cfg);
+
+    // Aplicar ordenação: capacidade → preço → tipo de cama
+    const categoriasOrdenadas = cats
+      .map((cat) => ({
+        ...cat,
+        _ordenacao: this.getOrdenacaoComposta(cat),
+      }))
+      .sort((a, b) => a._ordenacao - b._ordenacao);
+
+    this.categorias.set(categoriasOrdenadas);
     this.cdr.detectChanges();
   }
 
