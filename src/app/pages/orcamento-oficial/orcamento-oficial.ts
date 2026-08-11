@@ -173,7 +173,27 @@ export class OrcamentoOficialComponent implements OnInit {
       this.dataCheckout = new Date(orcamento.dataCheckout);
       this.horaEntrada = orcamento.horaEntrada || DateUtils.HORA_CHECKIN;
       this.horaSaida = orcamento.horaSaida || DateUtils.HORA_CHECKOUT;
-      this.itens = orcamento.itens || [];
+
+      // Resolve categoriaId para as categorias atuais (pode ter mudado IDs)
+      const categoriasAtuais = this.categorias();
+      this.itens = (orcamento.itens || []).map((item: any) => {
+        // Tenta achar por ID primeiro
+        let categoriaEncontrada = categoriasAtuais.find((c) => c.id === item.categoriaId);
+        // Se não achou, tenta por nome
+        if (!categoriaEncontrada && item.categoriaNome) {
+          categoriaEncontrada = categoriasAtuais.find(
+            (c) => c.nome?.toLowerCase() === item.categoriaNome.toLowerCase(),
+          );
+        }
+        // Se ainda não achou, usa a primeira categoria ordenada
+        const categoriaId = categoriaEncontrada?.id || categoriasAtuais[0]?.id || '';
+
+        return {
+          ...item,
+          categoriaId,
+        };
+      });
+
       this.onDataChange(); // Recalcula tudo
     } catch (error) {
       console.error('Erro ao carregar orçamento salvo:', error);
