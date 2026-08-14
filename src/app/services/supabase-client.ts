@@ -36,11 +36,11 @@ class SupabaseApiClient {
 
   // Config Geral endpoints
   async getConfigGeral(): Promise<any> {
-    return this.request<any>('/config/geral');
+    return this.request<any>('/config-geral');
   }
 
   async updateConfigGeral(config: any): Promise<any> {
-    return this.request<any>('/config/geral', {
+    return this.request<any>('/config-geral', {
       method: 'PUT',
       body: JSON.stringify(config),
     });
@@ -59,7 +59,7 @@ class SupabaseApiClient {
   }
 
   async listConfig<T>(categoria: string): Promise<Record<string, T>> {
-    return this.request<Record<string, T>>(`/config/list?categoria=${encodeURIComponent(categoria)}`);
+    return this.request<Record<string, T>>(`/config?categoria=${encodeURIComponent(categoria)}`);
   }
 
   async deleteConfig(categoria: string, chave: string): Promise<void> {
@@ -69,7 +69,7 @@ class SupabaseApiClient {
   }
 
   async clearConfig(categoria: string): Promise<void> {
-    return this.request(`/config/clear?categoria=${encodeURIComponent(categoria)}`, {
+    return this.request(`/config?categoria=${encodeURIComponent(categoria)}`, {
       method: 'DELETE',
     });
   }
@@ -152,11 +152,11 @@ class SupabaseApiClient {
 
   // Criptografia endpoints
   async getChaveCriptografia(nome: string): Promise<any> {
-    return this.request<any>(`/criptografia/chave?nome=${encodeURIComponent(nome)}`);
+    return this.request<any>(`/criptografia?nome=${encodeURIComponent(nome)}`);
   }
 
   async setChaveCriptografia(nome: string, chave: string, iv?: string, salt?: string): Promise<any> {
-    return this.request<any>('/criptografia/chave', {
+    return this.request<any>('/criptografia', {
       method: 'POST',
       body: JSON.stringify({ nome, chave, iv, salt }),
     });
@@ -164,11 +164,11 @@ class SupabaseApiClient {
 
   // Backup endpoints
   async exportBackup(): Promise<any> {
-    return this.request<any>('/backup/export');
+    return this.request<any>('/backup');
   }
 
   async importBackup(backup: any): Promise<any> {
-    return this.request<any>('/backup/import', {
+    return this.request<any>('/backup', {
       method: 'POST',
       body: JSON.stringify(backup),
     });
@@ -176,8 +176,8 @@ class SupabaseApiClient {
 
   // Limpar banco de dados
   async clearDatabase(): Promise<any> {
-    return this.request<any>('/database/clear', {
-      method: 'POST',
+    return this.request<any>('/database', {
+      method: 'DELETE',
     });
   }
 
