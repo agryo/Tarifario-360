@@ -2,9 +2,12 @@ const fs = require('fs');
 const path = require('path');
 require('dotenv').config({ path: '.env.local' });
 
-// Suporta ambos os formatos: SUPABASE_URL/SUPABASE_ANON_KEY (local) e SUPABASE_KEY (Vercel)
-const url = process.env.SUPABASE_URL || process.env.supabaseUrl || '';
-const key = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || process.env.supabaseAnonKey || '';
+// Suporta múltiplos formatos de variáveis de ambiente:
+// Local (.env.local): SUPABASE_URL, SUPABASE_ANON_KEY
+// Vercel: supabaseUrl, supabase_anon_key (lowercase/underscore)
+// Vercel alternativo: SUPABASE_URL, SUPABASE_KEY
+const url = process.env.SUPABASE_URL || process.env.supabaseUrl || process.env.SUPABASE_URL || '';
+const key = process.env.SUPABASE_ANON_KEY || process.env.supabaseAnonKey || process.env.SUPABASE_KEY || process.env.supabase_anon_key || '';
 
 const targetPath = path.join(__dirname, 'src', 'environments', 'environment.development.ts');
 
