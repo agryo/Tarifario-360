@@ -327,6 +327,8 @@ export class TabelaOpcoesComponent implements OnInit {
       .map((c) => c.comodidadesSelecionadas || [])
       .filter((list) => list.length > 0);
     if (comodidadesList.length === 0) return [];
+
+    // Apenas comodidades COMUNS a TODAS as UHs selecionadas (intersecção)
     return comodidadesList.reduce((acc, curr) => acc.filter((c) => curr.includes(c)));
   }
 

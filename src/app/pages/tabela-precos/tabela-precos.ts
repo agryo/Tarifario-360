@@ -103,6 +103,11 @@ export class TabelaPrecosComponent implements OnInit {
     const grupos: GrupoUHs[] = [];
     const processados = new Set<string>();
 
+    // Obter comodidades globais do config
+    const comodidadesGlobais = this.config()?.comodidadesGlobais
+      ? this.config()!.comodidadesGlobais.split(',').map(c => c.trim()).filter(c => c.length > 0)
+      : [];
+
     categorias.forEach((cat) => {
       if (processados.has(cat.id)) return;
 
@@ -129,11 +134,15 @@ export class TabelaPrecosComponent implements OnInit {
         prioridade = 2;
       }
 
+      // Combinar comodidades da categoria + globais
+      const comodidadesCategoria = cat.comodidadesSelecionadas || [];
+      const todasComodidades = [...new Set([...comodidadesCategoria, ...comodidadesGlobais])];
+
       grupos.push({
         prioridade,
         uhs: catNumeros.join(', '),
         itens: mesmoGrupo,
-        comodidades: cat.comodidadesSelecionadas?.join(', ') || '',
+        comodidades: todasComodidades.join(', ') || '',
       });
     });
 

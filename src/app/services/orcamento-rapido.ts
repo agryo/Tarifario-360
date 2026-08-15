@@ -164,9 +164,15 @@ export class OrcamentoRapidoService {
     texto += `🛌 *Acomodação:* ${categoria.nome}\n`;
     if (categoria.descricao) texto += `✨ _${categoria.descricao}_\n`;
 
-    // Itens inclusos
-    if (categoria.comodidadesSelecionadas?.length) {
-      texto += `✅ *Itens inclusos:* ${categoria.comodidadesSelecionadas.join(', ')}.\n\n`;
+    // Itens inclusos - combinar comodidades da categoria + globais do config
+    const comodidadesCategoria = categoria.comodidadesSelecionadas || [];
+    const comodidadesGlobais = config?.comodidadesGlobais
+      ? config.comodidadesGlobais.split(',').map(c => c.trim()).filter(c => c.length > 0)
+      : [];
+    const todasComodidades = [...new Set([...comodidadesCategoria, ...comodidadesGlobais])];
+
+    if (todasComodidades.length) {
+      texto += `✅ *Itens inclusos:* ${todasComodidades.join(', ')}.\n\n`;
     } else {
       texto += `\n`;
     }
