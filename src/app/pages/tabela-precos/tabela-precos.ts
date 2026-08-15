@@ -134,9 +134,15 @@ export class TabelaPrecosComponent implements OnInit {
         prioridade = 2;
       }
 
-      // Combinar comodidades da categoria + globais
+      // Combinar comodidades da categoria + globais com deduplicação inteligente
       const comodidadesCategoria = cat.comodidadesSelecionadas || [];
-      const todasComodidades = [...new Set([...comodidadesCategoria, ...comodidadesGlobais])];
+      const globaisFiltrados = comodidadesGlobais.filter((global) => {
+        const globalLower = global.toLowerCase();
+        return !comodidadesCategoria.some((cat) =>
+          cat.toLowerCase().includes(globalLower) || globalLower.includes(cat.toLowerCase())
+        );
+      });
+      const todasComodidades = [...comodidadesCategoria, ...globaisFiltrados];
 
       grupos.push({
         prioridade,

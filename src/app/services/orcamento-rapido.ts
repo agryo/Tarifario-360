@@ -165,11 +165,21 @@ export class OrcamentoRapidoService {
     if (categoria.descricao) texto += `✨ _${categoria.descricao}_\n`;
 
     // Itens inclusos - combinar comodidades da categoria + globais do config
+    // Com deduplicação inteligente: se global está contido na categoria (ex: "TV" em "TV a Cabo"), usa a da categoria
     const comodidadesCategoria = categoria.comodidadesSelecionadas || [];
     const comodidadesGlobais = config?.comodidadesGlobais
       ? config.comodidadesGlobais.split(',').map(c => c.trim()).filter(c => c.length > 0)
       : [];
-    const todasComodidades = [...new Set([...comodidadesCategoria, ...comodidadesGlobais])];
+
+    // Filtrar globais que já estão "cobertos" pelas da categoria (match parcial case-insensitive)
+    const globaisFiltrados = comodidadesGlobais.filter((global) => {
+      const globalLower = global.toLowerCase();
+      return !comodidadesCategoria.some((cat) =>
+        cat.toLowerCase().includes(globalLower) || globalLower.includes(cat.toLowerCase())
+      );
+    });
+
+    const todasComodidades = [...comodidadesCategoria, ...globaisFiltrados];
 
     if (todasComodidades.length) {
       texto += `✅ *Itens inclusos:* ${todasComodidades.join(', ')}.\n\n`;
