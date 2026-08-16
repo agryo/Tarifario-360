@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { supabase, handleError, corsHeaders, handleOptions } from './_lib/supabase';
+import { supabase, handleError, corsHeaders, handleOptions } from './_lib/supabase.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   Object.entries(corsHeaders()).forEach(([key, value]) => res.setHeader(key, value));

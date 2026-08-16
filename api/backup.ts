@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { supabase, handleError, corsHeaders, handleOptions } from './_lib/supabase';
+import { supabase, handleError, corsHeaders, handleOptions } from './_lib/supabase.js';
 
 function toCamelCase(obj: any): any {
   if (!obj || typeof obj !== 'object') return obj;
