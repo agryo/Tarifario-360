@@ -26,8 +26,8 @@ export class EscalaService {
 
   async getConfiguracao(): Promise<EscalaConfig> {
     const padrao: EscalaConfig = {
-      p1: 'Agryo',
-      p2: 'Alex',
+      p1: 'P1',
+      p2: 'P2',
       folgas: [0, 6],
       quemFolgaPrimeiro: 'p1',
       dataInicioFolgas: new Date().toISOString().split('T')[0],
@@ -57,22 +57,9 @@ export class EscalaService {
 
   async salvarConfiguracao(config: EscalaConfig): Promise<void> {
     try {
-      if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
-        if (!environment.production) {
-          // Desenvolvimento local: cliente direto
-          const client = getSupabaseClient();
-          const { error } = await client.from('escala_config').upsert(
-            { id: 'default', configuracao: config },
-            { onConflict: 'id' }
-          );
-          if (error) throw error;
-        } else {
-          // Produção: API Vercel
-          await supabaseApi.updateEscala(config);
-        }
-      }
+      await this.escalaRepo.update(config);
     } catch (error) {
-      console.warn('Falha ao salvar escala no Supabase:', error);
+      console.warn('Falha ao salvar escala no Supabase, usando apenas localStorage:', error);
     }
     this.storage.set(this.STORAGE_KEY, config);
   }

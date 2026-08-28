@@ -2,13 +2,8 @@ import { Injectable } from '@angular/core';
 import { supabaseApi } from '../supabase-client';
 import { OrcamentoOficial } from '../../models/orcamento-oficial.model';
 
-export interface OrcamentosOficiaisRepository {
-  getAll(): Promise<OrcamentoOficial[]>;
-  getById(id: string): Promise<OrcamentoOficial | null>;
-  create(orcamento: Omit<OrcamentoOficial, 'id' | 'criado_em' | 'atualizado_em'>): Promise<OrcamentoOficial>;
-  update(id: string, orcamento: Partial<OrcamentoOficial>): Promise<OrcamentoOficial>;
-  delete(id: string): Promise<void>;
-}
+export type { OrcamentosOficiaisRepository } from './repository-interfaces';
+import { OrcamentosOficiaisRepository } from './repository-interfaces';
 
 @Injectable({ providedIn: 'root' })
 export class SupabaseOrcamentosOficiaisRepository implements OrcamentosOficiaisRepository {

@@ -1,14 +1,7 @@
 import { Injectable } from '@angular/core';
 import { getSupabaseClient } from '../../services/supabase-client';
 import { CategoriaQuarto } from '../../models/categoria-quarto.model';
-
-export interface CategoriasRepository {
-  getAll(): Promise<CategoriaQuarto[]>;
-  getById(id: string): Promise<CategoriaQuarto | null>;
-  create(categoria: Omit<CategoriaQuarto, 'id' | 'criado_em' | 'atualizado_em'>): Promise<CategoriaQuarto>;
-  update(id: string, categoria: Partial<CategoriaQuarto>): Promise<CategoriaQuarto>;
-  delete(id: string): Promise<void>;
-}
+import { CategoriasRepository } from './repository-interfaces';
 
 @Injectable({ providedIn: 'root' })
 export class SupabaseDirectCategoriasRepository implements CategoriasRepository {

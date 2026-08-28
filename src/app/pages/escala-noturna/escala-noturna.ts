@@ -29,7 +29,7 @@ export class EscalaNoturnaComponent implements OnInit {
   // Signals for reactive state
   escalaConfig = signal<EscalaConfig | null>(null);
   dataInicio = signal<Date>(DateUtils.hoje());
-  dataFim = signal<Date>(DateUtils.adicionarDias(DateUtils.hoje(), 41));
+  dataFim = signal<Date>(DateUtils.adicionarDias(DateUtils.ajustarParaDomingo(DateUtils.hoje()), 20));
   tabelaHTML = signal<string>('');
   carregando = signal(false);
   imprimindo = signal(false);

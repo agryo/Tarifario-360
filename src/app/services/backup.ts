@@ -2,12 +2,12 @@ import { Injectable } from '@angular/core';
 import { TarifaService } from './tarifa';
 import { EscalaService } from './escala';
 import { CriptografiaService } from './criptografia';
-import { supabaseApi } from './supabase-client';
-import { getSupabaseClient, environment } from './supabase-client';
+import { supabaseApi, getSupabaseClient, environment } from './supabase-client';
 import { BackupData } from '../models/backup.model';
 import { OrcamentoOficial } from '../models/orcamento-oficial.model';
 import { ChaveCriptografia } from '../models/chave-criptografia.model';
 import { ConfiguracaoGeral } from '../models/tarifa.model';
+import { toCamelCase, toSnakeCase } from '../utils/case-converters';
 
 @Injectable({ providedIn: 'root' })
 export class BackupService {
@@ -44,18 +44,6 @@ export class BackupService {
       client.from('orcamentos_oficiais').select('*'),
       client.from('chaves_criptografia').select('*'),
     ]);
-
-    // Helper to convert snake_case JSONB fields to camelCase
-    const toCamelCase = (obj: any): any => {
-      if (!obj || typeof obj !== 'object') return obj;
-      if (Array.isArray(obj)) return obj.map((v) => toCamelCase(v));
-      const result: any = {};
-      for (const [key, value] of Object.entries(obj)) {
-        const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
-        result[camelKey] = toCamelCase(value);
-      }
-      return result;
-    };
 
     const mapConfigGeral = (row: any): ConfiguracaoGeral => {
       if (!row) {
@@ -216,18 +204,6 @@ export class BackupService {
 
   private async importarDadosLocal(backup: BackupData): Promise<void> {
     const client = getSupabaseClient();
-
-    // Helper to convert camelCase JSONB fields to snake_case for database
-    const toSnakeCase = (obj: any): any => {
-      if (!obj || typeof obj !== 'object') return obj;
-      if (Array.isArray(obj)) return obj.map((v) => toSnakeCase(v));
-      const result: any = {};
-      for (const [key, value] of Object.entries(obj)) {
-        const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
-        result[snakeKey] = toSnakeCase(value);
-      }
-      return result;
-    };
 
     // PRIMEIRO: Limpar todas as tabelas (ordem inversa de dependência)
     const tablesToClear = [
@@ -440,24 +416,13 @@ export class BackupService {
    * Backups antigos têm campos como total_uhs, comodidades_globais direto no objeto configuracaoGeral
    * O formato novo espera totalUhs, comodidadesGlobais em camelCase
    */
-  private toCamelCase(obj: any): any {
-    if (!obj || typeof obj !== 'object') return obj;
-    if (Array.isArray(obj)) return obj.map((v) => this.toCamelCase(v));
-    const result: any = {};
-    for (const [key, value] of Object.entries(obj)) {
-      const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
-      result[camelKey] = this.toCamelCase(value);
-    }
-    return result;
-  }
-
   private normalizarBackupData(backup: BackupData): BackupData {
     if (!backup.configuracaoGeral) return backup;
 
     // Converter TODOS os campos snake_case para camelCase recursivamente
-    const normalizedConfig = this.toCamelCase(backup.configuracaoGeral);
-    const normalizedCategorias = this.toCamelCase(backup.categorias);
-    const normalizedOrcamentosOficiais = this.toCamelCase(backup.orcamentosOficiais);
+    const normalizedConfig = toCamelCase(backup.configuracaoGeral);
+    const normalizedCategorias = toCamelCase(backup.categorias);
+    const normalizedOrcamentosOficiais = toCamelCase(backup.orcamentosOficiais);
 
     return {
       ...backup,

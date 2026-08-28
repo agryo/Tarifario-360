@@ -1,11 +1,7 @@
 import { Injectable } from '@angular/core';
 import { getSupabaseClient } from '../../services/supabase-client';
 import { EscalaConfig } from '../../models/escala-config.model';
-
-export interface EscalaRepository {
-  get(): Promise<EscalaConfig | null>;
-  update(config: Partial<EscalaConfig>): Promise<EscalaConfig>;
-}
+import { EscalaRepository } from './repository-interfaces';
 
 @Injectable({ providedIn: 'root' })
 export class SupabaseDirectEscalaRepository implements EscalaRepository {

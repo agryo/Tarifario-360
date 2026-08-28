@@ -1,11 +1,6 @@
 import { Injectable } from '@angular/core';
 import { getSupabaseClient } from '../../services/supabase-client';
-
-export interface CriptografiaRepository {
-  getKey(nome: string): Promise<{ nome: string; chave: string; iv?: string; salt?: string } | null>;
-  setKey(nome: string, chave: string, iv?: string, salt?: string): Promise<void>;
-  deleteKey(nome: string): Promise<void>;
-}
+import { CriptografiaRepository } from './repository-interfaces';
 
 @Injectable({ providedIn: 'root' })
 export class SupabaseDirectCriptografiaRepository implements CriptografiaRepository {
@@ -46,14 +41,6 @@ export class SupabaseDirectCriptografiaRepository implements CriptografiaReposit
     const { error } = await this.getClient()
       .from('chaves_criptografia')
       .upsert(this.unmapKey({ nome, chave, iv, salt }), { onConflict: 'nome' });
-    if (error) throw error;
-  }
-
-  async deleteKey(nome: string): Promise<void> {
-    const { error } = await this.getClient()
-      .from('chaves_criptografia')
-      .delete()
-      .eq('nome', nome);
     if (error) throw error;
   }
 }

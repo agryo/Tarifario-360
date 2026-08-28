@@ -2,10 +2,8 @@ import { Injectable } from '@angular/core';
 import { supabaseApi } from '../supabase-client';
 import { EscalaConfig } from '../../models/escala-config.model';
 
-export interface EscalaRepository {
-  get(): Promise<EscalaConfig | null>;
-  update(configuracao: EscalaConfig): Promise<EscalaConfig>;
-}
+export type { EscalaRepository } from './repository-interfaces';
+import { EscalaRepository } from './repository-interfaces';
 
 @Injectable({ providedIn: 'root' })
 export class SupabaseEscalaRepository implements EscalaRepository {
@@ -18,7 +16,7 @@ export class SupabaseEscalaRepository implements EscalaRepository {
     }
   }
 
-  async update(configuracao: EscalaConfig): Promise<EscalaConfig> {
+  async update(configuracao: Partial<EscalaConfig>): Promise<EscalaConfig> {
     return supabaseApi.updateEscala(configuracao);
   }
 }

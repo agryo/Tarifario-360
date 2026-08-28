@@ -169,7 +169,10 @@ export class PainelMasterComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     // Garante que o estado de autenticação seja resetado sempre que o dialog for reaberto.
     if (changes['isVisible'] && !changes['isVisible'].firstChange && this.isVisible) {
-      this.carregarDados().then(() => this.resetarAutenticacao());
+      this.carregarDados().then(async () => {
+        this.escalaConfig = await this.escalaService.getConfiguracao();
+        this.resetarAutenticacao();
+      });
     }
   }
 

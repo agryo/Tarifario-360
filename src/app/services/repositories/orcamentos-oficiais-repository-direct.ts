@@ -1,36 +1,8 @@
 import { Injectable } from '@angular/core';
 import { getSupabaseClient } from '../../services/supabase-client';
 import { OrcamentoOficial } from '../../models/orcamento-oficial.model';
-
-export interface OrcamentosOficiaisRepository {
-  getAll(): Promise<OrcamentoOficial[]>;
-  getById(id: string): Promise<OrcamentoOficial | null>;
-  create(orcamento: Omit<OrcamentoOficial, 'id' | 'criado_em'>): Promise<OrcamentoOficial>;
-  update(id: string, orcamento: Partial<OrcamentoOficial>): Promise<OrcamentoOficial>;
-  delete(id: string): Promise<void>;
-}
-
-function toCamelCase(obj: any): any {
-  if (!obj || typeof obj !== 'object') return obj;
-  if (Array.isArray(obj)) return obj.map((v) => toCamelCase(v));
-  const result: any = {};
-  for (const [key, value] of Object.entries(obj)) {
-    const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
-    result[camelKey] = toCamelCase(value);
-  }
-  return result;
-}
-
-function toSnakeCase(obj: any): any {
-  if (!obj || typeof obj !== 'object') return obj;
-  if (Array.isArray(obj)) return obj.map((v) => toSnakeCase(v));
-  const result: any = {};
-  for (const [key, value] of Object.entries(obj)) {
-    const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
-    result[snakeKey] = toSnakeCase(value);
-  }
-  return result;
-}
+import { toCamelCase, toSnakeCase } from '../../utils/case-converters';
+import { OrcamentosOficiaisRepository } from './repository-interfaces';
 
 @Injectable({ providedIn: 'root' })
 export class SupabaseDirectOrcamentosOficiaisRepository implements OrcamentosOficiaisRepository {
@@ -103,7 +75,7 @@ export class SupabaseDirectOrcamentosOficiaisRepository implements OrcamentosOfi
     return data ? this.mapRow(data) : null;
   }
 
-  async create(orcamento: Omit<OrcamentoOficial, 'id' | 'criado_em'>): Promise<OrcamentoOficial> {
+  async create(orcamento: Omit<OrcamentoOficial, 'id' | 'criado_em' | 'atualizado_em'>): Promise<OrcamentoOficial> {
     // Não enviar ID - deixar o Supabase gerar UUID automaticamente
     const { id, ...orcamentoSemId } = orcamento as any;
     const { data, error } = await this.getClient()

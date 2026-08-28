@@ -32,8 +32,3 @@ export interface ConfigRepository {
    */
   clearCategoria(categoria: string): Promise<void>;
 }
-
-/**
- * Chave usada no localStorage para armazenar as configurações
- */
-export const CONFIG_STORAGE_KEY = 'tarifario360_config';

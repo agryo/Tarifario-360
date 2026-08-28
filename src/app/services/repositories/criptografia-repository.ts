@@ -1,10 +1,8 @@
 import { Injectable } from '@angular/core';
 import { supabaseApi } from '../supabase-client';
 
-export interface CriptografiaRepository {
-  getKey(nome: string): Promise<{ nome: string; chave: string; iv?: string; salt?: string } | null>;
-  setKey(nome: string, chave: string, iv?: string, salt?: string): Promise<void>;
-}
+export type { CriptografiaRepository } from './repository-interfaces';
+import { CriptografiaRepository } from './repository-interfaces';
 
 @Injectable({ providedIn: 'root' })
 export class SupabaseCriptografiaRepository implements CriptografiaRepository {

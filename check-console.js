@@ -31,8 +31,8 @@ const { chromium } = require('playwright');
     await page.goto('http://localhost:4200/orcamento-rapido', { waitUntil: 'networkidle', timeout: 30000 });
     await page.waitForTimeout(3000);
 
-    // Navigate to painel-master
-    await page.goto('http://localhost:4200/painel-master', { waitUntil: 'networkidle', timeout: 30000 });
+    // PainelMaster é aberto como dialog dentro do dashboard (não tem rota própria)
+    await page.goto('http://localhost:4200', { waitUntil: 'networkidle', timeout: 30000 });
     await page.waitForTimeout(3000);
 
   } catch (e) {

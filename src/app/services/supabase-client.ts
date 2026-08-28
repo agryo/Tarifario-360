@@ -115,12 +115,6 @@ class SupabaseApiClient {
     });
   }
 
-  async clearEscala(): Promise<void> {
-    return this.request('/escala', {
-      method: 'DELETE',
-    });
-  }
-
   // Orçamentos Oficiais endpoints
   async getOrcamentosOficiais(): Promise<any[]> {
     return this.request<any[]>('/orcamentos-oficiais');
@@ -180,10 +174,6 @@ class SupabaseApiClient {
       method: 'DELETE',
     });
   }
-
-  async healthCheck(): Promise<any> {
-    return this.request<any>('/health');
-  }
 }
 
 export const supabaseApi = new SupabaseApiClient();
@@ -212,11 +202,4 @@ export function getSupabaseClient(): SupabaseClient {
   }
 
   return _supabaseClient;
-}
-
-/**
- * Limpa instância (útil para testes)
- */
-export function resetSupabaseClient(): void {
-  _supabaseClient = null;
 }
