@@ -22,11 +22,12 @@ export class ConfigRepositoryFactory {
     private supabaseRepo: SupabaseConfigRepository,
     private supabaseDirectRepo: SupabaseDirectConfigRepository
   ) {
-    // Auto-detect backend baseado no ambiente
-    if (environment.production) {
+    // Auto-detect backend baseado no ambiente.
+    // Tanto produção quanto dev usam 'supabase' (API Routes).
+    // Em dev, o proxy.conf.json roteia /api/* -> localhost:3001 (api/server.ts),
+    // que usa a service_role key APENAS no servidor (nunca no browser).
+    if (environment.supabaseUrl && environment.supabaseAnonKey) {
       this.backend = 'supabase';
-    } else if (environment.supabaseUrl && environment.supabaseAnonKey) {
-      this.backend = 'supabase-direct';
     }
   }
 
@@ -72,19 +73,7 @@ export class ConfigRepositoryFactory {
     return this.getRepository();
   }
 
-  /**
-   * Força re-detecção do backend (útil após mudanças de environment)
-   */
-  detectBackend(): void {
-    if (environment.production) {
-      this.setBackend('supabase');
-    } else if (environment.supabaseUrl && environment.supabaseAnonKey) {
-      this.setBackend('supabase-direct');
-    } else {
-      throw new Error('Configure supabaseUrl/supabaseAnonKey no environment para desenvolvimento');
-    }
   }
-}
 
 /**
  * Token de injeção para usar o repositório ativo diretamente

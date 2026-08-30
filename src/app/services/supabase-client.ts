@@ -192,10 +192,14 @@ export function getSupabaseClient(): SupabaseClient {
 
   if (!_supabaseClient) {
     const url = environment.supabaseUrl;
+    // Em dev, usa a ANON key (sb_publishable_*). A service_role key (sb_secret_*)
+    // é BLOQUEADA pelo Supabase em contexto de browser ("Forbidden use of secret
+    // API key in browser") - só funciona em servidor (API Routes Vercel).
+    // As RLS policies de anon (migration 002/003) permitem as operações do app.
     const key = environment.supabaseAnonKey;
 
     if (!url || !key) {
-      throw new Error('supabaseUrl e supabaseAnonKey são obrigatórios no environment');
+      throw new Error('supabaseUrl e supabaseAnonKey são obrigatórios no environment de desenvolvimento');
     }
 
     _supabaseClient = createClient(url, key);
