@@ -25,10 +25,10 @@ const routes: Record<string, (req: any, res: any) => void> = {
 };
 
 for (const [path, handler] of Object.entries(routes)) {
-  app.all(path, (req, res) => handler(req, res));
+  app.all(path, (req: any, res: any) => handler(req, res));
 }
 
-const PORT = Number(process.env.PORT || 3001);
+const PORT = Number(process.env['PORT'] || 3001);
 app.listen(PORT, () => {
   console.log(`API local rodando em http://localhost:${PORT}`);
 });
