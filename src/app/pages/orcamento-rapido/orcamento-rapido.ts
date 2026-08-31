@@ -13,6 +13,7 @@ import { DatePicker } from 'primeng/datepicker';
 import { TarifaService } from '../../services/tarifa';
 import { OrcamentoRapidoService } from '../../services/orcamento-rapido';
 import { DateUtils } from '../../utils/date-utils';
+import { MensagemUtils } from '../../utils/mensagem-utils';
 import { ConfiguracaoGeral } from '../../models/tarifa.model';
 import { CategoriaQuarto } from '../../models/categoria-quarto.model';
 
@@ -30,9 +31,24 @@ interface CategoriaComOrdenacao extends CategoriaQuarto {
 })
 export class OrcamentoRapidoComponent implements OnInit {
   // Signals para evitar ExpressionChangedAfterItHasBeenCheckedError
-  categorias = signal<CategoriaComOrdenacao[]>([]);
+  todasCategorias = signal<CategoriaComOrdenacao[]>([]);
   config = signal<ConfiguracaoGeral | null>(null);
   carregando = signal(true);
+
+  /** Categorias disponíveis para a temporada atual (preços não zerados) */
+  categorias = computed(() => {
+    const cfg = this.config();
+    const checkin = this.dataCheckin() || new Date();
+    const isAlta = cfg ? DateUtils.isAltaTemporada(
+      checkin,
+      cfg.temporada.altaInicio,
+      cfg.temporada.altaFim,
+    ) : false;
+    const temporada: 'alta' | 'baixa' = isAlta ? 'alta' : 'baixa';
+    return this.todasCategorias().filter((cat) =>
+      MensagemUtils.isDisponivelNaTemporada(cat, temporada)
+    );
+  });
 
   categoriaId = signal<string | null>(null);
   dataCheckin = signal<Date>(DateUtils.hoje());
@@ -107,10 +123,13 @@ export class OrcamentoRapidoComponent implements OnInit {
       }))
       .sort((a, b) => a._ordenacao - b._ordenacao);
 
-    this.categorias.set(categoriasOrdenadas);
+    this.todasCategorias.set(categoriasOrdenadas);
 
-    if (categoriasOrdenadas.length) {
-      this.categoriaId.set(categoriasOrdenadas[0].id);
+    const disponiveis = this.categorias();
+    if (disponiveis.length) {
+      this.categoriaId.set(disponiveis[0].id);
+    } else {
+      this.categoriaId.set(null);
     }
     this.carregando.set(false);
     this.cdr.detectChanges();
@@ -133,6 +152,15 @@ export class OrcamentoRapidoComponent implements OnInit {
         this.dataCheckout.set(DateUtils.ajustarDataSaida(this.dataCheckin(), this.dataCheckout()));
       }
     }
+
+    // Revalida a categoria selecionada: se ela não estiver mais disponível na
+    // temporada do novo check-in (preço zerado), reseta para a primeira disponível.
+    const disponiveis = this.categorias();
+    const selecionada = this.categoriaId();
+    if (selecionada && !disponiveis.some((c) => c.id === selecionada)) {
+      this.categoriaId.set(disponiveis.length ? disponiveis[0].id : null);
+    }
+
     await this.gerarOrcamento();
   }
 

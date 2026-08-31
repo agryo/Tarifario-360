@@ -163,6 +163,15 @@ export class TabelaPrecosComponent implements OnInit {
     }
   }
 
+  isPermitidoNaTemporada(item: CategoriaQuarto): boolean {
+    return MensagemUtils.isDisponivelNaTemporada(item, this.temporadaAtual());
+  }
+
+  getMensagemNaoPermitido(): string {
+    const nome = this.temporadaAtual() === 'alta' ? 'Alta Temporada' : 'Baixa Temporada';
+    return `Não permitido em '${nome}'`;
+  }
+
   getCamasText(item: CategoriaQuarto): string {
     return MensagemUtils.formatarCamas(item) || 'Configuração de camas não definida';
   }

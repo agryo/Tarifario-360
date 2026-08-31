@@ -66,9 +66,15 @@
             {{ getCamasText(item) }} - {{ item.descricao || 'Sem descrição' }}
           </div>
           <div class="preco-texto">
-            R$ {{ getPreco(item)[0] | number: '1.2-2' }} -
-            <span class="sem-cafe">R$ {{ getPreco(item)[1] | number: '1.2-2' }} Sem Café.</span>
-            <span class="sufixo-label">{{ getLabelSufixo(item, grupo) }}</span>
+            <ng-container *ngIf="isPermitidoNaTemporada(item); else naoPermitidoTemplate">
+              R$ {{ getPreco(item)[0] | number: '1.2-2' }} -
+              <span class="sem-cafe">R$ {{ getPreco(item)[1] | number: '1.2-2' }} Sem Café.</span>
+              <span class="sufixo-label">{{ getLabelSufixo(item, grupo) }}</span>
+            </ng-container>
+            <ng-template #naoPermitidoTemplate>
+              <span class="nao-permitido">{{ getMensagemNaoPermitido() }}</span>
+              <span class="sufixo-label">{{ getLabelSufixo(item, grupo) }}</span>
+            </ng-template>
           </div>
         </div>
       </div>

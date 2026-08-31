@@ -104,13 +104,37 @@ export class TabelaOpcoesComponent implements OnInit {
 
   get categoriasSolteiro() {
     return this.categorias
-      .filter((c) => c.grupo === 'solteiro')
+      .filter((c) => c.grupo === 'solteiro' && this.isDisponivelNaTemporada(c))
       .sort((a, b) => this.getOrdenacaoComposta(a) - this.getOrdenacaoComposta(b));
   }
   get categoriasCasal() {
     return this.categorias
-      .filter((c) => c.grupo === 'casal')
+      .filter((c) => c.grupo === 'casal' && this.isDisponivelNaTemporada(c))
       .sort((a, b) => this.getOrdenacaoComposta(a) - this.getOrdenacaoComposta(b));
+  }
+
+  /**
+   * Retorna a temporada efetiva: fixa se selecionada, senão pela data de check-in.
+   */
+  private getTemporadaEfetiva(): 'alta' | 'baixa' {
+    if (this.temporada === 'alta') return 'alta';
+    if (this.temporada === 'baixa') return 'baixa';
+    const checkin = this.dataCheckin || new Date();
+    const isAlta =
+      this.config &&
+      DateUtils.isAltaTemporada(
+        checkin,
+        this.config.temporada.altaInicio,
+        this.config.temporada.altaFim,
+      );
+    return isAlta ? 'alta' : 'baixa';
+  }
+
+  /**
+   * UH com preço zerado na temporada efetiva não está liberada e não deve aparecer.
+   */
+  private isDisponivelNaTemporada(cat: CategoriaComSelecao): boolean {
+    return MensagemUtils.isDisponivelNaTemporada(cat, this.getTemporadaEfetiva());
   }
 
   private getOrdenacaoComposta(cat: CategoriaComSelecao): number {
@@ -143,22 +167,9 @@ export class TabelaOpcoesComponent implements OnInit {
   private getPrecoBase(cat: CategoriaComSelecao): number {
     if (!this.config) return 0;
 
-    // Se temporada fixa, usa o preço da temporada selecionada
-    if (this.temporada === 'alta') {
-      return cat.precoAltaSemCafe;
-    }
-    if (this.temporada === 'baixa') {
-      return cat.precoBaixaSemCafe;
-    }
-
-    // Se 'auto', usa o preço da temporada atual (baseado na data de check-in)
-    const checkin = this.dataCheckin || new Date();
-    const isAlta = DateUtils.isAltaTemporada(
-      checkin,
-      this.config.temporada.altaInicio,
-      this.config.temporada.altaFim,
-    );
-    return isAlta ? cat.precoAltaSemCafe : cat.precoBaixaSemCafe;
+    // Usa a temporada efetiva (fixa selecionada ou pela data de check-in)
+    const temporada = this.getTemporadaEfetiva();
+    return temporada === 'alta' ? cat.precoAltaSemCafe : cat.precoBaixaSemCafe;
   }
 
   toggleGrupo(grupo: 'solteiro' | 'casal') {
@@ -195,7 +206,10 @@ export class TabelaOpcoesComponent implements OnInit {
       return;
     }
 
-    const selecionados = this.categorias.filter((c) => c.selecionado);
+    // Só inclui UHs disponíveis na temporada efetiva (preço zerado = não liberada)
+    const selecionados = this.categorias.filter(
+      (c) => c.selecionado && this.isDisponivelNaTemporada(c),
+    );
     if (selecionados.length === 0) {
       this.textoPrevia = 'Selecione as acomodações...';
       return;

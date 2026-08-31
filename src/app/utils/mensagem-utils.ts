@@ -2,6 +2,16 @@ import { ConfiguracaoGeral } from '../models/tarifa.model';
 import { CategoriaQuarto } from '../models/categoria-quarto.model';
 
 export class MensagemUtils {
+  /**
+   * Verifica se uma UH (categoria) está disponível/disponibilizada para uma temporada.
+   * Uma UH NÃO está disponível quando AMBOS os preços (com café e sem café) da temporada estão zerados.
+   */
+  public static isDisponivelNaTemporada(cat: CategoriaQuarto, temporada: 'alta' | 'baixa'): boolean {
+    if (temporada === 'alta') {
+      return (cat.precoAltaCafe ?? 0) > 0 || (cat.precoAltaSemCafe ?? 0) > 0;
+    }
+    return (cat.precoBaixaCafe ?? 0) > 0 || (cat.precoBaixaSemCafe ?? 0) > 0;
+  }
   public static formatarHorariosRefeicoes(config: ConfiguracaoGeral): string {
     const horarios: string[] = [];
 

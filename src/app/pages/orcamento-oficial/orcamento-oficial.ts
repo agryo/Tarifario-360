@@ -155,6 +155,31 @@ export class OrcamentoOficialComponent implements OnInit {
     return isAlta ? (cat.precoAltaSemCafe ?? 0) : (cat.precoBaixaSemCafe ?? 0);
   }
 
+  /**
+   * Temporada efetiva: fixa selecionada ou automática pela data de check-in.
+   */
+  private getTemporadaEfetiva(): 'alta' | 'baixa' {
+    if (this.temporada === 'alta') return 'alta';
+    if (this.temporada === 'baixa') return 'baixa';
+    const checkin = this.dataCheckin || new Date();
+    const cfg = this.config();
+    const isAlta =
+      cfg &&
+      DateUtils.isAltaTemporada(checkin, cfg.temporada.altaInicio, cfg.temporada.altaFim);
+    return isAlta ? 'alta' : 'baixa';
+  }
+
+  /**
+   * Categorias disponíveis na temporada efetiva (preço zerado = não liberada,
+   * não deve aparecer no select de acomodações).
+   */
+  categoriasDisponiveis(): CategoriaComOrdenacao[] {
+    const temporada = this.getTemporadaEfetiva();
+    return this.categorias().filter((cat) =>
+      MensagemUtils.isDisponivelNaTemporada(cat, temporada),
+    );
+  }
+
   private verificarOrcamentoSalvo() {
     // Verifica se há um orçamento salvo passado via navegação (history.state)
     const navigation = this.router.getCurrentNavigation();
@@ -424,19 +449,20 @@ export class OrcamentoOficialComponent implements OnInit {
   }
 
   adicionarItem() {
-    if (this.categorias().length === 0) {
+    const disponiveis = this.categoriasDisponiveis();
+    if (disponiveis.length === 0) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Atenção',
-        detail: 'Nenhuma categoria cadastrada.',
+        detail: 'Nenhuma acomodação disponível na temporada atual.',
       });
       return;
     }
     const novoItem: ItemOrcamento = {
       quantidade: 1,
-      categoriaId: this.categorias()[0].id,
-      categoriaNome: this.categorias()[0].nome,
-      camasDescricao: this.formatarCamas(this.categorias()[0]),
+      categoriaId: disponiveis[0].id,
+      categoriaNome: disponiveis[0].nome,
+      camasDescricao: this.formatarCamas(disponiveis[0]),
       descricao: '',
       comCafe: true,
       comAlmoco: false,
@@ -714,12 +740,30 @@ export class OrcamentoOficialComponent implements OnInit {
   }
 
   onTemporadaChange() {
+    this.revalidarItens();
     this.itens.forEach((item) => this.calcularItem(item));
   }
 
   onDataChange() {
     this.ajustarDataSaida();
+    this.revalidarItens();
     this.itens.forEach((item) => this.calcularItem(item));
+  }
+
+  /**
+   * Itens cuja acomodação não está disponível na temporada efetiva
+   * (preço zerado) são resetados para a primeira opção disponível.
+   */
+  private revalidarItens() {
+    const disponiveis = this.categoriasDisponiveis();
+    if (disponiveis.length === 0) return;
+    const idsDisponiveis = new Set(disponiveis.map((c) => c.id));
+    this.itens.forEach((item) => {
+      if (!idsDisponiveis.has(item.categoriaId)) {
+        item.categoriaId = disponiveis[0].id;
+        this.onCategoriaChange(item);
+      }
+    });
   }
 
   formatarCamas(cat: any): string {

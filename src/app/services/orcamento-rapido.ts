@@ -39,6 +39,17 @@ export class OrcamentoRapidoService {
     const numeroNoites = isDayUse ? 1 : noitesReais;
     const config = await this.tarifaService.getConfiguracao();
 
+    // Valida disponibilidade da UH na temporada do check-in (preço zerado = não liberada)
+    const isAltaCheckin = DateUtils.isAltaTemporada(
+      checkin,
+      config.temporada.altaInicio,
+      config.temporada.altaFim,
+    );
+    if (!MensagemUtils.isDisponivelNaTemporada(categoria, isAltaCheckin ? 'alta' : 'baixa')) {
+      const nomeTemporada = isAltaCheckin ? 'Alta Temporada' : 'Baixa Temporada';
+      throw new Error(`Esta UH não está disponível em '${nomeTemporada}'.`);
+    }
+
     // Calcular preço por noite considerando temporada
     let diasAlta = 0;
     let diasBaixa = 0;

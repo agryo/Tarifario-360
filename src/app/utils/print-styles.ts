@@ -617,10 +617,17 @@ export const IMPRESSAO_TABELA_PRECOS_CSS = /* css */ `
     font-weight: 900;
   }
 
+  .nao-permitido {
+    font-size: 13px;
+    font-style: italic;
+    font-weight: 900;
+    color: #dc3545;
+  }
+
   @media print {
     @page {
       size: A4;
-      margin: 1cm;
+      margin: 0.5cm;
     }
 
     .no-print {
@@ -638,7 +645,7 @@ export const IMPRESSAO_TABELA_PRECOS_CSS = /* css */ `
     }
 
     .page .header h1 {
-      font-size: 20px;
+      font-size: 18px;
       margin-top: 0;
       margin-bottom: 2px;
     }
@@ -655,7 +662,7 @@ export const IMPRESSAO_TABELA_PRECOS_CSS = /* css */ `
     }
 
     .page .bloco-categoria .numero-uh-topo {
-      font-size: 15px;
+      font-size: 14px;
       padding: 2px 5px;
       background: #eee !important;
     }
@@ -667,13 +674,13 @@ export const IMPRESSAO_TABELA_PRECOS_CSS = /* css */ `
     }
 
     .page .bloco-categoria .titulo-uh {
-      font-size: 13px;
+      font-size: 12px;
       margin-bottom: 1px;
     }
 
     .page .bloco-categoria .comodidades-gerais {
-      font-size: 12px;
-      line-height: 1.2;
+      font-size: 11px;
+      line-height: 1.15;
       margin-bottom: 2px;
       white-space: normal !important;
       word-break: break-word;
@@ -691,11 +698,11 @@ export const IMPRESSAO_TABELA_PRECOS_CSS = /* css */ `
     }
 
     .page .bloco-categoria .item-preco-linha .preco-texto {
-      font-size: 13px;
+      font-size: 12px;
     }
 
     .page .bloco-categoria .item-preco-linha .preco-texto .sem-cafe {
-      font-size: 13px;
+      font-size: 12px;
     }
 
     .page .bloco-categoria .item-preco-linha .preco-texto .sufixo-label {
