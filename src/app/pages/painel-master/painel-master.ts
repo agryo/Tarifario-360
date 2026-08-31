@@ -127,6 +127,7 @@ export class PainelMasterComponent implements OnInit, OnChanges {
   // Propriedades para os datepickers do PrimeNG
   altaInicioDate: Date | null = null;
   altaFimDate: Date | null = null;
+  dataInicioFolgasDate: Date | null = null;
 
   // Disponibiliza a constante para ser usada no template HTML
   diasSemana = DateUtils.DIAS_SEMANA;
@@ -163,6 +164,7 @@ export class PainelMasterComponent implements OnInit, OnChanges {
   async ngOnInit() {
     await this.carregarDados();
     this.escalaConfig = await this.escalaService.getConfiguracao();
+    this.sincronizarDataInicioFolgas();
     this.resetarAutenticacao();
   }
 
@@ -171,6 +173,7 @@ export class PainelMasterComponent implements OnInit, OnChanges {
     if (changes['isVisible'] && !changes['isVisible'].firstChange && this.isVisible) {
       this.carregarDados().then(async () => {
         this.escalaConfig = await this.escalaService.getConfiguracao();
+        this.sincronizarDataInicioFolgas();
         this.resetarAutenticacao();
       });
     }
@@ -515,6 +518,7 @@ export class PainelMasterComponent implements OnInit, OnChanges {
         // Também carrega a escala config se houver
         if (resultado.backup.escalaConfig) {
           this.escalaConfig = resultado.backup.escalaConfig;
+          this.sincronizarDataInicioFolgas();
         }
 
         this.progressService.updateProgress(100);
@@ -568,6 +572,9 @@ export class PainelMasterComponent implements OnInit, OnChanges {
     if (this.altaFimDate) {
       this.config.temporada.altaFim = DateUtils.formatarDataISO(this.altaFimDate);
     }
+    if (this.dataInicioFolgasDate) {
+      this.escalaConfig.dataInicioFolgas = DateUtils.formatarDataISO(this.dataInicioFolgasDate);
+    }
     try {
       const backupState = this.tarifaService.getBackupState();
 
@@ -613,6 +620,15 @@ export class PainelMasterComponent implements OnInit, OnChanges {
   }
 
   // ===== CONTROLE DE DATAS DA ALTA TEMPORADA =====
+  // Converte a data de início das folgas (string ISO no modelo) para Date para o p-datepicker.
+  private sincronizarDataInicioFolgas() {
+    if (this.escalaConfig?.dataInicioFolgas) {
+      this.dataInicioFolgasDate = new Date(this.escalaConfig.dataInicioFolgas + 'T00:00:00');
+    } else {
+      this.dataInicioFolgasDate = null;
+    }
+  }
+
   onAltaInicioChange() {
     // Se a data de início for alterada para depois da data de fim, ajusta a data de fim para ser igual à de início, mantendo um intervalo válido.
     if (this.altaInicioDate && this.altaFimDate && this.altaFimDate < this.altaInicioDate) {

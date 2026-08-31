@@ -707,18 +707,38 @@
           </div>
         </div>
 
-        <div class="field">
-          <label>Data de Início das Folgas</label>
-          <input
-            type="date"
-            pInputText
-            [(ngModel)]="escalaConfig.dataInicioFolgas"
-            class="w-full"
-          />
-          <small class="text-secondary"
-            >A partir desta data, as folgas não mudam mais. Define o marco para o revezamento
-            fixo.</small
-          >
+        <div class="grid">
+          <div class="col-12 md:col-6">
+            <div class="field">
+              <label>Data de Início das Folgas</label>
+              <p-datepicker
+                [(ngModel)]="dataInicioFolgasDate"
+                dateFormat="dd/mm/yy"
+                [showIcon]="true"
+                class="w-full"
+                appendTo="body"
+              ></p-datepicker>
+              <small class="text-secondary"
+                >A partir desta data, as folgas não mudam mais. Define o marco para o
+                revezamento fixo.</small
+              >
+            </div>
+          </div>
+          <div class="col-12 md:col-6">
+            <div class="field">
+              <label>Início do Revezamento (Quem começa folgando?)</label>
+              <p-select
+                [(ngModel)]="escalaConfig.quemFolgaPrimeiro"
+                [options]="[
+                  { label: 'P1 Inicia Folgando', value: 'p1' },
+                  { label: 'P2 Inicia Folgando', value: 'p2' },
+                ]"
+                optionLabel="label"
+                optionValue="value"
+                styleClass="w-full"
+              ></p-select>
+            </div>
+          </div>
         </div>
 
         <div class="field">
@@ -737,20 +757,6 @@
           <small class="text-secondary"
             >Selecione os dias que são folga fixa (ex: sábado e domingo).</small
           >
-        </div>
-
-        <div class="field">
-          <label>Início do Revezamento (Quem começa folgando?)</label>
-          <p-select
-            [(ngModel)]="escalaConfig.quemFolgaPrimeiro"
-            [options]="[
-              { label: 'P1 Inicia Folgando', value: 'p1' },
-              { label: 'P2 Inicia Folgando', value: 'p2' },
-            ]"
-            optionLabel="label"
-            optionValue="value"
-            styleClass="w-full"
-          ></p-select>
         </div>
       </p-tabpanel>
 
