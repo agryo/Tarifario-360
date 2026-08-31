@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { TarifaService } from './tarifa';
 import { EscalaService } from './escala';
 import { CriptografiaService } from './criptografia';
-import { supabaseApi, getSupabaseClient, environment } from './supabase-client';
+import { supabaseApi, getSupabaseClient } from './supabase-client';
 import { BackupData } from '../models/backup.model';
 import { OrcamentoOficial } from '../models/orcamento-oficial.model';
 import { ChaveCriptografia } from '../models/chave-criptografia.model';
@@ -19,9 +19,9 @@ export class BackupService {
     private criptografia: CriptografiaService,
   ) {}
 
-  // Verifica se está em desenvolvimento local
+  // Verifica se deve usar cliente direto (apenas backend 'supabase-direct')
   private isLocalDev(): boolean {
-    return !environment.production;
+    return this.tarifaService.getBackend() === 'supabase-direct';
   }
 
   // Exportar todos os dados do Supabase (completo)

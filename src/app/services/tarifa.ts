@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Subject } from 'rxjs';
 import { StorageService } from './storage';
 import { CriptografiaService } from './criptografia';
 import { CategoriasRepository } from './repositories/categorias-repository';
@@ -22,6 +23,10 @@ export class TarifaService {
     orcamentosOficiais?: any[];
   } | null = null;
 
+  // Notifica quando a configuração geral é atualizada (salvo/importado/limpo)
+  private configAtualizadaSource = new Subject<void>();
+  configAtualizada$ = this.configAtualizadaSource.asObservable();
+
   constructor(
     private storage: StorageService,
     private criptografia: CriptografiaService,
@@ -29,6 +34,10 @@ export class TarifaService {
     private repoFactory: RepositoryFactory,
   ) {
     this.inicializarDadosPadrao();
+  }
+
+  getBackend(): string {
+    return this.configFactory.getBackend();
   }
 
   private get categoriasRepo(): CategoriasRepository {
@@ -279,40 +288,22 @@ export class TarifaService {
       await this.configGeralRepo.update(config);
     }
     this.storage.set(this.STORAGE_CONFIG, config);
+    this.configAtualizadaSource.next();
   }
 
   // ===== LIMPAR CACHE =====
   async limparCache(): Promise<void> {
     if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
-      // Limpa TUDO no Supabase (usa API em produção, cliente direto em dev local)
-      const { environment } = await import('../../environments/environment');
-      const { getSupabaseClient } = await import('./supabase-client');
-
-      if (!environment.production) {
-        // Desenvolvimento local: cliente direto
-        const client = getSupabaseClient();
-        const tables = [
-          'orcamentos_oficiais',
-          'chaves_criptografia',
-          'escala_config',
-          'config_geral',
-          'categorias',
-        ];
-        for (const table of tables) {
-          const { error } = await client.from(table).delete().neq('id', '00000000-0000-0000-0000-000000000000');
-          if (error) throw new Error(`Erro ao limpar ${table}: ${error.message}`);
-        }
-      } else {
-        // Produção: API Vercel
-        const { supabaseApi } = await import('./supabase-client');
-        await supabaseApi.clearDatabase();
-      }
+      // Limpa TUDO no Supabase via API (service_role no servidor, bypassa RLS)
+      const { supabaseApi } = await import('./supabase-client');
+      await supabaseApi.clearDatabase();
     }
     // Limpa localStorage
     this.storage.remove(this.STORAGE_CATEGORIAS);
     this.storage.remove(this.STORAGE_CONFIG);
     // Recria dados padrão
     await this.inicializarDadosPadrao();
+    this.configAtualizadaSource.next();
   }
 
   // ===== DADOS INICIAIS =====
@@ -432,6 +423,7 @@ export class TarifaService {
       this.storage.remove(this.STORAGE_CONFIG);
       this.backupState = null; // Limpa backup state ao recarregar
       await this.inicializarDadosPadrao();
+      this.configAtualizadaSource.next();
     } catch (error) {
       console.warn('Falha ao recarregar do Supabase:', error);
     }

@@ -1,6 +1,7 @@
-import { Component, OnInit, ChangeDetectorRef, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { Subscription } from 'rxjs';
 
 // PrimeNG
 import { CardModule } from 'primeng/card';
@@ -20,15 +21,27 @@ import { ConfiguracaoGeral } from '../../models/tarifa.model';
   templateUrl: './modulos-grid.html',
   styleUrls: ['./modulos-grid.scss'],
 })
-export class ModulosGridComponent implements OnInit {
+export class ModulosGridComponent implements OnInit, OnDestroy {
   config = signal<ConfiguracaoGeral | null>(null);
   carregando = signal(false);
 
   private tarifaService = inject(TarifaService);
   private messageService = inject(MessageService);
   private cdr = inject(ChangeDetectorRef);
+  private configSubscription?: Subscription;
 
   async ngOnInit() {
+    await this.carregarConfig();
+    this.configSubscription = this.tarifaService.configAtualizada$.subscribe(() => {
+      this.carregarConfig();
+    });
+  }
+
+  ngOnDestroy() {
+    this.configSubscription?.unsubscribe();
+  }
+
+  private async carregarConfig() {
     this.carregando.set(true);
     try {
       const cfg = await this.tarifaService.getConfiguracao();

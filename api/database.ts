@@ -17,13 +17,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         'categorias',
       ];
 
+      const errors: string[] = [];
       for (const table of tables) {
         const { error } = await supabase.from(table).delete().neq('id', '00000000-0000-0000-0000-000000000000');
         if (error) {
-          console.warn(`Error clearing ${table}:`, error);
+          errors.push(`Error clearing ${table}: ${error.message}`);
         }
       }
-
+      if (errors.length > 0) {
+        return res.status(500).json({ success: false, message: errors.join('; ') });
+      }
       return res.status(200).json({ success: true, message: 'Database cleared successfully' });
     } catch (error) {
       return handleError(error, res);

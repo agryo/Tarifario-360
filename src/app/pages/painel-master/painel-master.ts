@@ -571,33 +571,29 @@ export class PainelMasterComponent implements OnInit, OnChanges {
     try {
       const backupState = this.tarifaService.getBackupState();
 
-      // Se há backup carregado, limpa TUDO no banco antes de inserir os dados do backup
       if (backupState) {
-        await this.limparBancoParaBackup();
-      }
+        // RESTAURAÇÃO DE BACKUP: apaga TUDO e insere os dados do backup de uma vez.
+        // O endpoint /api/backup limpa as 5 tabelas e insere os dados no servidor
+        // (service_role bypassa RLS), garantindo banco 100% limpo antes da importação.
+        const { supabaseApi } = await import('../../services/supabase-client');
+        await supabaseApi.importBackup({
+          versao: '2.0',
+          data_exportacao: new Date().toISOString(),
+          categorias: backupState.categorias ?? [],
+          config_geral: this.config,
+          escala_config: this.escalaConfig,
+          orcamentos_oficiais: backupState.orcamentosOficiais ?? [],
+          chaves_criptografia: [],
+        });
 
-      // Salva configuração geral
-      await this.tarifaService.salvarConfiguracao(this.config);
-      await this.escalaService.salvarConfiguracao(this.escalaConfig);
-
-      // Se há backup carregado, salva também as categorias e orçamentos oficiais
-      if (backupState) {
-        // Salva categorias
-        if (backupState.categorias?.length) {
-          for (const cat of backupState.categorias) {
-            await this.tarifaService.salvarCategoria(cat);
-          }
-        }
-
-        // Salva orçamentos oficiais (se houver) - usa service injetado
-        if (backupState.orcamentosOficiais?.length) {
-          for (const orc of backupState.orcamentosOficiais) {
-            await this.orcamentoOficialService.salvar(orc);
-          }
-        }
-
-        // Limpa o estado do backup após salvar
+        // Recarrega serviços (limpa backupState e atualiza cache local)
+        await this.tarifaService.recarregarDoSupabase();
+        await this.escalaService.recarregarDoSupabase();
         this.tarifaService.clearBackupState();
+      } else {
+        // Salvamento normal (sem backup carregado)
+        await this.tarifaService.salvarConfiguracao(this.config);
+        await this.escalaService.salvarConfiguracao(this.escalaConfig);
       }
 
       this.messageService.add({
@@ -613,33 +609,6 @@ export class PainelMasterComponent implements OnInit, OnChanges {
         summary: 'Erro ao salvar',
         detail: error.message || 'Falha ao salvar no banco de dados. Verifique as permissões (RLS).',
       });
-    }
-  }
-
-  /**
-   * Limpa todas as tabelas do Supabase antes de restaurar um backup
-   * Ordem inversa de dependência para evitar erros de foreign key
-   */
-  private async limparBancoParaBackup(): Promise<void> {
-    if (this.tarifaService['configFactory'].getBackend() !== 'supabase' &&
-        this.tarifaService['configFactory'].getBackend() !== 'supabase-direct') {
-      return; // Só limpa no Supabase
-    }
-
-    const { getSupabaseClient } = await import('../../services/supabase-client');
-    const client = getSupabaseClient();
-
-    const tablesToClear = [
-      'orcamentos_oficiais',
-      'chaves_criptografia',
-      'escala_config',
-      'config_geral',
-      'categorias',
-    ];
-
-    for (const table of tablesToClear) {
-      const { error } = await client.from(table).delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      if (error) console.warn(`Aviso ao limpar ${table}:`, error);
     }
   }
 

@@ -78,7 +78,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Invalid backup format' });
       }
 
-      // PRIMEIRO: Limpar todas as tabelas (ordem inversa de dependência)
+      // PRIMEIRO: Limpar todas as tabelas (ordem inversa de dependência).
+      // Se alguma limpeza falhar, NÃO continuar (evita misturar dados antigos + backup)
       const tablesToClear = [
         'orcamentos_oficiais',
         'chaves_criptografia',
@@ -88,7 +89,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ];
       for (const table of tablesToClear) {
         const { error } = await supabase.from(table).delete().neq('id', '00000000-0000-0000-0000-000000000000');
-        if (error) console.warn(`Warning clearing ${table}:`, error);
+        if (error) throw new Error(`Falha ao limpar ${table}: ${error.message}`);
       }
 
       // Import in order: categorias first (referenced by orcamentos_oficiais)
@@ -100,7 +101,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (backup.config_geral) {
         // config_geral is a single-row table - delete existing row first, then insert new
         const { error: deleteError } = await supabase.from('config_geral').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-        if (deleteError) console.warn('Warning clearing config_geral:', deleteError);
+        if (deleteError) throw new Error(`Falha ao limpar config_geral: ${deleteError.message}`);
 
         const config = backup.config_geral;
         const { error } = await supabase.from('config_geral').insert({
@@ -120,7 +121,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (backup.escala_config) {
         // escala_config has UUID primary key - delete existing row first, then insert new
         const { error: deleteError } = await supabase.from('escala_config').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-        if (deleteError) console.warn('Warning clearing escala_config:', deleteError);
+        if (deleteError) throw new Error(`Falha ao limpar escala_config: ${deleteError.message}`);
 
         const { error } = await supabase.from('escala_config').insert({ configuracao: backup.escala_config });
         if (error) throw error;
