@@ -1,6 +1,3 @@
-import { CategoriaQuarto } from './categoria-quarto.model';
-import { ConfiguracaoGeral } from './tarifa.model';
-
 export interface OrcamentoRapidoRequest {
   cliente: string;
   evento?: string;
@@ -29,20 +26,4 @@ export interface ResultadoCategoriaOrcamento {
 export interface OrcamentoRapidoResultado {
   resultados: ResultadoCategoriaOrcamento[];
   textoWhatsApp: string;
-}
-
-export interface DadosGeracaoTexto {
-  cliente: string;
-  evento?: string;
-  dataCheckin: Date;
-  dataCheckout: Date;
-  horaEntrada: string;
-  horaSaida: string;
-  diarias: number;
-  temporada: 'alta' | 'baixa' | 'misto';
-  cafeManha: boolean;
-  resultados: ResultadoCategoriaOrcamento[];
-  promocao?: { nome: string; descontoPercentual: number; aplicada: boolean } | null;
-  observacoes?: string;
-  configuracao?: ConfiguracaoGeral;
 }
