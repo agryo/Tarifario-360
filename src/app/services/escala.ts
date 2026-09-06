@@ -1,7 +1,7 @@
 // src/app/services/escala.ts
 import { Injectable } from '@angular/core';
 import { StorageService } from './storage';
-import { EscalaRepository } from './repositories/escala-repository';
+import { IEscalaRepository } from './repositories/repository-interfaces';
 import { ConfigRepositoryFactory } from './config-repository-factory';
 import { RepositoryFactory } from './repository-factory';
 import { EscalaConfig } from '../models/escala-config.model';
@@ -20,7 +20,7 @@ export class EscalaService {
     private repoFactory: RepositoryFactory,
   ) {}
 
-  private get escalaRepo(): EscalaRepository {
+  private get escalaRepo(): IEscalaRepository {
     return this.repoFactory.getEscalaRepo();
   }
 

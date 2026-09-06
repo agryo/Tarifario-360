@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import * as CryptoJS from 'crypto-js';
-import { CriptografiaRepository } from './repositories/criptografia-repository';
+import { ICriptografiaRepository } from './repositories/repository-interfaces';
 import { ConfigRepositoryFactory } from './config-repository-factory';
 import { RepositoryFactory } from './repository-factory';
 
@@ -18,7 +18,7 @@ export class CriptografiaService {
     private repoFactory: RepositoryFactory,
   ) {}
 
-  private get criptografiaRepo(): CriptografiaRepository {
+  private get criptografiaRepo(): ICriptografiaRepository {
     return this.repoFactory.getCriptografiaRepo();
   }
 

@@ -1,73 +1,56 @@
-import { Injectable } from '@angular/core';
-import { ConfigRepositoryFactory, StorageBackend } from './config-repository-factory';
-import { SupabaseCategoriasRepository, CategoriasRepository } from './repositories/categorias-repository';
-import { SupabaseConfigGeralRepository, ConfigGeralRepository } from './repositories/config-geral-repository';
-import { SupabaseEscalaRepository, EscalaRepository } from './repositories/escala-repository';
-import { SupabaseOrcamentosOficiaisRepository, OrcamentosOficiaisRepository } from './repositories/orcamentos-oficiais-repository';
-import { SupabaseCriptografiaRepository, CriptografiaRepository } from './repositories/criptografia-repository';
-import { SupabaseDirectCategoriasRepository } from './repositories/categorias-repository-direct';
-import { SupabaseDirectConfigGeralRepository } from './repositories/config-geral-repository-direct';
-import { SupabaseDirectEscalaRepository } from './repositories/escala-repository-direct';
-import { SupabaseDirectOrcamentosOficiaisRepository } from './repositories/orcamentos-oficiais-repository-direct';
-import { SupabaseDirectCriptografiaRepository } from './repositories/criptografia-repository-direct';
+import { Injectable, inject } from '@angular/core';
+import { environment } from '../../environments/environment';
+import { ClientStrategy, ApiClientStrategy, DirectClientStrategy, CLIENT_STRATEGY } from './repositories/client-strategy';
+import { CategoriasRepository } from './repositories/categorias-repository';
+import { ConfigGeralRepository } from './repositories/config-geral-repository';
+import { EscalaRepository } from './repositories/escala-repository';
+import { OrcamentosOficiaisRepository } from './repositories/orcamentos-oficiais-repository';
+import { CriptografiaRepository } from './repositories/criptografia-repository';
+import { ICategoriasRepository, IConfigGeralRepository, IEscalaRepository, IOrcamentosOficiaisRepository, ICriptografiaRepository } from './repositories/repository-interfaces';
 
+/**
+ * Factory que fornece as instâncias corretas dos repositórios baseadas no ambiente.
+ * Em desenvolvimento (local): usa DirectClientStrategy (Supabase JS SDK direto)
+ * Em produção (Vercel): usa ApiClientStrategy (fetch /api/*)
+ */
 @Injectable({ providedIn: 'root' })
 export class RepositoryFactory {
-  constructor(
-    private configFactory: ConfigRepositoryFactory,
-    private supabaseCategorias: SupabaseCategoriasRepository,
-    private directCategorias: SupabaseDirectCategoriasRepository,
-    private supabaseConfigGeral: SupabaseConfigGeralRepository,
-    private directConfigGeral: SupabaseDirectConfigGeralRepository,
-    private supabaseEscala: SupabaseEscalaRepository,
-    private directEscala: SupabaseDirectEscalaRepository,
-    private supabaseOrcamentosOficiais: SupabaseOrcamentosOficiaisRepository,
-    private directOrcamentosOficiais: SupabaseDirectOrcamentosOficiaisRepository,
-    private supabaseCriptografia: SupabaseCriptografiaRepository,
-    private directCriptografia: SupabaseDirectCriptografiaRepository,
-  ) {}
+  public readonly categorias: ICategoriasRepository;
+  public readonly configGeral: IConfigGeralRepository;
+  public readonly escala: IEscalaRepository;
+  public readonly orcamentosOficiais: IOrcamentosOficiaisRepository;
+  public readonly criptografia: ICriptografiaRepository;
 
-  private isSupabase(): boolean {
-    const backend = this.configFactory.getBackend();
-    return backend === 'supabase' || backend === 'supabase-direct';
+  constructor() {
+    // Escolhe strategy baseada no environment
+    const isLocal = !environment.production || environment.supabaseUrl?.includes('localhost');
+    const strategy: ClientStrategy = isLocal
+      ? inject(DirectClientStrategy)
+      : inject(ApiClientStrategy);
+
+    // Instancia repositórios únicos injetando a strategy
+    this.categorias = new CategoriasRepository(strategy);
+    this.configGeral = new ConfigGeralRepository(strategy);
+    this.escala = new EscalaRepository(strategy);
+    this.orcamentosOficiais = new OrcamentosOficiaisRepository(strategy);
+    this.criptografia = new CriptografiaRepository(strategy);
   }
 
-  private isDirect(): boolean {
-    return this.configFactory.getBackend() === 'supabase-direct';
-  }
+  // Getter methods for backward compatibility with services
+  getCategoriasRepo(): ICategoriasRepository { return this.categorias; }
+  getConfigGeralRepo(): IConfigGeralRepository { return this.configGeral; }
+  getEscalaRepo(): IEscalaRepository { return this.escala; }
+  getOrcamentosOficiaisRepo(): IOrcamentosOficiaisRepository { return this.orcamentosOficiais; }
+  getCriptografiaRepo(): ICriptografiaRepository { return this.criptografia; }
+}
 
-  getCategoriasRepo(): CategoriasRepository {
-    if (!this.isSupabase()) {
-      throw new Error('Repositório Supabase não disponível no backend local');
+// Provider for the CLIENT_STRATEGY token
+export function provideClientStrategy() {
+  return {
+    provide: CLIENT_STRATEGY,
+    useFactory: () => {
+      const isLocal = !environment.production || environment.supabaseUrl?.includes('localhost');
+      return isLocal ? new DirectClientStrategy() : new ApiClientStrategy();
     }
-    return this.isDirect() ? this.directCategorias : this.supabaseCategorias;
-  }
-
-  getConfigGeralRepo(): ConfigGeralRepository {
-    if (!this.isSupabase()) {
-      throw new Error('Repositório Supabase não disponível no backend local');
-    }
-    return this.isDirect() ? this.directConfigGeral : this.supabaseConfigGeral;
-  }
-
-  getEscalaRepo(): EscalaRepository {
-    if (!this.isSupabase()) {
-      throw new Error('Repositório Supabase não disponível no backend local');
-    }
-    return this.isDirect() ? this.directEscala : this.supabaseEscala;
-  }
-
-  getOrcamentosOficiaisRepo(): OrcamentosOficiaisRepository {
-    if (!this.isSupabase()) {
-      throw new Error('Repositório Supabase não disponível no backend local');
-    }
-    return this.isDirect() ? this.directOrcamentosOficiais : this.supabaseOrcamentosOficiais;
-  }
-
-  getCriptografiaRepo(): CriptografiaRepository {
-    if (!this.isSupabase()) {
-      throw new Error('Repositório Supabase não disponível no backend local');
-    }
-    return this.isDirect() ? this.directCriptografia : this.supabaseCriptografia;
-  }
+  };
 }

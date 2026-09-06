@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { StorageService } from './storage';
 import { CriptografiaService } from './criptografia';
-import { OrcamentosOficiaisRepository } from './repositories/orcamentos-oficiais-repository';
+import { IOrcamentosOficiaisRepository } from './repositories/repository-interfaces';
 import { ConfigRepositoryFactory } from './config-repository-factory';
 import { RepositoryFactory } from './repository-factory';
 import { OrcamentoOficial, OrcamentoOficialCompleto } from '../models/orcamento-oficial.model';
@@ -41,7 +41,7 @@ export class OrcamentoOficialService {
     private repoFactory: RepositoryFactory,
   ) {}
 
-  private get orcamentosRepo(): OrcamentosOficiaisRepository {
+  private get orcamentosRepo(): IOrcamentosOficiaisRepository {
     return this.repoFactory.getOrcamentosOficiaisRepo();
   }
 

@@ -8,7 +8,7 @@ import { OrcamentoOficial } from '../../models/orcamento-oficial.model';
  * Compartilhadas entre as implementações via API (supabaseApi) e via cliente direto
  * (getSupabaseClient), evitando duplicação e deriva de assinaturas.
  */
-export interface CategoriasRepository {
+export interface ICategoriasRepository {
   getAll(): Promise<CategoriaQuarto[]>;
   getById(id: string): Promise<CategoriaQuarto | null>;
   create(categoria: Omit<CategoriaQuarto, 'id' | 'criado_em' | 'atualizado_em'>): Promise<CategoriaQuarto>;
@@ -16,22 +16,22 @@ export interface CategoriasRepository {
   delete(id: string): Promise<void>;
 }
 
-export interface ConfigGeralRepository {
+export interface IConfigGeralRepository {
   get(): Promise<ConfiguracaoGeral | null>;
   update(config: Partial<ConfiguracaoGeral>): Promise<ConfiguracaoGeral>;
 }
 
-export interface CriptografiaRepository {
+export interface ICriptografiaRepository {
   getKey(nome: string): Promise<{ nome: string; chave: string; iv?: string; salt?: string } | null>;
   setKey(nome: string, chave: string, iv?: string, salt?: string): Promise<void>;
 }
 
-export interface EscalaRepository {
+export interface IEscalaRepository {
   get(): Promise<EscalaConfig | null>;
   update(config: Partial<EscalaConfig>): Promise<EscalaConfig>;
 }
 
-export interface OrcamentosOficiaisRepository {
+export interface IOrcamentosOficiaisRepository {
   getAll(): Promise<OrcamentoOficial[]>;
   getById(id: string): Promise<OrcamentoOficial | null>;
   create(orcamento: Omit<OrcamentoOficial, 'id' | 'criado_em' | 'atualizado_em'>): Promise<OrcamentoOficial>;

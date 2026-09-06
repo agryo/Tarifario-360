@@ -5,6 +5,7 @@ import { provideRouter } from '@angular/router';
 import { providePrimeNG } from 'primeng/config';
 import { SupabaseDirectConfigRepository } from './services/config-repository-supabase-direct';
 import { SupabaseConfigRepository } from './services/config-repository-supabase';
+import { provideClientStrategy } from './services/repository-factory';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -19,5 +20,6 @@ export const appConfig: ApplicationConfig = {
     }),
     SupabaseConfigRepository,
     SupabaseDirectConfigRepository,
+    provideClientStrategy(),
   ],
 };

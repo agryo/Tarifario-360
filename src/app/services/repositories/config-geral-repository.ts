@@ -1,24 +1,52 @@
-import { Injectable } from '@angular/core';
-import { supabaseApi } from '../supabase-client';
+import { Injectable, Inject } from '@angular/core';
+import { ClientStrategy, CLIENT_STRATEGY } from './client-strategy';
+import { IConfigGeralRepository } from './repository-interfaces';
 import { ConfiguracaoGeral } from '../../models/tarifa.model';
 
-export type { ConfigGeralRepository } from './repository-interfaces';
-import { ConfigGeralRepository } from './repository-interfaces';
-
 @Injectable({ providedIn: 'root' })
-export class SupabaseConfigGeralRepository implements ConfigGeralRepository {
+export class ConfigGeralRepository implements IConfigGeralRepository {
+  constructor(@Inject(CLIENT_STRATEGY) private strategy: ClientStrategy) {}
+
+  private mapRow(row: any): ConfiguracaoGeral {
+    const rawSeguranca = row.seguranca;
+    const hasSegurancaData = rawSeguranca && typeof rawSeguranca === 'object' && Object.keys(rawSeguranca).length > 0;
+    return {
+      festividade: row.festividade,
+      totalUhs: row.total_uhs,
+      comodidadesGlobais: row.comodidades_globais,
+      precos: row.precos,
+      temporada: row.temporada,
+      horarios: row.horarios,
+      promocao: row.promocao,
+      seguranca: hasSegurancaData ? row.seguranca : { senhaHash: '', senhaSalt: '' },
+      orcamento: row.orcamento,
+      criado_em: row.criado_em,
+      atualizado_em: row.atualizado_em,
+    };
+  }
+
+  private unmapConfig(config: Partial<ConfiguracaoGeral>): any {
+    const result: any = {};
+    if (config.festividade !== undefined) result.festividade = config.festividade;
+    if (config.totalUhs !== undefined) result.total_uhs = config.totalUhs;
+    if (config.comodidadesGlobais !== undefined) result.comodidades_globais = config.comodidadesGlobais;
+    if (config.precos !== undefined) result.precos = config.precos;
+    if (config.temporada !== undefined) result.temporada = config.temporada;
+    if (config.horarios !== undefined) result.horarios = config.horarios;
+    if (config.promocao !== undefined) result.promocao = config.promocao;
+    if (config.seguranca !== undefined) result.seguranca = config.seguranca;
+    if (config.orcamento !== undefined) result.orcamento = config.orcamento;
+    return result;
+  }
+
   async get(): Promise<ConfiguracaoGeral | null> {
-    try {
-      // A API /api/config-geral já retorna camelCase (mapConfigGeral) e trata PGRST116 -> null
-      return await supabaseApi.getConfigGeral();
-    } catch (error: any) {
-      if (error.message.includes('404') || error.message.includes('Not found')) return null;
-      throw error;
-    }
+    const row = await this.strategy.getConfigGeral();
+    return row ? this.mapRow(row) : null;
   }
 
   async update(config: Partial<ConfiguracaoGeral>): Promise<ConfiguracaoGeral> {
-    // A API /api/config-geral já converte camelCase -> snake_case internamente (toSnakeCase)
-    return supabaseApi.updateConfigGeral(config);
+    const data = this.unmapConfig(config);
+    const row = await this.strategy.updateConfigGeral(data);
+    return this.mapRow(row);
   }
 }
