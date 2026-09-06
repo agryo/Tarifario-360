@@ -12,8 +12,8 @@ export class ConfigGeralRepository implements IConfigGeralRepository {
     const hasSegurancaData = rawSeguranca && typeof rawSeguranca === 'object' && Object.keys(rawSeguranca).length > 0;
     return {
       festividade: row.festividade,
-      totalUhs: row.total_uhs,
-      comodidadesGlobais: row.comodidades_globais,
+      totalUhs: row.totalUhs,
+      comodidadesGlobais: row.comodidadesGlobais,
       precos: row.precos,
       temporada: row.temporada,
       horarios: row.horarios,

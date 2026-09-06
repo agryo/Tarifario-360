@@ -164,6 +164,28 @@ export class DirectClientStrategy extends ClientStrategy {
     return getSupabaseClient();
   }
 
+  private toCamelCase(obj: any): any {
+    if (!obj || typeof obj !== 'object') return obj;
+    if (Array.isArray(obj)) return obj.map((v) => this.toCamelCase(v));
+    const result: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+      result[camelKey] = this.toCamelCase(value);
+    }
+    return result;
+  }
+
+  private toSnakeCase(obj: any): any {
+    if (!obj || typeof obj !== 'object') return obj;
+    if (Array.isArray(obj)) return obj.map((v) => this.toSnakeCase(v));
+    const result: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+      result[snakeKey] = this.toSnakeCase(value);
+    }
+    return result;
+  }
+
   // Categorias
   async getCategorias(): Promise<any[]> {
     const { data, error } = await this.getClient().from('categorias').select('*').order('nome');
@@ -213,7 +235,24 @@ export class DirectClientStrategy extends ClientStrategy {
       if (error.code === 'PGRST116') return null;
       throw error;
     }
-    return data;
+    if (!data) return null;
+
+    // Converte snake_case para camelCase nos objetos aninhados (igual ao endpoint API)
+    const rawSeguranca = data.seguranca;
+    const hasSegurancaData = rawSeguranca && typeof rawSeguranca === 'object' && Object.keys(rawSeguranca).length > 0;
+    return {
+      festividade: data.festividade,
+      totalUhs: data.total_uhs,
+      comodidadesGlobais: data.comodidades_globais,
+      precos: this.toCamelCase(data.precos),
+      temporada: this.toCamelCase(data.temporada),
+      horarios: this.toCamelCase(data.horarios),
+      promocao: this.toCamelCase(data.promocao),
+      seguranca: hasSegurancaData ? this.toCamelCase(rawSeguranca) : { senhaHash: '', senhaSalt: '' },
+      orcamento: this.toCamelCase(data.orcamento),
+      criado_em: data.criado_em,
+      atualizado_em: data.atualizado_em,
+    };
   }
 
   async updateConfigGeral(config: any): Promise<any> {
@@ -223,13 +262,44 @@ export class DirectClientStrategy extends ClientStrategy {
       .neq('id', '00000000-0000-0000-0000-000000000000');
     if (error) throw error;
 
+    // Converte camelCase para snake_case nos objetos aninhados (igual ao endpoint API)
+    const mappedConfig = {
+      festividade: config.festividade,
+      total_uhs: config.totalUhs,
+      comodidades_globais: config.comodidadesGlobais,
+      precos: this.toSnakeCase(config.precos),
+      temporada: this.toSnakeCase(config.temporada),
+      horarios: this.toSnakeCase(config.horarios),
+      promocao: this.toSnakeCase(config.promocao),
+      seguranca: this.toSnakeCase(config.seguranca ?? { senhaHash: '', senhaSalt: '' }),
+      orcamento: this.toSnakeCase(config.orcamento),
+      criado_em: config.criado_em,
+      atualizado_em: config.atualizado_em,
+    };
+
     const { data, error: insertError } = await this.getClient()
       .from('config_geral')
-      .insert({ ...config, criado_em: new Date().toISOString(), atualizado_em: new Date().toISOString() })
+      .insert({ ...mappedConfig, criado_em: new Date().toISOString(), atualizado_em: new Date().toISOString() })
       .select()
       .single();
     if (insertError) throw insertError;
-    return data;
+
+    // Retorna no formato camelCase
+    const rawSeguranca = data.seguranca;
+    const hasSegurancaData = rawSeguranca && typeof rawSeguranca === 'object' && Object.keys(rawSeguranca).length > 0;
+    return {
+      festividade: data.festividade,
+      totalUhs: data.total_uhs,
+      comodidadesGlobais: data.comodidades_globais,
+      precos: this.toCamelCase(data.precos),
+      temporada: this.toCamelCase(data.temporada),
+      horarios: this.toCamelCase(data.horarios),
+      promocao: this.toCamelCase(data.promocao),
+      seguranca: hasSegurancaData ? this.toCamelCase(rawSeguranca) : { senhaHash: '', senhaSalt: '' },
+      orcamento: this.toCamelCase(data.orcamento),
+      criado_em: data.criado_em,
+      atualizado_em: data.atualizado_em,
+    };
   }
 
   // Escala
