@@ -100,8 +100,8 @@ export class BackupService {
       const hasSegurancaData = rawSeguranca && typeof rawSeguranca === 'object' && Object.keys(rawSeguranca).length > 0;
       return {
         festividade: row.festividade ?? '',
-        totalUhs: row.total_uhs ?? 0,
-        comodidadesGlobais: row.comodidades_globais ?? '',
+        totalUhs: row.totalUhs ?? 0,
+        comodidadesGlobais: row.comodidadesGlobais ?? '',
         precos: toCamelCase(row.precos),
         temporada: toCamelCase(row.temporada),
         horarios: toCamelCase(row.horarios),
