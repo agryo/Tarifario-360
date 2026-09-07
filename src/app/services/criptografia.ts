@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import * as CryptoJS from 'crypto-js';
 import { ICriptografiaRepository } from './repositories/repository-interfaces';
-import { ConfigRepositoryFactory } from './config-repository-factory';
 import { RepositoryFactory } from './repository-factory';
 
 @Injectable({
@@ -14,23 +13,20 @@ export class CriptografiaService {
   private readonly KEY_SIZE = 256;
 
   constructor(
-    private configFactory: ConfigRepositoryFactory,
     private repoFactory: RepositoryFactory,
   ) {}
 
   private get criptografiaRepo(): ICriptografiaRepository {
-    return this.repoFactory.getCriptografiaRepo();
+    return this.repoFactory.criptografia;
   }
 
   private async getFileSecret(): Promise<string> {
     // Try Supabase first if enabled
-    if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
-      try {
-        const keyData = await this.criptografiaRepo.getKey(this.FILE_SECRET_KEY);
-        if (keyData?.chave) return keyData.chave;
-      } catch (error) {
-        console.warn('Falha ao buscar segredo do Supabase, usando localStorage:', error);
-      }
+    try {
+      const keyData = await this.criptografiaRepo.getKey(this.FILE_SECRET_KEY);
+      if (keyData?.chave) return keyData.chave;
+    } catch (error) {
+      console.warn('Falha ao buscar segredo do Supabase, usando localStorage:', error);
     }
     // Fallback to localStorage
     const stored = localStorage.getItem(this.FILE_SECRET_KEY);
@@ -43,12 +39,10 @@ export class CriptografiaService {
   }
 
   private async syncFileSecretToSupabase(secret: string): Promise<void> {
-    if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
-      try {
-        await this.criptografiaRepo.setKey(this.FILE_SECRET_KEY, secret);
-      } catch (error) {
-        console.warn('Falha ao sincronizar segredo com Supabase:', error);
-      }
+    try {
+      await this.criptografiaRepo.setKey(this.FILE_SECRET_KEY, secret);
+    } catch (error) {
+      console.warn('Falha ao sincronizar segredo com Supabase:', error);
     }
   }
 
@@ -331,8 +325,7 @@ export class CriptografiaService {
    */
   async migrarChavesParaSupabase(): Promise<void> {
     const secret = localStorage.getItem(this.FILE_SECRET_KEY);
-    const backend = this.configFactory.getBackend();
-    if (secret && (backend === 'supabase' || backend === 'supabase-direct')) {
+    if (secret) {
       await this.syncFileSecretToSupabase(secret);
     }
   }

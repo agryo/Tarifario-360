@@ -3,8 +3,6 @@ import { routes } from './app.routes';
 import { ApplicationConfig } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { providePrimeNG } from 'primeng/config';
-import { SupabaseDirectConfigRepository } from './services/config-repository-supabase-direct';
-import { SupabaseConfigRepository } from './services/config-repository-supabase';
 import { provideClientStrategy } from './services/repository-factory';
 
 export const appConfig: ApplicationConfig = {
@@ -18,8 +16,6 @@ export const appConfig: ApplicationConfig = {
         },
       },
     }),
-    SupabaseConfigRepository,
-    SupabaseDirectConfigRepository,
     provideClientStrategy(),
   ],
 };

@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { StorageService } from './storage';
 import { CriptografiaService } from './criptografia';
 import { IOrcamentosOficiaisRepository } from './repositories/repository-interfaces';
-import { ConfigRepositoryFactory } from './config-repository-factory';
 import { RepositoryFactory } from './repository-factory';
 import { OrcamentoOficial, OrcamentoOficialCompleto } from '../models/orcamento-oficial.model';
 import { ItemOrcamento } from '../models/item-orcamento.model';
@@ -37,12 +36,11 @@ export class OrcamentoOficialService {
   constructor(
     private storage: StorageService,
     private criptografia: CriptografiaService,
-    private configFactory: ConfigRepositoryFactory,
     private repoFactory: RepositoryFactory,
   ) {}
 
   private get orcamentosRepo(): IOrcamentosOficiaisRepository {
-    return this.repoFactory.getOrcamentosOficiaisRepo();
+    return this.repoFactory.orcamentosOficiais;
   }
 
   protected criarEntidade(dados: Partial<OrcamentoOficial>): OrcamentoOficial {
@@ -115,18 +113,11 @@ export class OrcamentoOficialService {
   }
 
   async listar(): Promise<OrcamentoOficial[]> {
-    if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
-      return await this.orcamentosRepo.getAll();
-    }
-    return this.storage.get<OrcamentoOficial[]>(this.STORAGE_KEY) || [];
+    return await this.orcamentosRepo.getAll();
   }
 
   async buscarPorId(id: string): Promise<OrcamentoOficial | null> {
-    if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
-      return await this.orcamentosRepo.getById(id);
-    }
-    const lista = await this.listar();
-    return lista.find((e) => e.id === id) || null;
+    return await this.orcamentosRepo.getById(id);
   }
 
   async salvar(orcamento: OrcamentoOficial): Promise<void> {
@@ -134,36 +125,14 @@ export class OrcamentoOficialService {
       throw new Error(`Dados inválidos. O objeto não é um ${this.ENTITY_TYPE} válido.`);
     }
 
-    const isSupabase = this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct';
-
-    if (isSupabase) {
-      // Para Supabase: não verificar ID existente (nanoid vs UUID), sempre criar novo
-      // O banco gera UUID automaticamente
-      const { id, ...orcamentoSemId } = orcamento;
-      await this.orcamentosRepo.create(orcamentoSemId);
-    } else {
-      // Fallback to localStorage only for local backend
-      const lista = await this.listar();
-      const index = lista.findIndex((e) => e.id === orcamento.id);
-      if (index >= 0) {
-        lista[index] = orcamento;
-      } else {
-        lista.push(orcamento);
-      }
-      this.storage.set(this.STORAGE_KEY, lista);
-    }
+    // Para Supabase: não verificar ID existente (nanoid vs UUID), sempre criar novo
+    // O banco gera UUID automaticamente
+    const { id, ...orcamentoSemId } = orcamento;
+    await this.orcamentosRepo.create(orcamentoSemId);
   }
 
   async excluir(id: string): Promise<void> {
-    const isSupabase = this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct';
-
-    if (isSupabase) {
-      await this.orcamentosRepo.delete(id);
-    } else {
-      // Fallback to localStorage only for local backend
-      const lista = (await this.listar()).filter((e) => e.id !== id);
-      this.storage.set(this.STORAGE_KEY, lista);
-    }
+    await this.orcamentosRepo.delete(id);
   }
 
   calcularTotais(orcamento: OrcamentoOficial): OrcamentoOficialCompleto {
@@ -289,9 +258,8 @@ export class OrcamentoOficialService {
 
   async limpar(): Promise<void> {
     try {
-      if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
-        // Would need bulk delete - skip for now
-      }
+      // Sempre usa Supabase (RepositoryFactory já decide a strategy)
+      // Would need bulk delete - skip for now
     } catch (error) {
       console.warn('Falha ao limpar orçamentos do Supabase:', error);
     }

@@ -2,10 +2,8 @@
 import { Injectable } from '@angular/core';
 import { StorageService } from './storage';
 import { IEscalaRepository } from './repositories/repository-interfaces';
-import { ConfigRepositoryFactory } from './config-repository-factory';
 import { RepositoryFactory } from './repository-factory';
 import { EscalaConfig } from '../models/escala-config.model';
-import { environment, getSupabaseClient, supabaseApi } from './supabase-client';
 export type { EscalaConfig } from '../models/escala-config.model';
 
 @Injectable({
@@ -16,12 +14,11 @@ export class EscalaService {
 
   constructor(
     private storage: StorageService,
-    private configFactory: ConfigRepositoryFactory,
     private repoFactory: RepositoryFactory,
   ) {}
 
   private get escalaRepo(): IEscalaRepository {
-    return this.repoFactory.getEscalaRepo();
+    return this.repoFactory.escala;
   }
 
   async getConfiguracao(): Promise<EscalaConfig> {
@@ -34,20 +31,8 @@ export class EscalaService {
     };
 
     try {
-      if (this.configFactory.getBackend() === 'supabase' || this.configFactory.getBackend() === 'supabase-direct') {
-        let config: EscalaConfig | null = null;
-        if (!environment.production) {
-          // Desenvolvimento local: cliente direto
-          const client = getSupabaseClient();
-          const { data, error } = await client.from('escala_config').select('configuracao').limit(1).single();
-          if (error && !error.message.includes('PGRST116')) throw error;
-          config = data?.configuracao ?? null;
-        } else {
-          // Produção: API Vercel
-          config = await supabaseApi.getEscala();
-        }
-        if (config) return config;
-      }
+      const config = await this.escalaRepo.get();
+      if (config) return config;
     } catch (error) {
       console.warn('Falha ao buscar escala do Supabase, usando localStorage:', error);
     }

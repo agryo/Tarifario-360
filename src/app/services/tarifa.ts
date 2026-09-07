@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { ConfigService } from './config.service';
 import { CategoriaService } from './categoria.service';
 import { BackupStateService } from './backup-state.service';
-import { ConfigRepositoryFactory } from './config-repository-factory';
+import { RepositoryFactory } from './repository-factory';
 import { CategoriaQuarto } from '../models/categoria-quarto.model';
 import { ConfiguracaoGeral } from '../models/tarifa.model';
 
@@ -18,11 +18,11 @@ export class TarifaService {
     private configService: ConfigService,
     private categoriaService: CategoriaService,
     private backupStateService: BackupStateService,
-    private configFactory: ConfigRepositoryFactory,
+    private repoFactory: RepositoryFactory,
   ) {}
 
   getBackend(): string {
-    return this.configFactory.getBackend();
+    return this.repoFactory.getBackend();
   }
 
   // ===== DELEGAÇÃO PARA ConfigService =====

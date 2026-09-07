@@ -42,6 +42,11 @@ export class RepositoryFactory {
   getEscalaRepo(): IEscalaRepository { return this.escala; }
   getOrcamentosOficiaisRepo(): IOrcamentosOficiaisRepository { return this.orcamentosOficiais; }
   getCriptografiaRepo(): ICriptografiaRepository { return this.criptografia; }
+
+  getBackend(): string {
+    const isLocal = !environment.production || environment.supabaseUrl?.includes('localhost');
+    return isLocal ? 'supabase-direct' : 'supabase';
+  }
 }
 
 // Provider for the CLIENT_STRATEGY token
