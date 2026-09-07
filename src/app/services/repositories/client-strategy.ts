@@ -40,6 +40,9 @@ export abstract class ClientStrategy {
   // Criptografia
   abstract getChaveCriptografia(nome: string): Promise<any | null>;
   abstract setChaveCriptografia(nome: string, chave: string, iv?: string, salt?: string): Promise<void>;
+
+  // Limpar banco de dados completo
+  abstract clearDatabase(): Promise<void>;
 }
 
 /**
@@ -146,6 +149,10 @@ export class ApiClientStrategy extends ClientStrategy {
       method: 'POST',
       body: JSON.stringify({ nome, chave, iv, salt }),
     });
+  }
+
+  async clearDatabase(): Promise<void> {
+    return this.request<void>('/database', { method: 'DELETE' });
   }
 }
 
@@ -403,5 +410,19 @@ export class DirectClientStrategy extends ClientStrategy {
       .from('chaves_criptografia')
       .upsert({ nome, chave, iv, salt }, { onConflict: 'nome' });
     if (error) throw error;
+  }
+
+  async clearDatabase(): Promise<void> {
+    const tables = [
+      'orcamentos_oficiais',
+      'chaves_criptografia',
+      'escala_config',
+      'config_geral',
+      'categorias',
+    ];
+    for (const table of tables) {
+      const { error } = await this.getClient().from(table).delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      if (error) throw error;
+    }
   }
 }

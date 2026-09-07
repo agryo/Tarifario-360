@@ -179,9 +179,11 @@ export class ConfigService {
 
   // ===== LIMPAR CACHE =====
   async limparCache(): Promise<void> {
-    // Limpa TUDO no Supabase via API (service_role no servidor, bypassa RLS)
-    const { supabaseApi } = await import('./supabase-client');
-    await supabaseApi.clearDatabase();
+    // Limpa TUDO no Supabase via ClientStrategy (API ou Direct Client)
+    const strategy = this.repoFactory['strategy'] as any;
+    if (strategy?.clearDatabase) {
+      await strategy.clearDatabase();
+    }
     // Limpa localStorage
     this.storage.remove(this.STORAGE_CONFIG);
     // Recria dados padrão

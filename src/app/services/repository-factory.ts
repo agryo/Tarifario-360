@@ -1,17 +1,17 @@
 import { Injectable, inject } from '@angular/core';
 import { environment } from '../../environments/environment';
-import { ClientStrategy, ApiClientStrategy, DirectClientStrategy, CLIENT_STRATEGY } from './repositories/client-strategy';
-import { CategoriasRepository } from './repositories/categorias-repository';
+import { ClientStrategy, ApiClientStrategy, CLIENT_STRATEGY } from './repositories/client-strategy';
 import { ConfigGeralRepository } from './repositories/config-geral-repository';
+import { CategoriasRepository } from './repositories/categorias-repository';
 import { EscalaRepository } from './repositories/escala-repository';
 import { OrcamentosOficiaisRepository } from './repositories/orcamentos-oficiais-repository';
 import { CriptografiaRepository } from './repositories/criptografia-repository';
 import { ICategoriasRepository, IConfigGeralRepository, IEscalaRepository, IOrcamentosOficiaisRepository, ICriptografiaRepository } from './repositories/repository-interfaces';
 
 /**
- * Factory que fornece as instâncias corretas dos repositórios baseadas no ambiente.
- * Em desenvolvimento (local): usa DirectClientStrategy (Supabase JS SDK direto)
- * Em produção (Vercel): usa ApiClientStrategy (fetch /api/*)
+ * Factory que fornece as instâncias corretas dos repositórios.
+ * Sempre usa ApiClientStrategy (via proxy /api/* em dev, direto em prod).
+ * DirectClientStrategy (Supabase JS SDK direto) NÃO funciona localmente devido a RLS policies.
  */
 @Injectable({ providedIn: 'root' })
 export class RepositoryFactory {
@@ -20,20 +20,20 @@ export class RepositoryFactory {
   public readonly escala: IEscalaRepository;
   public readonly orcamentosOficiais: IOrcamentosOficiaisRepository;
   public readonly criptografia: ICriptografiaRepository;
+  public readonly strategy: ClientStrategy;
 
   constructor() {
-    // Escolhe strategy baseada no environment
-    const isLocal = !environment.production || environment.supabaseUrl?.includes('localhost');
-    const strategy: ClientStrategy = isLocal
-      ? inject(DirectClientStrategy)
-      : inject(ApiClientStrategy);
+    // Em desenvolvimento local: usa ApiClientStrategy que acessa /api/* via proxy (localhost:3001)
+    // Em produção (Vercel): usa ApiClientStrategy que acessa /api/* diretamente
+    // DirectClientStrategy (Supabase JS SDK direto) NÃO funciona localmente devido a RLS policies
+    this.strategy = inject(ApiClientStrategy);
 
     // Instancia repositórios únicos injetando a strategy
-    this.categorias = new CategoriasRepository(strategy);
-    this.configGeral = new ConfigGeralRepository(strategy);
-    this.escala = new EscalaRepository(strategy);
-    this.orcamentosOficiais = new OrcamentosOficiaisRepository(strategy);
-    this.criptografia = new CriptografiaRepository(strategy);
+    this.categorias = new CategoriasRepository(this.strategy);
+    this.configGeral = new ConfigGeralRepository(this.strategy);
+    this.escala = new EscalaRepository(this.strategy);
+    this.orcamentosOficiais = new OrcamentosOficiaisRepository(this.strategy);
+    this.criptografia = new CriptografiaRepository(this.strategy);
   }
 
   // Getter methods for backward compatibility with services
@@ -44,18 +44,14 @@ export class RepositoryFactory {
   getCriptografiaRepo(): ICriptografiaRepository { return this.criptografia; }
 
   getBackend(): string {
-    const isLocal = !environment.production || environment.supabaseUrl?.includes('localhost');
-    return isLocal ? 'supabase-direct' : 'supabase';
+    return 'supabase-api'; // Sempre usa API layer (/api/*) via proxy em dev
   }
 }
 
-// Provider for the CLIENT_STRATEGY token
+// Provider para sempre usar ApiClientStrategy (via proxy /api/* em dev, direto em prod)
 export function provideClientStrategy() {
   return {
     provide: CLIENT_STRATEGY,
-    useFactory: () => {
-      const isLocal = !environment.production || environment.supabaseUrl?.includes('localhost');
-      return isLocal ? new DirectClientStrategy() : new ApiClientStrategy();
-    }
+    useClass: ApiClientStrategy
   };
 }
