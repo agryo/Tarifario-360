@@ -916,12 +916,13 @@
 
           <!-- Limpeza -->
           <div class="col-12 mt-3">
-            <p-card header="🧹 Limpeza">
+            <p-card header="🧹 Limpeza Total">
               <p class="mb-3">
-                Limpa todos os dados do sistema e restaura as configurações padrão.
+                Apaga <strong>TUDO</strong> do banco de dados e localStorage, e restaura as configurações padrão
+                (incluindo 2 UHs padrão: Standard e Luxo, senha "1234", escala padrão, etc.). Ação irreversível.
               </p>
               <p-button
-                label="Limpar Cache do Sistema"
+                label="Apagar Tudo e Restaurar Padrão"
                 icon="pi pi-trash"
                 styleClass="p-button-danger"
                 (click)="limparCache()"

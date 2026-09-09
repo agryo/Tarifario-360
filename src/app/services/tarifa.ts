@@ -44,6 +44,8 @@ export class TarifaService {
 
   async limparCache(): Promise<void> {
     await this.configService.limparCache();
+    // Recria categorias padrão após limpar tudo
+    await this.categoriaService.inicializarCategoriasPadrao();
     this.backupStateService.clearBackupState();
   }
 
