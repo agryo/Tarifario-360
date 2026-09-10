@@ -11,18 +11,18 @@ export class CategoriasRepository implements ICategoriasRepository {
     return {
       id: row.id,
       nome: row.nome,
-      capacidadeMaxima: row.capacidade_maxima,
-      precoAltaCafe: Number(row.preco_alta_cafe),
-      precoAltaSemCafe: Number(row.preco_alta_sem_cafe),
-      precoBaixaCafe: Number(row.preco_baixa_cafe),
-      precoBaixaSemCafe: Number(row.preco_baixa_sem_cafe),
+      capacidadeMaxima: row.capacidadeMaxima,
+      precoAltaCafe: Number(row.precoAltaCafe),
+      precoAltaSemCafe: Number(row.precoAltaSemCafe),
+      precoBaixaCafe: Number(row.precoBaixaCafe),
+      precoBaixaSemCafe: Number(row.precoBaixaSemCafe),
       ativo: row.ativo,
       descricao: row.descricao,
-      camasCasal: row.camas_casal,
-      camasSolteiro: row.camas_solteiro,
-      tipoOcupacaoPadrao: row.tipo_ocupacao_padrao,
+      camasCasal: row.camasCasal,
+      camasSolteiro: row.camasSolteiro,
+      tipoOcupacaoPadrao: row.tipoOcupacaoPadrao,
       numeros: row.numeros,
-      comodidadesSelecionadas: row.comodidades_selecionadas,
+      comodidadesSelecionadas: row.comodidadesSelecionadas,
       criado_em: row.criado_em,
       atualizado_em: row.atualizado_em,
     };
@@ -31,18 +31,18 @@ export class CategoriasRepository implements ICategoriasRepository {
   private unmapCategoria(cat: Partial<CategoriaQuarto>): any {
     const result: any = {};
     if (cat.nome !== undefined) result.nome = cat.nome;
-    if (cat.capacidadeMaxima !== undefined) result.capacidade_maxima = cat.capacidadeMaxima;
-    if (cat.precoAltaCafe !== undefined) result.preco_alta_cafe = cat.precoAltaCafe;
-    if (cat.precoAltaSemCafe !== undefined) result.preco_alta_sem_cafe = cat.precoAltaSemCafe;
-    if (cat.precoBaixaCafe !== undefined) result.preco_baixa_cafe = cat.precoBaixaCafe;
-    if (cat.precoBaixaSemCafe !== undefined) result.preco_baixa_sem_cafe = cat.precoBaixaSemCafe;
+    if (cat.capacidadeMaxima !== undefined) result.capacidadeMaxima = cat.capacidadeMaxima;
+    if (cat.precoAltaCafe !== undefined) result.precoAltaCafe = cat.precoAltaCafe;
+    if (cat.precoAltaSemCafe !== undefined) result.precoAltaSemCafe = cat.precoAltaSemCafe;
+    if (cat.precoBaixaCafe !== undefined) result.precoBaixaCafe = cat.precoBaixaCafe;
+    if (cat.precoBaixaSemCafe !== undefined) result.precoBaixaSemCafe = cat.precoBaixaSemCafe;
     if (cat.ativo !== undefined) result.ativo = cat.ativo;
     if (cat.descricao !== undefined) result.descricao = cat.descricao;
-    if (cat.camasCasal !== undefined) result.camas_casal = cat.camasCasal;
-    if (cat.camasSolteiro !== undefined) result.camas_solteiro = cat.camasSolteiro;
-    if (cat.tipoOcupacaoPadrao !== undefined) result.tipo_ocupacao_padrao = cat.tipoOcupacaoPadrao;
+    if (cat.camasCasal !== undefined) result.camasCasal = cat.camasCasal;
+    if (cat.camasSolteiro !== undefined) result.camasSolteiro = cat.camasSolteiro;
+    if (cat.tipoOcupacaoPadrao !== undefined) result.tipoOcupacaoPadrao = cat.tipoOcupacaoPadrao;
     if (cat.numeros !== undefined) result.numeros = cat.numeros;
-    if (cat.comodidadesSelecionadas !== undefined) result.comodidades_selecionadas = cat.comodidadesSelecionadas;
+    if (cat.comodidadesSelecionadas !== undefined) result.comodidadesSelecionadas = cat.comodidadesSelecionadas;
     return result;
   }
 
