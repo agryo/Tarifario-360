@@ -28,8 +28,8 @@ export class ConfigGeralRepository implements IConfigGeralRepository {
   private unmapConfig(config: Partial<ConfiguracaoGeral>): any {
     const result: any = {};
     if (config.festividade !== undefined) result.festividade = config.festividade;
-    if (config.totalUhs !== undefined) result.total_uhs = config.totalUhs;
-    if (config.comodidadesGlobais !== undefined) result.comodidades_globais = config.comodidadesGlobais;
+    if (config.totalUhs !== undefined) result.totalUhs = config.totalUhs;
+    if (config.comodidadesGlobais !== undefined) result.comodidadesGlobais = config.comodidadesGlobais;
     if (config.precos !== undefined) result.precos = config.precos;
     if (config.temporada !== undefined) result.temporada = config.temporada;
     if (config.horarios !== undefined) result.horarios = config.horarios;
