@@ -139,45 +139,148 @@ CREATE POLICY "anon_select_chaves_criptografia" ON chaves_criptografia
 -- =====================================================
 -- NOTA: o banco REAL ainda está com `comodidades_globais` como `text`
 -- (CSV separado por vírgula) e `comodidades_selecionadas` com os NOMES
--- das comodidades (textualmente). Para migrar para o design acima:
+-- das comodidades (textualmente). Para migrar para o design acima,
+-- rodar os passos abaixo NO SQL EDITOR do Supabase, NA ORDEM.
 --
---   1. ALTERAR o tipo de `config_geral.comodidades_globais`:
---        ALTER TABLE config_geral
---          ALTER COLUMN comodidades_globais TYPE jsonb
---          USING (
---            CASE WHEN comodidades_globais IS NULL THEN NULL
---                 ELSE to_jsonb(
---                        (SELECT array_agg(jsonb_build_object(
---                              'id', gen_random_uuid()::text,
---                              'nome', trim(item)
---                        ))
---                         FROM unnest(
---                           string_to_array(comodidades_globais, ',')
---                         ) AS item)
---                      )
---            END
---          );
+-- PRÉ-REQUISITO (obrigatório, rodar ANTES de qualquer passo):
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- O ID de cada comodidade é gerado pelo MESMO algoritmo determinístico do
+-- frontend (ComodidadeService.idEstavel): SHA-256 do nome normalizado
+-- (trim + lowercase), primeiros 128 bits (32 hex chars), formatado como
+-- UUID v4 com versão '4' e variante '8'. Isso garante que o mesmo nome
+-- produza o mesmo UUID no banco E no frontend — preservando o vínculo
+-- UH ↔ comodidade sem depender de um gerador aleatório (gen_random_uuid()).
 --
---   2. Normalizar `categorias.comodidades_selecionadas` para guardar
---      apenas os IDs (UUIDs) correspondentes, substituindo os nomes.
---      Esse passo depende de um script de mapeamento nome→id rodado
---      no frontend ou numa migration segmentada, garantindo que cada
---      UH mantenha exatamente as comodidades que já tinha.
+-- =====================================================
+-- PASSO 1 — Converter comodidades_globais de text CSV → jsonb array {id, nome}
+-- =====================================================
+-- A função auxiliar `id_estavel(text)` replica o idEstavel do frontend:
+--   h      = primeiros 32 hex chars do sha256(trim(lower(nome)))
+--   timeLow = h[ 1.. 8]   timeMid = h[ 9..12]
+--   timeHiAndVersion = '4' + h[14..16]
+--   clockSeqHiVariant = '8' + h[18..20]
+--   node   = h[21..32]
 --
---   3. Aplicar NOT NULL (com DEFAULT) em config_geral:
---        ALTER TABLE config_geral
---          ALTER COLUMN festividade SET NOT NULL,
---          ALTER COLUMN festividade SET DEFAULT '',
---          ALTER COLUMN total_uhs SET NOT NULL,
---          ALTER COLUMN total_uhs SET DEFAULT 0;
---      ATENÇÃO: antes de rodar, backfill os NULLs existentes:
---        UPDATE config_geral
---          SET festividade = COALESCE(festividade, ''),
---              total_uhs   = COALESCE(total_uhs, 0);
---      `comodidades_globais` permanece nullable (decisão do usuário).
+CREATE OR REPLACE FUNCTION id_estavel(nome text)
+RETURNS text
+LANGUAGE plpgsql
+IMMUTABLE
+AS $$
+DECLARE
+  norm text := btrim(lower(coalesce(nome, '')));
+  h    text;
+BEGIN
+  IF norm = '' THEN
+    RETURN '00000000-0000-4000-8000-000000000000';
+  END IF;
+
+  -- h = primeiros 32 hex chars do sha256(norm). digest() retorna bytea de 32
+  -- bytes (64 hex chars); encode(...,'hex') dá minúsculas; left(...) pega 32.
+  h := left(encode(digest(norm, 'sha256'), 'hex'), 32);
+
+  -- Mesma estrutura de src: timeLow-timeMid-timeHiAndVersion-clockSeq-node
+  RETURN substr(h,  1, 8) || '-' ||
+         substr(h,  9, 4) || '-4' ||
+         substr(h, 14, 3) || '-8' ||
+         substr(h, 18, 3) || '-' ||
+         substr(h, 21, 12);
+END;
+$$;
+
+-- Helper: converte o CSV legado de comodidades_globais em jsonb array {id, nome}.
+-- Precisa ser uma FUNÇÃO e não um subquery inline, pois o PostgreSQL NÃO permite
+-- subquery na expressão USING de um ALTER COLUMN TYPE ("cannot use subquery in
+-- transform expression"). A função chama id_estavel() mantendo a paridade com o
+-- frontend.
+CREATE OR REPLACE FUNCTION csv_comodidades_para_jsonb(csv text)
+RETURNS jsonb
+LANGUAGE plpgsql
+IMMUTABLE
+AS $$
+DECLARE
+  resultado jsonb;
+BEGIN
+  IF csv IS NULL OR btrim(csv) = '' THEN
+    RETURN '[]'::jsonb;
+  END IF;
+
+  SELECT to_jsonb(array_agg(
+           jsonb_build_object('id', id_estavel(btrim(item)), 'nome', btrim(item))
+           ORDER BY btrim(item)))
+  FROM unnest(string_to_array(csv, ',')) AS item
+  WHERE btrim(item) <> ''
+  INTO resultado;
+
+  RETURN COALESCE(resultado, '[]'::jsonb);
+END;
+$$;
+
+-- Converte a coluna (somente se ainda for text — idempotente). A conversão usa
+-- a função acima para que os UUIDs sejam estáveis e idênticos aos do frontend.
+-- Usamos um bloco DO em vez de ALTER direto, pois o SQL Editor do Supabase reverte
+-- o script em transação quando algum statement falha — e o tipo só deve ser trocado
+-- caso a coluna realmente ainda seja 'text' (não é seguro reaplicar ALTER em jsonb).
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'config_geral'
+      AND column_name = 'comodidades_globais'
+      AND data_type <> 'jsonb'
+  ) THEN
+    EXECUTE 'ALTER TABLE config_geral
+             ALTER COLUMN comodidades_globais TYPE jsonb
+             USING (csv_comodidades_para_jsonb(comodidades_globais))';
+  END IF;
+END $$;
+
+-- =====================================================
+-- PASSO 2 — Normalizar categorias.comodidades_selecionadas (nome → id)
+-- =====================================================
+-- Configura FK-style link: não há FK real, a resolução é por JSONB. Aqui
+-- substituímos cada NOME legado pelo ID estável correspondente, olhando
+-- para comodidades_globais. Nomes sem correspondência são preservados
+-- (o frontend os ignora), evitando perda silenciosa de dados.
 --
---      Os demais campos jsonb (precos, temporada, horarios, promocao,
---      seguranca, orcamento) JÁ são NOT NULL no banco real — nada a fazer.
+UPDATE categorias c
+SET comodidades_selecionadas = (
+  SELECT array_agg(
+           COALESCE(
+             (SELECT g.value ->> 'id'
+              FROM config_geral cg
+              CROSS JOIN LATERAL jsonb_array_elements(cg.comodidades_globais) AS g
+              WHERE lower(btrim(g.value ->> 'nome')) = lower(btrim(nome_item))
+              LIMIT 1),
+             nome_item
+           )
+         )
+  FROM unnest(c.comodidades_selecionadas) AS nome_item
+)
+WHERE c.comodidades_selecionadas IS NOT NULL
+  AND EXISTS (
+    SELECT 1 FROM config_geral
+    WHERE jsonb_typeof(comodidades_globais) = 'array'
+      AND jsonb_array_length(comodidades_globais) > 0
+  );
+
+-- =====================================================
+-- PASSO 3 — Aplicar NOT NULL (com DEFAULT) em config_geral
+-- =====================================================
+-- ATENÇÃO: antes de rodar, backfill os NULLs existentes:
+UPDATE config_geral
+  SET festividade = COALESCE(festividade, ''),
+      total_uhs   = COALESCE(total_uhs, 0);
+
+ALTER TABLE config_geral
+  ALTER COLUMN festividade SET NOT NULL,
+  ALTER COLUMN festividade SET DEFAULT '',
+  ALTER COLUMN total_uhs SET NOT NULL,
+  ALTER COLUMN total_uhs SET DEFAULT 0;
+-- `comodidades_globais` permanece nullable (decisão do usuário).
+--
+-- Os demais campos jsonb (precos, temporada, horarios, promocao,
+-- seguranca, orcamento) JÁ são NOT NULL no banco real — nada a fazer.
 --
 -- O código do frontend DEVE suportar ambos os formatos (nome legado e
 -- id novo) até que a migração esteja completa.

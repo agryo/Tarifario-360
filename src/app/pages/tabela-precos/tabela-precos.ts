@@ -12,6 +12,7 @@ import { MessageService } from 'primeng/api';
 
 // Services
 import { TarifaService } from '../../services/tarifa';
+import { ComodidadeService } from '../../services/comodidade';
 import { ImpressaoService } from '../../utils/impressao-service';
 import { MensagemUtils } from '../../utils/mensagem-utils';
 
@@ -46,6 +47,7 @@ export class TabelaPrecosComponent implements OnInit {
 
   constructor(
     private tarifaService: TarifaService,
+    private comodidadeService: ComodidadeService,
     private messageService: MessageService,
     private impressaoService: ImpressaoService,
     private router: Router,
@@ -103,11 +105,6 @@ export class TabelaPrecosComponent implements OnInit {
     const grupos: GrupoUHs[] = [];
     const processados = new Set<string>();
 
-    // Obter comodidades globais do config
-    const comodidadesGlobais = this.config()?.comodidadesGlobais
-      ? this.config()!.comodidadesGlobais.split(',').map(c => c.trim()).filter(c => c.length > 0)
-      : [];
-
     categorias.forEach((cat) => {
       if (processados.has(cat.id)) return;
 
@@ -134,15 +131,8 @@ export class TabelaPrecosComponent implements OnInit {
         prioridade = 2;
       }
 
-      // Combinar comodidades da categoria + globais com deduplicação inteligente
-      const comodidadesCategoria = cat.comodidadesSelecionadas || [];
-      const globaisFiltrados = comodidadesGlobais.filter((global) => {
-        const globalLower = global.toLowerCase();
-        return !comodidadesCategoria.some((cat) =>
-          cat.toLowerCase().includes(globalLower) || globalLower.includes(cat.toLowerCase())
-        );
-      });
-      const todasComodidades = [...comodidadesCategoria, ...globaisFiltrados];
+      // Combinar comodidades da categoria + globais com deduplicação por ID
+      const todasComodidades = this.comodidadeService.comodidadesCombinadas(cat, this.config());
 
       grupos.push({
         prioridade,

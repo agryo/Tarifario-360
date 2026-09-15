@@ -30,7 +30,7 @@ function mapConfigGeral(row: any) {
   return {
     festividade: row.festividade ?? '',
     totalUhs: row.total_uhs ?? 0,
-    comodidadesGlobais: row.comodidades_globais ?? '',
+    comodidadesGlobais: row.comodidades_globais ?? [],
     precos: toCamelCase(row.precos),
     temporada: toCamelCase(row.temporada),
     horarios: toCamelCase(row.horarios),
@@ -107,7 +107,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const { error } = await supabase.from('config_geral').insert({
           festividade: config.festividade ?? '',
           total_uhs: config.totalUhs ?? 0,
-          comodidades_globais: config.comodidadesGlobais ?? '',
+          comodidades_globais: config.comodidadesGlobais ?? [],
           precos: toSnakeCase(config.precos),
           temporada: toSnakeCase(config.temporada),
           horarios: toSnakeCase(config.horarios),

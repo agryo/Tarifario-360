@@ -9,6 +9,7 @@ import { DadosGeracaoTexto } from '../models/dados-geracao-texto.model';
 import { CategoriaQuarto } from '../models/categoria-quarto.model';
 import { MensagemUtils } from '../utils/mensagem-utils';
 import { DateUtils } from '../utils/date-utils';
+import { ComodidadeService } from './comodidade';
 
 @Injectable({
   providedIn: 'root',
@@ -16,6 +17,7 @@ import { DateUtils } from '../utils/date-utils';
 export class OrcamentoRapidoService {
   constructor(
     private tarifaService: TarifaService,
+    private comodidadeService: ComodidadeService,
   ) {}
 
   async gerarOrcamento(request: OrcamentoRapidoRequest): Promise<OrcamentoRapidoResultado> {
@@ -176,21 +178,8 @@ export class OrcamentoRapidoService {
     if (categoria.descricao) texto += `✨ _${categoria.descricao}_\n`;
 
     // Itens inclusos - combinar comodidades da categoria + globais do config
-    // Com deduplicação inteligente: se global está contido na categoria (ex: "TV" em "TV a Cabo"), usa a da categoria
-    const comodidadesCategoria = categoria.comodidadesSelecionadas || [];
-    const comodidadesGlobais = config?.comodidadesGlobais
-      ? config.comodidadesGlobais.split(',').map(c => c.trim()).filter(c => c.length > 0)
-      : [];
-
-    // Filtrar globais que já estão "cobertos" pelas da categoria (match parcial case-insensitive)
-    const globaisFiltrados = comodidadesGlobais.filter((global) => {
-      const globalLower = global.toLowerCase();
-      return !comodidadesCategoria.some((cat) =>
-        cat.toLowerCase().includes(globalLower) || globalLower.includes(cat.toLowerCase())
-      );
-    });
-
-    const todasComodidades = [...comodidadesCategoria, ...globaisFiltrados];
+    // Deduplicação por ID (não por substring), via ComodidadeService.
+    const todasComodidades = this.comodidadeService.comodidadesCombinadas(categoria, config);
 
     if (todasComodidades.length) {
       texto += `✅ *Itens inclusos:* ${todasComodidades.join(', ')}.\n\n`;

@@ -18,6 +18,11 @@ export interface ConfigSeguranca {
   senhaSalt?: string;
 }
 
+export interface Comodidade {
+  id: string;
+  nome: string;
+}
+
 export interface ConfigTextosOrcamento {
   titulo: string;
   configTitulo: string;
@@ -33,7 +38,9 @@ export interface ConfiguracaoGeral {
   // Configurações gerais de nível superior
   festividade: string;
   totalUhs: number;
-  comodidadesGlobais: string;
+  // Suporta dois formatos: Comodidade[] (novo) ou string CSV (legado).
+  // O ComodidadeService normaliza ambos para Comodidade[] na leitura.
+  comodidadesGlobais: Comodidade[] | string;
 
   // Seções aninhadas para melhor organização
   precos: {

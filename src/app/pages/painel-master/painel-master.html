@@ -146,27 +146,48 @@
       <p-tabpanel value="1">
         <!-- Qtd. Total de UHs -->
         <div class="grid mb-3">
-          <div class="col-12 md:col-2">
+          <div class="col-12 md:col-3">
             <div class="field">
-              <label>Qtd. Total de UHs</label>
+              <div class="flex align-items-center gap-2 mb-1">
+                <label class="mb-0">Qtd. Total de UHs</label>
+                <p-button
+                  [label]="editarTotalUhs ? 'Salvar' : 'Editar'"
+                  [icon]="editarTotalUhs ? 'pi pi-check' : 'pi pi-pencil'"
+                  size="small"
+                  styleClass="p-button-outlined"
+                  (click)="alternarEdicaoTotalUhs()"
+                ></p-button>
+              </div>
               <p-inputNumber
                 [(ngModel)]="config.totalUhs"
                 [min]="1"
+                [disabled]="!editarTotalUhs"
                 styleClass="w-full"
               ></p-inputNumber>
             </div>
           </div>
           <!-- Comodidades Globais -->
-          <div class="col-12 md:col-10">
+          <div class="col-12 md:col-9">
             <div class="field">
-              <label>Comodidades Globais (Separe por vírgula)</label>
-              <input
-                type="text"
-                pInputText
-                [(ngModel)]="config.comodidadesGlobais"
+              <div class="flex align-items-center gap-2 mb-1">
+                <label class="mb-0">Comodidades Globais</label>
+                <p-button
+                  label="Gerenciar"
+                  icon="pi pi-cog"
+                  size="small"
+                  styleClass="p-button-outlined"
+                  (click)="abrirDialogComodidades()"
+                ></p-button>
+              </div>
+              <textarea
+                rows="2"
+                pTextarea
+                [autoResize]="true"
+                [value]="getComodidadesGlobaisTexto()"
+                [disabled]="true"
                 class="w-full"
-                placeholder="Frigobar, TV, Hidro, Ar-condicionado..."
-              />
+                fluid
+              ></textarea>
             </div>
           </div>
         </div>
@@ -719,8 +740,8 @@
                 appendTo="body"
               ></p-datepicker>
               <small class="text-secondary"
-                >A partir desta data, as folgas não mudam mais. Define o marco para o
-                revezamento fixo.</small
+                >A partir desta data, as folgas não mudam mais. Define o marco para o revezamento
+                fixo.</small
               >
             </div>
           </div>
@@ -918,8 +939,9 @@
           <div class="col-12 mt-3">
             <p-card header="🧹 Limpeza Total">
               <p class="mb-3">
-                Apaga <strong>TUDO</strong> do banco de dados e localStorage, e restaura as configurações padrão
-                (incluindo 2 UHs padrão: Standard e Luxo, senha "1234", escala padrão, etc.). Ação irreversível.
+                Apaga <strong>TUDO</strong> do banco de dados e localStorage, e restaura as
+                configurações padrão (incluindo 2 UHs padrão: Standard e Luxo, senha "1234", escala
+                padrão, etc.). Ação irreversível.
               </p>
               <p-button
                 label="Apagar Tudo e Restaurar Padrão"
@@ -1178,17 +1200,17 @@
             "
           >
             <div
-              *ngFor="let com of getComodidadesGlobaisArray()"
+              *ngFor="let com of getComodidadesGlobais()"
               class="comodidade-item"
               style="display: flex; align-items: center; width: 200px"
             >
               <p-checkbox
                 [(ngModel)]="categoriaEdit.comodidadesSelecionadas"
-                [value]="com"
-                [inputId]="'com_' + com"
+                [value]="com.id"
+                [inputId]="'com_' + com.id"
                 [binary]="false"
               ></p-checkbox>
-              <label [for]="'com_' + com" class="ml-1">{{ com }}</label>
+              <label [for]="'com_' + com.id" class="ml-1">{{ com.nome }}</label>
             </div>
           </div>
           <small class="text-secondary">Selecione as comodidades que esta UH oferece.</small>
@@ -1218,6 +1240,56 @@
         icon="pi pi-check"
         styleClass="p-button-success"
         (click)="salvarCategoria()"
+      ></p-button>
+    </ng-template>
+  </p-dialog>
+
+  <!-- Diálogo de Comodidades -->
+  <p-dialog
+    [(visible)]="comodidadeDialog"
+    [style]="{ width: '500px' }"
+    header="Gerenciar Comodidades"
+    [modal]="true"
+  >
+    <ng-template pTemplate="content">
+      <div class="p-fluid">
+        <div class="flex flex-column gap-2">
+          <div
+            *ngFor="let com of getComodidadesEditaveis(); let i = index"
+            class="flex align-items-center gap-2"
+          >
+            <input
+              type="text"
+              pInputText
+              [(ngModel)]="com.nome"
+              class="flex-1"
+              placeholder="Nome da comodidade"
+            />
+            <p-button
+              icon="pi pi-trash"
+              styleClass="p-button-danger p-button-text p-button-sm"
+              (click)="removerComodidade(i)"
+              aria-label="Remover comodidade"
+            ></p-button>
+          </div>
+          <div>
+            <p-button
+              label="Adicionar comodidade"
+              icon="pi pi-plus"
+              styleClass="p-button-outlined p-button-sm"
+              (click)="adicionarComodidade()"
+            ></p-button>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+      <p-button
+        label="Fechar"
+        icon="pi pi-check"
+        styleClass="p-button-success"
+        (click)="comodidadeDialog = false"
       ></p-button>
     </ng-template>
   </p-dialog>

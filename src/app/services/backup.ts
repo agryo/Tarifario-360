@@ -51,7 +51,7 @@ export class BackupService {
         return {
           festividade: '',
           totalUhs: 0,
-          comodidadesGlobais: '',
+          comodidadesGlobais: [],
           precos: {
             refeicoes: {
               almoco: 0,
@@ -101,7 +101,7 @@ export class BackupService {
       return {
         festividade: row.festividade ?? '',
         totalUhs: row.totalUhs ?? 0,
-        comodidadesGlobais: row.comodidadesGlobais ?? '',
+        comodidadesGlobais: row.comodidadesGlobais ?? [],
         precos: toCamelCase(row.precos),
         temporada: toCamelCase(row.temporada),
         horarios: toCamelCase(row.horarios),
@@ -239,7 +239,7 @@ export class BackupService {
       const { error } = await client.from('config_geral').insert({
         festividade: config.festividade ?? '',
         total_uhs: config.totalUhs ?? 0,
-        comodidades_globais: config.comodidadesGlobais ?? '',
+        comodidades_globais: config.comodidadesGlobais ?? [],
         precos: toSnakeCase(config.precos),
         temporada: toSnakeCase(config.temporada),
         horarios: toSnakeCase(config.horarios),

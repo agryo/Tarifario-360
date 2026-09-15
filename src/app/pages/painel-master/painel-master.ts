@@ -26,6 +26,7 @@ import { AccordionModule } from 'primeng/accordion';
 import { DividerModule } from 'primeng/divider';
 import { FieldsetModule } from 'primeng/fieldset';
 import { DatePickerModule } from 'primeng/datepicker';
+import { TextareaModule } from 'primeng/textarea';
 
 // Services
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -35,8 +36,9 @@ import { EscalaService, EscalaConfig } from '../../services/escala';
 import { BackupService } from '../../services/backup';
 import { OrcamentoOficialService } from '../../services/orcamento-oficial';
 import { ProgressService } from '../../services/progress';
+import { ComodidadeService } from '../../services/comodidade';
 import { CategoriaQuarto } from '../../models/categoria-quarto.model';
-import { ConfiguracaoGeral } from '../../models/tarifa.model';
+import { ConfiguracaoGeral, Comodidade } from '../../models/tarifa.model';
 import { DateUtils } from '../../utils/date-utils';
 
 @Component({
@@ -60,6 +62,7 @@ import { DateUtils } from '../../utils/date-utils';
     DividerModule,
     FieldsetModule,
     DatePickerModule,
+    TextareaModule,
   ],
   providers: [ConfirmationService],
   templateUrl: './painel-master.html',
@@ -87,7 +90,13 @@ export class PainelMasterComponent implements OnInit, OnChanges {
     return {
       festividade: '🎊 Evento Especial',
       totalUhs: 50,
-      comodidadesGlobais: 'Frigobar, TV, Ar-condicionado, Wi-Fi, Hidro',
+      comodidadesGlobais: [
+        { id: crypto.randomUUID(), nome: 'Frigobar' },
+        { id: crypto.randomUUID(), nome: 'TV' },
+        { id: crypto.randomUUID(), nome: 'Ar-condicionado' },
+        { id: crypto.randomUUID(), nome: 'Wi-Fi' },
+        { id: crypto.randomUUID(), nome: 'Hidro' },
+      ],
       precos: {
         refeicoes: { almoco: 45, janta: 55, lanche: 25 },
         kwh: 0.89,
@@ -113,9 +122,12 @@ export class PainelMasterComponent implements OnInit, OnChanges {
           titulo: 'Orçamento de Hospedagem',
           configTitulo: '1. Configuração de Acomodação e Valores',
           configDescricao: 'A proposta contempla a estadia com café da manhã incluso...',
-          notaRefeicoes: 'Obs.: As quantidades de refeições descritas na tabela referem-se ao consumo...',
-          cronograma: 'Check-in: {checkinHora} do dia {checkinDataBr}.\nCheck-out: {checkoutHora} do dia {checkoutDataBr}.\n{mensagemHorasExtras}',
-          pagamento: 'Forma de Pagamento: Sinal de {sinalPercentual}% do valor total ({totalGeral})...',
+          notaRefeicoes:
+            'Obs.: As quantidades de refeições descritas na tabela referem-se ao consumo...',
+          cronograma:
+            'Check-in: {checkinHora} do dia {checkinDataBr}.\nCheck-out: {checkoutHora} do dia {checkoutDataBr}.\n{mensagemHorasExtras}',
+          pagamento:
+            'Forma de Pagamento: Sinal de {sinalPercentual}% do valor total ({totalGeral})...',
           observacoes: 'Refeições: O café da manhã é cortesia da casa e já está incluso...',
           rodape: 'Setor de Reservas - Hotel Plaza',
         },
@@ -136,6 +148,9 @@ export class PainelMasterComponent implements OnInit, OnChanges {
   categorias: CategoriaQuarto[] = [];
   categoriaDialog: boolean = false;
   categoriaEdit: CategoriaQuarto | null = null;
+
+  comodidadeDialog: boolean = false;
+  editarTotalUhs: boolean = false;
 
   // Controle de autenticação interno
   autenticado: boolean = false;
@@ -159,6 +174,7 @@ export class PainelMasterComponent implements OnInit, OnChanges {
     private orcamentoOficialService: OrcamentoOficialService,
     private messageService: MessageService,
     private progressService: ProgressService,
+    private comodidadeService: ComodidadeService,
   ) {}
 
   async ngOnInit() {
@@ -198,18 +214,35 @@ export class PainelMasterComponent implements OnInit, OnChanges {
       ...defaults.seguranca,
       ...dbSeguranca,
       // Usa verificação explícita de undefined/null pois string vazia "" é falsy
-      senhaHash: dbSeguranca.senhaHash !== undefined && dbSeguranca.senhaHash !== null ? dbSeguranca.senhaHash : defaults.seguranca.senhaHash,
-      senhaSalt: dbSeguranca.senhaSalt !== undefined && dbSeguranca.senhaSalt !== null ? dbSeguranca.senhaSalt : defaults.seguranca.senhaSalt,
+      senhaHash:
+        dbSeguranca.senhaHash !== undefined && dbSeguranca.senhaHash !== null
+          ? dbSeguranca.senhaHash
+          : defaults.seguranca.senhaHash,
+      senhaSalt:
+        dbSeguranca.senhaSalt !== undefined && dbSeguranca.senhaSalt !== null
+          ? dbSeguranca.senhaSalt
+          : defaults.seguranca.senhaSalt,
     };
     this.config = {
       ...defaults,
       ...loadedConfig,
-      precos: { ...defaults.precos, ...loadedConfig.precos, refeicoes: { ...defaults.precos.refeicoes, ...(loadedConfig.precos?.refeicoes || {}) } },
+      comodidadesGlobais: this.comodidadeService.listarComodidades(
+        loadedConfig as ConfiguracaoGeral,
+      ),
+      precos: {
+        ...defaults.precos,
+        ...loadedConfig.precos,
+        refeicoes: { ...defaults.precos.refeicoes, ...(loadedConfig.precos?.refeicoes || {}) },
+      },
       temporada: { ...defaults.temporada, ...loadedConfig.temporada },
       horarios: { ...defaults.horarios, ...loadedConfig.horarios },
       promocao: { ...defaults.promocao, ...loadedConfig.promocao },
       seguranca,
-      orcamento: { ...defaults.orcamento, ...loadedConfig.orcamento, textos: { ...defaults.orcamento.textos, ...(loadedConfig.orcamento?.textos || {}) } },
+      orcamento: {
+        ...defaults.orcamento,
+        ...loadedConfig.orcamento,
+        textos: { ...defaults.orcamento.textos, ...(loadedConfig.orcamento?.textos || {}) },
+      },
     };
     this.categorias = await this.tarifaService.getCategorias();
 
@@ -254,7 +287,15 @@ export class PainelMasterComponent implements OnInit, OnChanges {
 
   abrirDialogCategoria(categoria?: CategoriaQuarto) {
     this.categoriaEdit = categoria // Clona para edição
-      ? { ...categoria }
+      ? {
+          ...categoria,
+          // Normaliza comodidades legadas (nomes) para IDs, de modo que o
+          // seletor por checkbox ([value]="com.id") reflita o estado atual.
+          comodidadesSelecionadas: this.comodidadeService.normalizarIdsSelecionados(
+            categoria,
+            this.config,
+          ),
+        }
       : {
           id: '',
           nome: '',
@@ -324,11 +365,44 @@ export class PainelMasterComponent implements OnInit, OnChanges {
   }
 
   getComodidadesGlobaisArray(): string[] {
-    if (!this.config.comodidadesGlobais) return [];
-    return this.config.comodidadesGlobais
-      .split(',')
-      .map((item: string) => item.trim())
-      .filter((item: string) => item);
+    return this.comodidadeService.listarComodidades(this.config).map((c) => c.nome);
+  }
+
+  getComodidadesGlobaisTexto(): string {
+    return this.getComodidadesGlobaisArray().join(', ');
+  }
+
+  getComodidadesGlobais(): Comodidade[] {
+    return this.comodidadeService.listarComodidades(this.config);
+  }
+
+  // Retorna o array bruto (sem filtrar nomes vazios) usado no editor do modal,
+  // para que a linha recém-adicionada apareça imediatamente permitindo digitar o nome.
+  getComodidadesEditaveis(): Comodidade[] {
+    if (Array.isArray(this.config.comodidadesGlobais)) {
+      return this.config.comodidadesGlobais as Comodidade[];
+    }
+    return this.comodidadeService.listarComodidades(this.config);
+  }
+
+  abrirDialogComodidades() {
+    this.comodidadeDialog = true;
+  }
+
+  alternarEdicaoTotalUhs() {
+    this.editarTotalUhs = !this.editarTotalUhs;
+  }
+
+  adicionarComodidade() {
+    if (!Array.isArray(this.config.comodidadesGlobais)) {
+      this.config.comodidadesGlobais = this.comodidadeService.listarComodidades(this.config);
+    }
+    (this.config.comodidadesGlobais as Comodidade[]).push({ id: crypto.randomUUID(), nome: '' });
+  }
+
+  removerComodidade(index: number) {
+    if (!Array.isArray(this.config.comodidadesGlobais)) return;
+    (this.config.comodidadesGlobais as Comodidade[]).splice(index, 1);
   }
 
   onPromocaoSomenteAltaChange() {
@@ -401,7 +475,8 @@ export class PainelMasterComponent implements OnInit, OnChanges {
       this.messageService.add({
         severity: 'error',
         summary: 'Erro ao salvar',
-        detail: error.message || 'Falha ao salvar no banco de dados. Verifique as permissões (RLS).',
+        detail:
+          error.message || 'Falha ao salvar no banco de dados. Verifique as permissões (RLS).',
       });
       return;
     }
@@ -438,7 +513,9 @@ export class PainelMasterComponent implements OnInit, OnChanges {
             this.messageService.add({
               severity: 'error',
               summary: 'Erro ao salvar',
-              detail: error.message || 'Falha ao salvar no banco de dados. Verifique as permissões (RLS).',
+              detail:
+                error.message ||
+                'Falha ao salvar no banco de dados. Verifique as permissões (RLS).',
             });
           }
         },
@@ -525,7 +602,8 @@ export class PainelMasterComponent implements OnInit, OnChanges {
         this.messageService.add({
           severity: 'success',
           summary: 'Sucesso',
-          detail: 'Backup carregado na interface! Clique em "SALVAR TODAS AS ALTERAÇÕES" para persistir no banco.',
+          detail:
+            'Backup carregado na interface! Clique em "SALVAR TODAS AS ALTERAÇÕES" para persistir no banco.',
         });
       } else {
         this.messageService.add({ severity: 'error', summary: 'Erro', detail: resultado.mensagem });
@@ -575,6 +653,26 @@ export class PainelMasterComponent implements OnInit, OnChanges {
     if (this.dataInicioFolgasDate) {
       this.escalaConfig.dataInicioFolgas = DateUtils.formatarDataISO(this.dataInicioFolgasDate);
     }
+
+    // Valida as comodidades globais antes de salvar (nomes vazios ou duplicados).
+    const comodidades = this.comodidadeService.listarComodidades(this.config);
+    const { vazias, duplicadas } = this.comodidadeService.validar(comodidades);
+    if (vazias > 0 || duplicadas > 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Comodidades inválidas',
+        detail:
+          vazias > 0 && duplicadas > 0
+            ? 'Há comodidades sem nome e nomes duplicados. Corrija antes de salvar.'
+            : vazias > 0
+              ? 'Há comodidades sem nome. Preencha ou remova antes de salvar.'
+              : 'Há comodidades com nomes duplicados. Corrija antes de salvar.',
+      });
+      return;
+    }
+    // Remove espaços e normaliza os nomes antes de persistir.
+    this.config.comodidadesGlobais = comodidades.map((c) => ({ id: c.id, nome: c.nome.trim() }));
+
     try {
       const backupState = this.tarifaService.getBackupState();
 
@@ -614,7 +712,8 @@ export class PainelMasterComponent implements OnInit, OnChanges {
       this.messageService.add({
         severity: 'error',
         summary: 'Erro ao salvar',
-        detail: error.message || 'Falha ao salvar no banco de dados. Verifique as permissões (RLS).',
+        detail:
+          error.message || 'Falha ao salvar no banco de dados. Verifique as permissões (RLS).',
       });
     }
   }
@@ -654,7 +753,13 @@ export class PainelMasterComponent implements OnInit, OnChanges {
     return {
       festividade: '🎊 Evento Especial',
       totalUhs: 50,
-      comodidadesGlobais: 'Frigobar, TV, Ar-condicionado, Wi-Fi, Hidro',
+      comodidadesGlobais: [
+        { id: crypto.randomUUID(), nome: 'Frigobar' },
+        { id: crypto.randomUUID(), nome: 'TV' },
+        { id: crypto.randomUUID(), nome: 'Ar-condicionado' },
+        { id: crypto.randomUUID(), nome: 'Wi-Fi' },
+        { id: crypto.randomUUID(), nome: 'Hidro' },
+      ],
       precos: {
         refeicoes: { almoco: 45, janta: 55, lanche: 25 },
         kwh: 0.89,
@@ -680,9 +785,12 @@ export class PainelMasterComponent implements OnInit, OnChanges {
           titulo: 'Orçamento de Hospedagem',
           configTitulo: '1. Configuração de Acomodação e Valores',
           configDescricao: 'A proposta contempla a estadia com café da manhã incluido...',
-          notaRefeicoes: 'Obs.: As quantidades de refeições descritas na tabela referem-se ao consumo...',
-          cronograma: 'Check-in: {checkinHora} do dia {checkinDataBr}.\nCheck-out: {checkoutHora} do dia {checkoutDataBr}.\n{mensagemHorasExtras}',
-          pagamento: 'Forma de Pagamento: Sinal de {sinalPercentual}% do valor total ({totalGeral})...',
+          notaRefeicoes:
+            'Obs.: As quantidades de refeições descritas na tabela referem-se ao consumo...',
+          cronograma:
+            'Check-in: {checkinHora} do dia {checkinDataBr}.\nCheck-out: {checkoutHora} do dia {checkoutDataBr}.\n{mensagemHorasExtras}',
+          pagamento:
+            'Forma de Pagamento: Sinal de {sinalPercentual}% do valor total ({totalGeral})...',
           observacoes: 'Refeições: O café da manhã é cortesia da casa e já está incluso...',
           rodape: 'Setor de Reservas - Hotel Plaza',
         },

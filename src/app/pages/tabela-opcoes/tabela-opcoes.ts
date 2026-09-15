@@ -13,6 +13,7 @@ import { TooltipModule } from 'primeng/tooltip';
 
 // Services
 import { TarifaService } from '../../services/tarifa';
+import { ComodidadeService } from '../../services/comodidade';
 import { DateUtils } from '../../utils/date-utils';
 import { ConfiguracaoGeral } from '../../models/tarifa.model';
 import { MensagemUtils } from '../../utils/mensagem-utils';
@@ -64,6 +65,7 @@ export class TabelaOpcoesComponent implements OnInit {
 
   constructor(
     private tarifaService: TarifaService,
+    private comodidadeService: ComodidadeService,
     private messageService: MessageService,
     private cdr: ChangeDetectorRef,
     private router: Router,
@@ -337,13 +339,22 @@ export class TabelaOpcoesComponent implements OnInit {
 
   private comodidadesComuns(selecionados: CategoriaComSelecao[]): string[] {
     if (selecionados.length === 0) return [];
-    const comodidadesList = selecionados
-      .map((c) => c.comodidadesSelecionadas || [])
-      .filter((list) => list.length > 0);
-    if (comodidadesList.length === 0) return [];
 
-    // Apenas comodidades COMUNS a TODAS as UHs selecionadas (intersecção)
-    return comodidadesList.reduce((acc, curr) => acc.filter((c) => curr.includes(c)));
+    // Resolve os IDs de cada categoria para os nomes correspondentes.
+    const nomesPorCategoria = selecionados
+      .map((c) => this.comodidadeService.nomesDaCategoria(c, this.config))
+      .filter((list) => list.length > 0);
+    if (nomesPorCategoria.length === 0) return [];
+
+    // Apenas comodidades COMUNS a TODAS as UHs selecionadas (intersecção),
+    // comparando por nome canônico (minúsculas) — não por substring.
+    const primeira = nomesPorCategoria[0];
+    return primeira.filter((nome) => {
+      const chave = nome.toLowerCase();
+      return nomesPorCategoria.every((list) =>
+        list.some((n) => n.toLowerCase() === chave),
+      );
+    });
   }
 
   private aplicarPromocao(
