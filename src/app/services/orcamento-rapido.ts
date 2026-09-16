@@ -177,9 +177,10 @@ export class OrcamentoRapidoService {
     texto += `🛌 *Acomodação:* ${categoria.nome}\n`;
     if (categoria.descricao) texto += `✨ _${categoria.descricao}_\n`;
 
-    // Itens inclusos - combinar comodidades da categoria + globais do config
-    // Deduplicação por ID (não por substring), via ComodidadeService.
-    const todasComodidades = this.comodidadeService.comodidadesCombinadas(categoria, config);
+    // Itens inclusos = apenas as comodidades que esta UH possui.
+    // comodidades_globais é o catálogo mestre; cada UH marca as suas em
+    // comodidades_selecionadas. Exibir só as selecionadas (resolução id→nome).
+    const todasComodidades = this.comodidadeService.nomesDaCategoria(categoria, config);
 
     if (todasComodidades.length) {
       texto += `✅ *Itens inclusos:* ${todasComodidades.join(', ')}.\n\n`;
