@@ -131,8 +131,10 @@ export class TabelaPrecosComponent implements OnInit {
         prioridade = 2;
       }
 
-      // Combinar comodidades da categoria + globais com deduplicação por ID
-      const todasComodidades = this.comodidadeService.comodidadesCombinadas(cat, this.config());
+      // Itens inclusos = apenas as comodidades que esta UH possui.
+      // comodidades_globais é o catálogo mestre; cada UH marca as suas em
+      // comodidades_selecionadas. Exibir só as selecionadas (resolução id→nome).
+      const todasComodidades = this.comodidadeService.nomesDaCategoria(cat, this.config());
 
       grupos.push({
         prioridade,
