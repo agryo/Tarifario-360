@@ -3,6 +3,40 @@ import { ClientStrategy, CLIENT_STRATEGY } from './client-strategy';
 import { IOrcamentosOficiaisRepository } from './repository-interfaces';
 import { OrcamentoOficial } from '../../models/orcamento-oficial.model';
 
+/**
+ * Converte de forma defensiva um valor de data vindo do banco para um objeto Date válido.
+ * Aceita: Date, timestamp numérico, ISO ("2026-09-16T22:50:24Z") e formato PT-BR
+ * ("16/09/2026" ou "16/09/2026 14:00"). Nunca retorna "Invalid Date".
+ */
+function parseOrcamentoDate(valor: any): Date {
+  if (valor instanceof Date) return isNaN(valor.getTime()) ? new Date() : valor;
+  if (valor == null || valor === '') return new Date();
+  if (typeof valor === 'number') {
+    const d = new Date(valor);
+    return isNaN(d.getTime()) ? new Date() : d;
+  }
+  const texto = String(valor).trim();
+  const iso = new Date(texto);
+  if (!isNaN(iso.getTime())) return iso;
+
+  // Formato PT-BR: dd/mm/yyyy [HH:mm[:ss]]
+  const m = texto.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+  if (m) {
+    let ano = Number(m[3]);
+    if (ano < 100) ano += 2000;
+    return new Date(
+      ano,
+      Number(m[2]) - 1,
+      Number(m[1]),
+      m[4] ? Number(m[4]) : 0,
+      m[5] ? Number(m[5]) : 0,
+      m[6] ? Number(m[6]) : 0,
+    );
+  }
+  // Fallback seguro: evita Invalid Date para não quebrar o date pipe
+  return new Date();
+}
+
 @Injectable({ providedIn: 'root' })
 export class OrcamentosOficiaisRepository implements IOrcamentosOficiaisRepository {
   constructor(@Inject(CLIENT_STRATEGY) private strategy: ClientStrategy) {}
@@ -10,10 +44,11 @@ export class OrcamentosOficiaisRepository implements IOrcamentosOficiaisReposito
   private mapRow(row: any): OrcamentoOficial {
     return {
       ...row,
-      dataGeracao: new Date(row.data_geracao),
-      dataValidade: new Date(row.data_validade),
-      dataCheckin: new Date(row.data_checkin),
-      dataCheckout: new Date(row.data_checkout),
+      // Estratégia de dados retorna snake_case (direct) ou camelCase (api) - suporta ambas
+      dataGeracao: parseOrcamentoDate(row.data_geracao ?? row.dataGeracao),
+      dataValidade: parseOrcamentoDate(row.data_validade ?? row.dataValidade),
+      dataCheckin: parseOrcamentoDate(row.data_checkin ?? row.dataCheckin),
+      dataCheckout: parseOrcamentoDate(row.data_checkout ?? row.dataCheckout),
       itens: row.itens,
     };
   }
