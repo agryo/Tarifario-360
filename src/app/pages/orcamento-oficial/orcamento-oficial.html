@@ -425,40 +425,38 @@
     <p class="text-color-secondary">Nenhum orçamento salvo encontrado.</p>
   </div>
   <div *ngIf="orcamentosSalvos.length > 0" class="overflow-auto" style="max-height: 500px">
-    <table class="w-full border-collapse">
-      <thead>
-        <tr class="bg-surface-100">
-          <th class="p-2 text-left whitespace-nowrap">Título</th>
-          <th class="p-2 text-left whitespace-nowrap">Cliente</th>
-          <th class="p-2 text-left whitespace-nowrap">Período</th>
-          <th class="p-2 text-left whitespace-nowrap">Data Criação</th>
-          <th class="p-2 text-center whitespace-nowrap">Ações</th>
+    <p-table [value]="orcamentosSalvos" [showGridlines]="true" [stripedRows]="true" styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th class="whitespace-nowrap">Título</th>
+          <th class="whitespace-nowrap">Cliente</th>
+          <th class="whitespace-nowrap">Período</th>
+          <th class="whitespace-nowrap">Data Criação</th>
+          <th class="whitespace-nowrap text-center">Ações</th>
         </tr>
-      </thead>
-      <tbody>
-        <tr
-          *ngFor="let o of orcamentosSalvos"
-          (click)="selecionarOrcamentoSalvo(o)"
-          class="cursor-pointer hover:bg-surface-50"
-        >
-          <td class="p-2 whitespace-nowrap">{{ o.titulo }}</td>
-          <td class="p-2 whitespace-nowrap">{{ o.cliente }}</td>
-          <td class="p-2 whitespace-nowrap">
+      </ng-template>
+      <ng-template pTemplate="body" let-o>
+        <tr (click)="selecionarOrcamentoSalvo(o)" class="cursor-pointer hover:bg-surface-100">
+          <td class="whitespace-nowrap font-medium">{{ o.titulo }}</td>
+          <td class="whitespace-nowrap">{{ o.cliente }}</td>
+          <td class="whitespace-nowrap">
             {{ o.dataCheckin | date: 'dd/MM/yyyy' }} - {{ o.dataCheckout | date: 'dd/MM/yyyy' }}
           </td>
-
-          <td class="p-2 whitespace-nowrap">{{ o.dataGeracao | date: 'dd/MM/yyyy HH:mm' }}</td>
-          <td class="p-2 text-center whitespace-nowrap">
+          <td class="whitespace-nowrap">
+            {{ o.dataGeracao | date: 'dd/MM/yyyy HH:mm' }}
+          </td>
+          <td class="whitespace-nowrap text-center">
             <p-button
               icon="pi pi-trash"
               severity="danger"
               size="small"
+              rounded
               pTooltip="Excluir"
               (onClick)="excluirOrcamentoSalvo($event, o)"
             ></p-button>
           </td>
         </tr>
-      </tbody>
-    </table>
+      </ng-template>
+    </p-table>
   </div>
 </p-dialog>

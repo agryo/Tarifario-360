@@ -85,7 +85,7 @@ export class ApiClientStrategy extends ClientStrategy {
   }
 
   getCategoria(id: string): Promise<any | null> {
-    return this.request<any>(`/categorias/${id}`);
+    return this.request<any>(`/categorias?id=${encodeURIComponent(id)}`);
   }
 
   createCategoria(data: any): Promise<any> {
@@ -93,11 +93,11 @@ export class ApiClientStrategy extends ClientStrategy {
   }
 
   updateCategoria(id: string, data: any): Promise<any> {
-    return this.request<any>(`/categorias/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+    return this.request<any>(`/categorias?id=${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(data) });
   }
 
   deleteCategoria(id: string): Promise<void> {
-    return this.request<void>(`/categorias/${id}`, { method: 'DELETE' });
+    return this.request<void>(`/categorias?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
   }
 
   // Config Geral
@@ -124,7 +124,7 @@ export class ApiClientStrategy extends ClientStrategy {
   }
 
   getOrcamentoOficial(id: string): Promise<any | null> {
-    return this.request<any>(`/orcamentos-oficiais/${id}`);
+    return this.request<any>(`/orcamentos-oficiais?id=${encodeURIComponent(id)}`);
   }
 
   createOrcamentoOficial(data: any): Promise<any> {
@@ -132,11 +132,11 @@ export class ApiClientStrategy extends ClientStrategy {
   }
 
   updateOrcamentoOficial(id: string, data: any): Promise<any> {
-    return this.request<any>(`/orcamentos-oficiais/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+    return this.request<any>(`/orcamentos-oficiais?id=${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(data) });
   }
 
   deleteOrcamentoOficial(id: string): Promise<void> {
-    return this.request<void>(`/orcamentos-oficiais/${id}`, { method: 'DELETE' });
+    return this.request<void>(`/orcamentos-oficiais?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
   }
 
   // Criptografia

@@ -198,9 +198,9 @@ export class OrcamentoOficialComponent implements OnInit {
       let dataCheckin = orcamento.dataCheckin;
       let dataCheckout = orcamento.dataCheckout;
 
-      // Se já for um objeto Date, use diretamente; senão, parse como string BR
-      this.dataCheckin = dataCheckin instanceof Date ? dataCheckin : DateUtils.parseDataBR(String(dataCheckin));
-      this.dataCheckout = dataCheckout instanceof Date ? dataCheckout : DateUtils.parseDataBR(String(dataCheckout));
+      // Aceita Date, ISO string e string PT-BR
+      this.dataCheckin = DateUtils.parseFlexivel(dataCheckin);
+      this.dataCheckout = DateUtils.parseFlexivel(dataCheckout);
       this.horaEntrada = orcamento.horaEntrada || DateUtils.HORA_CHECKIN;
       this.horaSaida = orcamento.horaSaida || DateUtils.HORA_CHECKOUT;
 
@@ -885,9 +885,9 @@ export class OrcamentoOficialComponent implements OnInit {
 
       this.cliente = dados.cliente || '';
       this.temporada = (dados.temporada as 'auto' | 'baixa' | 'alta') || 'auto';
-      // Parse dates properly - handle both string and Date object cases
-      this.dataCheckin = dados.dataCheckin instanceof Date ? dados.dataCheckin : DateUtils.parseDataBR(String(dados.dataCheckin));
-      this.dataCheckout = dados.dataCheckout instanceof Date ? dados.dataCheckout : DateUtils.parseDataBR(String(dados.dataCheckout));
+      // Parse dates properly - handle Date, ISO string and PT-BR string formats
+      this.dataCheckin = DateUtils.parseFlexivel(dados.dataCheckin);
+      this.dataCheckout = DateUtils.parseFlexivel(dados.dataCheckout);
       this.horaEntrada = dados.horaEntrada || DateUtils.HORA_CHECKIN;
       this.horaSaida = dados.horaSaida || DateUtils.HORA_CHECKOUT;
       this.itens = dados.itens || [];

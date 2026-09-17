@@ -37,6 +37,40 @@ export class DateUtils {
     return new Date(ano, mes - 1, dia);
   }
 
+  /**
+   * Converte de forma defensiva um valor de data para Date válido.
+   * Aceita Date, timestamp numérico, ISO ("2026-09-16T22:50:24Z") e formato
+   * PT-BR ("16/09/2026" ou "16/09/2026 14:00"). Nunca retorna "Invalid Date".
+   */
+  static parseFlexivel(valor: any): Date {
+    if (valor instanceof Date) return isNaN(valor.getTime()) ? new Date() : valor;
+    if (valor == null || valor === '') return new Date();
+    if (typeof valor === 'number') {
+      const d = new Date(valor);
+      return isNaN(d.getTime()) ? new Date() : d;
+    }
+    const texto = String(valor).trim();
+    const iso = new Date(texto);
+    if (!isNaN(iso.getTime())) return iso;
+
+    // Formato PT-BR: dd/mm/yyyy [HH:mm[:ss]]
+    const m = texto.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+    if (m) {
+      let ano = Number(m[3]);
+      if (ano < 100) ano += 2000;
+      return new Date(
+        ano,
+        Number(m[2]) - 1,
+        Number(m[1]),
+        m[4] ? Number(m[4]) : 0,
+        m[5] ? Number(m[5]) : 0,
+        m[6] ? Number(m[6]) : 0,
+      );
+    }
+    // Fallback seguro: evita Invalid Date para não quebrar o date pipe/toISOString
+    return new Date();
+  }
+
   // ===== CÁLCULOS =====
   static calcularDiasEntre(data1: Date, data2: Date): number {
     const diff = data2.getTime() - data1.getTime();
