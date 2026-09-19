@@ -7,8 +7,10 @@ import { Pipe, PipeTransform } from '@angular/core';
 export class SubstituirPlaceholdersPipe implements PipeTransform {
   transform(texto: string, vars: { [key: string]: string }): string {
     if (!texto) return texto;
-    return texto.replace(/{(\w+)}/g, (match, chave) => {
+    const resultado = texto.replace(/{(\w+)}/g, (match, chave) => {
       return vars.hasOwnProperty(chave) ? vars[chave] : match;
     });
+    // Remove espaços duplos deixados por placeholders que resolvem para vazio
+    return resultado.replace(/ {2,}/g, ' ');
   }
 }

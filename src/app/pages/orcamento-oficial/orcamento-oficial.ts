@@ -19,6 +19,7 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 // Services
 import { TarifaService } from '../../services/tarifa';
 import { CriptografiaService } from '../../services/criptografia';
+import { ComodidadeService } from '../../services/comodidade';
 import { OrcamentoOficialService } from '../../services/orcamento-oficial';
 import { OrcamentoOficial } from '../../models/orcamento-oficial.model';
 import { ItemOrcamento } from '../../models/item-orcamento.model';
@@ -104,6 +105,7 @@ export class OrcamentoOficialComponent implements OnInit {
     private confirmationService: ConfirmationService,
     private impressaoService: ImpressaoService,
     private criptografia: CriptografiaService,
+    private comodidadeService: ComodidadeService,
     private orcamentoOficialService: OrcamentoOficialService,
     private progressService: ProgressService,
     private router: Router,
@@ -411,11 +413,48 @@ export class OrcamentoOficialComponent implements OnInit {
     return `${n} diária${n !== 1 ? 's' : ''}`;
   }
 
+  /**
+   * Refeições marcadas em pelo menos um item do orçamento, na ordem fixa.
+   * Retorna vazio se nenhuma refeição foi marcada.
+   */
+  private refeicoesMarcadas(): string[] {
+    const marcadas: string[] = [];
+    if (this.itens.some((i) => i.comCafe)) marcadas.push('café da manhã');
+    if (this.itens.some((i) => i.comAlmoco)) marcadas.push('almoço');
+    if (this.itens.some((i) => i.comJanta)) marcadas.push('jantar');
+    if (this.itens.some((i) => i.comLanche)) marcadas.push('lanche');
+    return marcadas;
+  }
+
+  /**
+   * Comodidades COMUNS a todas as categorias presentes nos itens do orçamento
+   * (interseção por nome canônico). Uma única categoria retorna todas as suas.
+   */
+  private comodidadesComunsNosItens(): string[] {
+    const categorias = this.itens
+      .map((item) => this.categorias().find((c) => c.id === item.categoriaId))
+      .filter((c): c is CategoriaComOrdenacao => !!c && !!c.numeros && c.numeros.length > 0);
+
+    const nomesPorCat = categorias
+      .map((c) => this.comodidadeService.nomesDaCategoria(c, this.config()))
+      .filter((list) => list.length > 0);
+
+    if (nomesPorCat.length === 0) return [];
+
+    const primeira = nomesPorCat[0];
+    return primeira.filter((nome) => {
+      const chave = nome.toLowerCase();
+      return nomesPorCat.every((list) => list.some((n) => n.toLowerCase() === chave));
+    });
+  }
+
   getPlaceholderVars(): { [key: string]: string } {
     const noites = this.noitesCalculadas;
     const noitesDesc = this.noitesDescricao;
     const cfg = this.config();
     const precosRefeicoes = cfg?.precos?.refeicoes || { almoco: 0, janta: 0, lanche: 0 };
+    const refeicoes = this.refeicoesMarcadas();
+    const comodidades = this.comodidadesComunsNosItens();
     const orcamentoConfig = cfg?.orcamento || {};
     const promocaoConfig = cfg?.promocao || {};
 
@@ -442,6 +481,9 @@ export class OrcamentoOficialComponent implements OnInit {
       }),
       sinalPercentual: (orcamentoConfig as any).sinalPercentual?.toString() || '50',
       temporada: this.temporada,
+      alimentos: refeicoes.length > 0 ? `com ${refeicoes.join(', ')}` : '',
+      comodidades:
+        comodidades.length > 0 ? `têm ${comodidades.join(', ')}` : '',
       horasExtras: this.horasExtras.toFixed(0),
       mensagemHorasExtras:
         this.horasExtras > 0
