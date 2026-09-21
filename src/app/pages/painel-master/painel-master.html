@@ -486,7 +486,7 @@
             >
               <div class="grid">
                 <div class="col-12 md:col-6">
-                  <strong class="text-primary">Placeholders:</strong>
+                  <strong class="text-primary">Placeholders (dados da reserva):</strong>
                   <ul class="list-none p-0 m-0 mt-2">
                     <li>
                       <code>{{ '{' }}cliente{{ '}' }}</code> – Nome do cliente
@@ -518,19 +518,10 @@
                     <li>
                       <code>{{ '{' }}valorLanche{{ '}' }}</code> – Valor do lanche
                     </li>
-                    <li>
-                      <code>{{ '{' }}alimentos{{ '}' }}</code> – Refeições marcadas nos itens
-                      (ex.: "com café da manhã, almoço"); se nenhuma marcada, fica vazio
-                    </li>
-                    <li>
-                      <code>{{ '{' }}comodidades{{ '}' }}</code> – Comodidades comuns a todos os
-                      apartamentos do orçamento (ex.: "têm Wi-Fi, TV"); se não houver comum, fica
-                      vazio
-                    </li>
                   </ul>
                 </div>
                 <div class="col-12 md:col-6">
-                  <strong class="text-primary">Outros placeholders:</strong>
+                  <strong class="text-primary">Outros placeholders (sistema/promoção):</strong>
                   <ul class="list-none p-0 m-0 mt-2">
                     <li>
                       <code>{{ '{' }}sinalPercentual{{ '}' }}</code> – % de sinal
@@ -552,6 +543,14 @@
                     </li>
                     <li>
                       <code>{{ '{' }}temporada{{ '}' }}</code> – Temporada selecionada
+                    </li>
+                    <li>
+                      <code>{{ '{' }}alimentos{{ '}' }}</code> – Refeições marcadas nos itens
+                      (ex.: "com café da manhã, almoço"); se nenhuma, fica vazio
+                    </li>
+                    <li>
+                      <code>{{ '{' }}comodidades{{ '}' }}</code> – Comodidades comuns a todos os
+                      aptos (ex.: "têm Wi-Fi, TV"); se não houver comum, fica vazio
                     </li>
                   </ul>
                 </div>
