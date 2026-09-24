@@ -257,6 +257,20 @@ export class DirectClientStrategy extends ClientStrategy {
       promocao: this.toCamelCase(data.promocao),
       seguranca: hasSegurancaData ? this.toCamelCase(rawSeguranca) : { senhaHash: '', senhaSalt: '' },
       orcamento: this.toCamelCase(data.orcamento),
+      empresa: data.empresa ? this.toCamelCase(data.empresa) : {
+        nomeFantasia: '',
+        razaoSocial: '',
+        cnpj: '',
+        telefone: '',
+        email: '',
+        endereco: '',
+        numero: '',
+        bairro: '',
+        cidade: '',
+        uf: '',
+        cep: '',
+        logo: '',
+      },
       criado_em: data.criado_em,
       atualizado_em: data.atualizado_em,
     };
@@ -280,6 +294,7 @@ export class DirectClientStrategy extends ClientStrategy {
       promocao: this.toSnakeCase(config.promocao),
       seguranca: this.toSnakeCase(config.seguranca ?? { senhaHash: '', senhaSalt: '' }),
       orcamento: this.toSnakeCase(config.orcamento),
+      empresa: config.empresa ? this.toSnakeCase(config.empresa) : null,
       criado_em: config.criado_em,
       atualizado_em: config.atualizado_em,
     };
