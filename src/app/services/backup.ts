@@ -274,6 +274,7 @@ export class BackupService {
         promocao: toSnakeCase(config.promocao),
         seguranca: toSnakeCase(config.seguranca || { senhaHash: '', senhaSalt: '' }),
         orcamento: toSnakeCase(config.orcamento),
+        empresa: config.empresa ? toSnakeCase(config.empresa) : null,
       });
       if (error) throw error;
     }

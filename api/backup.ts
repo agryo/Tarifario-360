@@ -37,6 +37,20 @@ function mapConfigGeral(row: any) {
     promocao: toCamelCase(row.promocao),
     seguranca: hasSegurancaData ? toCamelCase(rawSeguranca) : { senhaHash: '', senhaSalt: '' },
     orcamento: toCamelCase(row.orcamento),
+    empresa: row.empresa ? toCamelCase(row.empresa) : {
+      nomeFantasia: '',
+      razaoSocial: '',
+      cnpj: '',
+      telefone: '',
+      email: '',
+      endereco: '',
+      numero: '',
+      bairro: '',
+      cidade: '',
+      uf: '',
+      cep: '',
+      logo: '',
+    },
     criado_em: row.criado_em,
     atualizado_em: row.atualizado_em,
   };
@@ -114,6 +128,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           promocao: toSnakeCase(config.promocao),
           seguranca: toSnakeCase(config.seguranca || { senhaHash: '', senhaSalt: '' }),
           orcamento: toSnakeCase(config.orcamento),
+          empresa: config.empresa ? toSnakeCase(config.empresa) : null,
         });
         if (error) throw error;
       }
