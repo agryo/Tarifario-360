@@ -34,6 +34,21 @@ export interface ConfigTextosOrcamento {
   rodape: string;
 }
 
+export interface ConfigEmpresa {
+  nomeFantasia: string;   // "Hotel Plaza" (nome comercial/fantasia)
+  razaoSocial: string;    // "A. M. da Silva Hotel Plaza LTDA" (nome jurídico)
+  cnpj: string;           // "62.546.482/0001-37"
+  telefone: string;       // "(84) 99180-1306"
+  email: string;          // "reservas@hotelplaza.com.br"
+  endereco: string;       // "Rodovia RN 288, 91"
+  numero: string;         // "91"
+  bairro: string;         // "Centro"
+  cidade: string;         // "Cruzeta"
+  uf: string;             // "RN"
+  cep: string;            // "59395-000"
+  logo?: string;          // Base64 da logo (SVG/PNG/JPG) ou caminho da imagem
+}
+
 export interface ConfiguracaoGeral {
   // Configurações gerais de nível superior
   festividade: string;
@@ -67,6 +82,7 @@ export interface ConfiguracaoGeral {
     textos: ConfigTextosOrcamento;
     sinalPercentual: number;
   };
+  empresa: ConfigEmpresa;  // NOVO: dados da empresa/hotel
   criado_em?: string;
   atualizado_em?: string;
 }

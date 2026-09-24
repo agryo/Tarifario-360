@@ -110,6 +110,8 @@ export const PRINT_HEADER_CSS = /* css */ `
 
   .hotel-info-doc {
     text-align: right;
+    flex: 1;
+    min-width: 0;
   }
 
   .hotel-info-doc h1 {
@@ -117,6 +119,9 @@ export const PRINT_HEADER_CSS = /* css */ `
     color: #075e54;
     font-size: 15px;
     font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .hotel-info-doc p {
@@ -124,6 +129,9 @@ export const PRINT_HEADER_CSS = /* css */ `
     font-size: 10pt;
     color: #555;
     line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .titulo-documento {
@@ -193,6 +201,47 @@ export const IMPRESSAO_ORCAMENTO_CSS = /* css */ `
   }
 
   /* ===== ESTILOS ESPECÍFICOS DO ORÇAMENTO OFICIAL ===== */
+
+  /* Cabeçalho do documento (logo + info do hotel) */
+  #documento-impressao .header-doc {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #075e54;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+  }
+
+  #documento-impressao .logo-container img {
+    max-width: 80px;
+    height: auto;
+  }
+
+  #documento-impressao .hotel-info-doc {
+    text-align: right;
+    flex: 1;
+    min-width: 0;
+  }
+
+  #documento-impressao .hotel-info-doc h1 {
+    margin: 0;
+    color: #075e54;
+    font-size: 15px;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  #documento-impressao .hotel-info-doc p {
+    margin: 0;
+    font-size: 9px;
+    color: #555;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
   /* Título do orçamento (o HTML usa .titulo-orcamento) */
   #documento-impressao .titulo-orcamento {

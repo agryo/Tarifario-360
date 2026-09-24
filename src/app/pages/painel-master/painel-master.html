@@ -43,19 +43,20 @@
 <div *ngIf="autenticado">
   <p-tabs value="0">
     <p-tablist>
-      <p-tab value="0">📋 Tarifário</p-tab>
-      <p-tab value="1">🛏️ UHs</p-tab>
-      <p-tab value="2">🎁 Promoções</p-tab>
-      <p-tab value="3">⏰ Horários</p-tab>
-      <p-tab value="4">📝 Textos do Orçamento</p-tab>
-      <p-tab value="5">🌙 Escala</p-tab>
-      <p-tab value="6">🔐 Segurança</p-tab>
-      <p-tab value="7">💾 Backup</p-tab>
+      <p-tab value="0">🏨 Empresa</p-tab>
+      <p-tab value="1">📋 Tarifário</p-tab>
+      <p-tab value="2">🛏️ UHs</p-tab>
+      <p-tab value="3">🎁 Promoções</p-tab>
+      <p-tab value="4">⏰ Horários</p-tab>
+      <p-tab value="5">📝 Textos do Orçamento</p-tab>
+      <p-tab value="6">🌙 Escala</p-tab>
+      <p-tab value="7">🔐 Segurança</p-tab>
+      <p-tab value="8">💾 Backup</p-tab>
     </p-tablist>
 
     <p-tabpanels>
       <!-- ===== TAB 0: TARIFÁRIO ===== -->
-      <p-tabpanel value="0">
+      <p-tabpanel value="1">
         <!-- Configurações do topo -->
         <div class="grid mb-3">
           <div class="col-12 md:col-4">
@@ -143,7 +144,7 @@
       </p-tabpanel>
 
       <!-- ===== TAB 1: UHs ===== -->
-      <p-tabpanel value="1">
+      <p-tabpanel value="2">
         <!-- Qtd. Total de UHs -->
         <div class="grid mb-3">
           <div class="col-12 md:col-3">
@@ -257,7 +258,7 @@
       </p-tabpanel>
 
       <!-- ===== TAB 2: PROMOÇÕES ===== -->
-      <p-tabpanel value="2">
+      <p-tabpanel value="3">
         <div class="grid">
           <div class="col-12">
             <div class="field-checkbox mb-3">
@@ -354,7 +355,7 @@
       </p-tabpanel>
 
       <!-- ===== TAB 3: HORÁRIOS ===== -->
-      <p-tabpanel value="3">
+      <p-tabpanel value="4">
         <div class="grid">
           <div class="col-12 md:col-3">
             <div class="field">
@@ -475,7 +476,7 @@
       </p-tabpanel>
 
       <!-- ===== TAB 4 TEXTOS DO ORÇAMENTO ===== -->
-      <p-tabpanel value="4">
+      <p-tabpanel value="5">
         <div class="grid">
           <!-- Caixa de ajuda colapsável com placeholders (Fieldset) -->
           <div class="col-12">
@@ -708,7 +709,7 @@
       </p-tabpanel>
 
       <!-- ===== TAB 5: ESCALA ===== -->
-      <p-tabpanel value="5">
+      <p-tabpanel value="6">
         <div class="grid">
           <div class="col-12 md:col-6">
             <div class="field">
@@ -790,7 +791,7 @@
       </p-tabpanel>
 
       <!-- ===== TAB 6: SEGURANÇA ===== -->
-      <p-tabpanel value="6">
+      <p-tabpanel value="7">
         <div class="grid">
           <div class="col-12 md:col-6">
             <p-card header="🔐 Senha de Acesso">
@@ -904,7 +905,7 @@
       </p-tabpanel>
 
       <!-- ===== TAB 7: BACKUP ===== -->
-      <p-tabpanel value="7">
+      <p-tabpanel value="8">
         <div class="grid">
           <!-- Exportar backup novo formato -->
           <div class="col-12 md:col-6">
@@ -961,6 +962,97 @@
           </div>
         </div>
       </p-tabpanel>
+
+      <!-- ===== TAB 8: EMPRESA ===== -->
+      <p-tabpanel value="0">
+        <div class="grid">
+          <div class="col-12">
+            <p-card header="🏨 Dados da Empresa / Hotel">
+              <p class="text-secondary mb-4">
+                Estas informações aparecem nos orçamentos, contratos e mensagens de WhatsApp.
+              </p>
+              <div class="grid mb-3">
+                <div class="col-12 md:col-4">
+                  <label>Logo da Empresa</label>
+                  <div class="flex align-items-center gap-3">
+                    <p-fileUpload
+                      mode="basic"
+                      chooseLabel="Selecionar"
+                      accept="image/*"
+                      maxFileSize="1000000"
+                      (onSelect)="onLogoSelect($event)"
+                      [disabled]="logoUploading"
+                      [customUpload]="true"
+                    ></p-fileUpload>
+                    <div *ngIf="config.empresa.logo" class="flex align-items-center gap-2">
+                      <img [src]="config.empresa.logo" alt="Logo" style="max-width: 60px; height: auto;" />
+                      <p-button
+                        icon="pi pi-trash"
+                        severity="danger"
+                        size="small"
+                        (click)="removerLogo()"
+                        pTooltip="Remover logo"
+                      ></p-button>
+                    </div>
+                  </div>
+                  <small class="text-secondary">SVG, PNG ou JPG - máx. 1MB. Quadrada e fundo transparente recomendados.</small>
+                </div>
+              </div>
+              <div class="grid mb-3">
+                <div class="col-12 md:col-6">
+                  <label>Nome Fantasia (ex: Hotel Plaza)</label>
+                  <input type="text" pInputText [(ngModel)]="config.empresa.nomeFantasia" class="w-full" />
+                </div>
+                <div class="col-12 md:col-6">
+                  <label>Razão Social</label>
+                  <input type="text" pInputText [(ngModel)]="config.empresa.razaoSocial" class="w-full" />
+                </div>
+              </div>
+              <div class="grid mb-3">
+                <div class="col-12 md:col-3">
+                  <label>CNPJ</label>
+                  <input type="text" pInputText [(ngModel)]="config.empresa.cnpj" class="w-full" placeholder="00.000.000/0000-00" />
+                </div>
+                <div class="col-12 md:col-5">
+                  <label>E-mail</label>
+                  <input type="email" pInputText [(ngModel)]="config.empresa.email" class="w-full" />
+                </div>
+                <div class="col-12 md:col-2">
+                  <label>Telefone</label>
+                  <input type="text" pInputText [(ngModel)]="config.empresa.telefone" class="w-full" placeholder="(00) 00000-0000" />
+                </div>
+                <div class="col-12 md:col-2">
+                  <label>CEP</label>
+                  <input type="text" pInputText [(ngModel)]="config.empresa.cep" class="w-full" placeholder="00000-000" />
+                </div>
+              </div>
+              <div class="grid mb-3">
+                <div class="col-12 md:col-5">
+                  <label>Endereço</label>
+                  <input type="text" pInputText [(ngModel)]="config.empresa.endereco" class="w-full" />
+                </div>
+                <div class="col-12 md:col-1">
+                  <label>Número</label>
+                  <input type="text" pInputText [(ngModel)]="config.empresa.numero" class="w-full" />
+                </div>
+                <div class="col-12 md:col-2">
+                  <label>Bairro</label>
+                  <input type="text" pInputText [(ngModel)]="config.empresa.bairro" class="w-full" />
+                </div>
+                <div class="col-12 md:col-3">
+                  <label>Cidade</label>
+                  <input type="text" pInputText [(ngModel)]="config.empresa.cidade" class="w-full" />
+                </div>
+                <div class="col-12 md:col-1">
+                  <label>UF</label>
+                  <input type="text" pInputText [(ngModel)]="config.empresa.uf" class="w-full" maxlength="2" style="text-transform: uppercase" />
+                </div>
+              </div>
+            </p-card>
+          </div>
+        </div>
+      </p-tabpanel>
+
     </p-tabpanels>
   </p-tabs>
 

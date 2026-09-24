@@ -20,6 +20,7 @@ export class ConfigGeralRepository implements IConfigGeralRepository {
       promocao: row.promocao,
       seguranca: hasSegurancaData ? row.seguranca : { senhaHash: '', senhaSalt: '' },
       orcamento: row.orcamento,
+      empresa: row.empresa,
       criado_em: row.criado_em,
       atualizado_em: row.atualizado_em,
     };
@@ -36,6 +37,7 @@ export class ConfigGeralRepository implements IConfigGeralRepository {
     if (config.promocao !== undefined) result.promocao = config.promocao;
     if (config.seguranca !== undefined) result.seguranca = config.seguranca;
     if (config.orcamento !== undefined) result.orcamento = config.orcamento;
+    if (config.empresa !== undefined) result.empresa = config.empresa;
     return result;
   }
 

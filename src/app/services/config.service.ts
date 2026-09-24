@@ -48,6 +48,7 @@ export class ConfigService {
           promocao: { ...defaults.promocao, ...config.promocao },
           seguranca,
           orcamento: { ...defaults.orcamento, ...config.orcamento, textos: { ...defaults.orcamento.textos, ...(config.orcamento?.textos || {}) } },
+          empresa: { ...defaults.empresa, ...config.empresa },
         };
       }
       // No config in Supabase (empty table) - return defaults, DON'T fall back to localStorage
@@ -111,6 +112,20 @@ export class ConfigService {
           },
           sinalPercentual: config.orcSinalPercentual,
         },
+        empresa: {
+          nomeFantasia: 'Hotel Plaza',
+          razaoSocial: 'A. M. da Silva Hotel Plaza LTDA',
+          cnpj: '62.546.482/0001-37',
+          telefone: '(84) 99180-1306',
+          email: 'reservas@hotelplaza.com.br',
+          endereco: 'Rodovia RN 288',
+          numero: '91',
+          bairro: 'Centro',
+          cidade: 'Cruzeta',
+          uf: 'RN',
+          cep: '59395-000',
+          logo: '',
+        },
       };
     }
     return config as ConfiguracaoGeral;
@@ -173,6 +188,20 @@ export class ConfigService {
           rodape: 'Setor de Reservas - Hotel Plaza',
         },
         sinalPercentual: 50,
+      },
+      empresa: {
+        nomeFantasia: 'Hotel Plaza',
+        razaoSocial: 'A. M. da Silva Hotel Plaza LTDA',
+        cnpj: '62.546.482/0001-37',
+        telefone: '(84) 99180-1306',
+        email: 'reservas@hotelplaza.com.br',
+        endereco: 'Rodovia RN 288',
+        numero: '91',
+        bairro: 'Centro',
+        cidade: 'Cruzeta',
+        uf: 'RN',
+        cep: '59395-000',
+        logo: '',
       },
     };
   }

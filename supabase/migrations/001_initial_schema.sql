@@ -1,35 +1,58 @@
 -- =====================================================
--- MIGRATION 001 - SCHEMA ATUAL (reflete o banco real)
+-- MIGRATION 001 - SCHEMA INICIAL DO TARIFARIO-360
 -- =====================================================
--- Estado atual das 5 tabelas do Supabase. Este arquivo é a FONTE DE
--- VERDADE para consultas de IA e NÃO é executado automaticamente no
--- banco — alterações estruturais devem ser aplicadas manualmente no
--- SQL Editor do Supabase.
+-- 📋 PARA QUE SERVE ESTE ARQUIVO:
+--    Cria TODAS as tabelas, índices, constraints e políticas de segurança (RLS)
+--    necessárias para o Tarifário-360 funcionar do zero em um projeto Supabase novo.
 --
--- Tabelas:
---   categorias, chaves_criptografia, config_geral, escala_config,
---   orcamentos_oficiais.
+-- 🚀 COMO USAR:
+--    1. Crie um novo projeto no Supabase (https://supabase.com/dashboard)
+--    2. Vá em "SQL Editor" → "New query"
+--    3. Copie e cole TODO o conteúdo deste arquivo
+--    4. Clique em "Run" (ou Ctrl+Enter)
+--    5. Pronto! O banco está criado e seguro.
 --
--- DESIGN DAS COMODIDADES (Caminho B simplificado):
---   - `config_geral.comodidades_globais` (jsonb) é a fonte de verdade
---     dos RÓTULOS: array de `{ id, nome }`, onde `id` é um UUID
---     estável e `nome` é o texto editável. Renomear uma comodidade
---     muda apenas `nome`; o `id` permanece → NÃO quebra o vínculo.
---   - `categorias.comodidades_selecionadas` (text[]) guarda apenas os
---     IDs das comodidades escolhidas por cada UH. A resolução id→nome
---     é feita no frontend olhando para `comodidades_globais`.
---   - NÃO existe tabela `comodidades` separada. `ordem`, `criado_em`,
---     `atualizado_em` e `ativo` foram intencionalmente OMITIDOS: a
---     ordem de exibição não precisa ser persistida (é derivável, ex.
---     alfabética por `nome`) e o estado "ativo/selecionado" vive em
---     cada UH via `comodidades_selecionadas` (um único lugar de verdade).
+-- ⚠️  IMPORTANTE:
+--    - Este arquivo DEVE ser executado em banco VAZIO (sem tabelas).
+--    - Se já houver dados, NÃO execute — use migrações incrementais.
+--    - Após rodar, o frontend (Angular) popula automaticamente os dados padrão
+--      na primeira vez que abrir (config_geral, 2 categorias exemplo, escala).
 --
--- IMPORTANTE SOBRE O ACESSO (RLS):
---   - role `anon`  -> apenas SELECT (leitura). O app usa este role
---     para consultas no frontend (postgREST).
---   - role `service_role` (usado pela API Vercel) ignora RLS e faz
---     INSERT/UPDATE/DELETE. NÃO precisa de policy.
+-- 📦 TABELAS CRIADAS (5):
+--    1. config_geral          → Configuração global do hotel (uma linha só)
+--    2. categorias            → Tipos de quartos/UHs (várias linhas)
+--    3. orcamentos_oficiais   → Orçamentos formais salvos (PDF, grupos, eventos)
+--    4. escala_config         → Configuração da escala noturna (uma linha)
+--    5. chaves_criptografia   → Chaves para criptografia de dados sensíveis
+--
+-- 🔧 DESIGN DAS COMODIDADES (Caminho B simplificado):
+--    - NÃO há tabela "comodidades" separada (simplificação intencional).
+--    - config_geral.comodidades_globais (jsonb) = CATÁLOGO MESTRE
+--        Array de objetos: [{ "id": "uuid-estavel", "nome": "Frigobar" }, ...]
+--        O "id" é um UUID determinístico (SHA-256 do nome normalizado).
+--        Renomear uma comodidade muda só o "nome"; o "id" NÃO muda.
+--    - categorias.comodidades_selecionadas (text[]) = SELEÇÃO POR UH
+--        Guarda apenas os IDs: ["uuid-frigobar", "uuid-tv", ...]
+--        A resolução ID→Nome é feita no frontend lendo comodidades_globais.
+--    - Vantagem: zero joins, zero FKs, frontend resolve tudo em memória.
+--    - Campos omitidos intencionalmente: ordem, criado_em, atualizado_em, ativo.
+--      A ordem de exibição é derivável (ex: alfabética por nome).
+--      O estado "selecionado" vive só em cada UH (comodidades_selecionadas).
+--
+-- 🔐 SEGURANÇA (RLS - Row Level Security):
+--    - TODAS as tabelas têm RLS habilitado.
+--    - Role `anon` (frontend via postgREST): APENAS SELECT (leitura).
+--    - Role `service_role` (API Vercel / backend): IGNORA RLS → faz INSERT/UPDATE/DELETE.
+--    - NÃO crie policies de escrita para `anon` — o frontend NÃO escreve direto no banco.
+--    - A API Vercel (serverless functions) usa service_role key nas variáveis de ambiente.
+--
+-- 🔑 EXTENSÕES NECESSÁRIAS:
+--    - pgcrypto: para gen_random_uuid() e digest() (hash SHA-256).
+--      Já vem habilitada por padrão no Supabase, mas o CREATE EXTENSION é idempotente.
 -- =====================================================
+
+-- Pré-requisito: extensão para geração de UUIDs e hash
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- =====================================================
 -- 1. TABELAS
@@ -46,6 +69,7 @@ CREATE TABLE IF NOT EXISTS config_geral (
     promocao            jsonb NOT NULL,
     seguranca           jsonb NOT NULL,
     orcamento           jsonb NOT NULL,
+    empresa             jsonb,
     criado_em           timestamp with time zone DEFAULT now(),
     atualizado_em       timestamp with time zone DEFAULT now()
 );
@@ -135,153 +159,25 @@ CREATE POLICY "anon_select_chaves_criptografia" ON chaves_criptografia
     FOR SELECT TO anon USING (true);
 
 -- =====================================================
--- 3. MIGRAÇÃO PENDENTE (aplicar manualmente no Supabase)
+-- 3. DADOS INICIAIS (OPCIONAL - rodar após criar tabelas)
 -- =====================================================
--- NOTA: o banco REAL ainda está com `comodidades_globais` como `text`
--- (CSV separado por vírgula) e `comodidades_selecionadas` com os NOMES
--- das comodidades (textualmente). Para migrar para o design acima,
--- rodar os passos abaixo NO SQL EDITOR do Supabase, NA ORDEM.
+-- Inserir registro inicial em config_geral com valores padrão
+-- O frontend já popula com defaults se a tabela estiver vazia,
+-- mas isso garante que a linha exista para o RLS funcionar.
 --
--- PRÉ-REQUISITO (obrigatório, rodar ANTES de qualquer passo):
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
--- O ID de cada comodidade é gerado pelo MESMO algoritmo determinístico do
--- frontend (ComodidadeService.idEstavel): SHA-256 do nome normalizado
--- (trim + lowercase), primeiros 128 bits (32 hex chars), formatado como
--- UUID v4 com versão '4' e variante '8'. Isso garante que o mesmo nome
--- produza o mesmo UUID no banco E no frontend — preservando o vínculo
--- UH ↔ comodidade sem depender de um gerador aleatório (gen_random_uuid()).
---
--- =====================================================
--- PASSO 1 — Converter comodidades_globais de text CSV → jsonb array {id, nome}
--- =====================================================
--- A função auxiliar `id_estavel(text)` replica o idEstavel do frontend:
---   h      = primeiros 32 hex chars do sha256(trim(lower(nome)))
---   timeLow = h[ 1.. 8]   timeMid = h[ 9..12]
---   timeHiAndVersion = '4' + h[14..16]
---   clockSeqHiVariant = '8' + h[18..20]
---   node   = h[21..32]
---
-CREATE OR REPLACE FUNCTION id_estavel(nome text)
-RETURNS text
-LANGUAGE plpgsql
-IMMUTABLE
-AS $$
-DECLARE
-  norm text := btrim(lower(coalesce(nome, '')));
-  h    text;
-BEGIN
-  IF norm = '' THEN
-    RETURN '00000000-0000-4000-8000-000000000000';
-  END IF;
-
-  -- h = primeiros 32 hex chars do sha256(norm). digest() retorna bytea de 32
-  -- bytes (64 hex chars); encode(...,'hex') dá minúsculas; left(...) pega 32.
-  h := left(encode(digest(norm, 'sha256'), 'hex'), 32);
-
-  -- Mesma estrutura de src: timeLow-timeMid-timeHiAndVersion-clockSeq-node
-  RETURN substr(h,  1, 8) || '-' ||
-         substr(h,  9, 4) || '-4' ||
-         substr(h, 14, 3) || '-8' ||
-         substr(h, 18, 3) || '-' ||
-         substr(h, 21, 12);
-END;
-$$;
-
--- Helper: converte o CSV legado de comodidades_globais em jsonb array {id, nome}.
--- Precisa ser uma FUNÇÃO e não um subquery inline, pois o PostgreSQL NÃO permite
--- subquery na expressão USING de um ALTER COLUMN TYPE ("cannot use subquery in
--- transform expression"). A função chama id_estavel() mantendo a paridade com o
--- frontend.
-CREATE OR REPLACE FUNCTION csv_comodidades_para_jsonb(csv text)
-RETURNS jsonb
-LANGUAGE plpgsql
-IMMUTABLE
-AS $$
-DECLARE
-  resultado jsonb;
-BEGIN
-  IF csv IS NULL OR btrim(csv) = '' THEN
-    RETURN '[]'::jsonb;
-  END IF;
-
-  SELECT to_jsonb(array_agg(
-           jsonb_build_object('id', id_estavel(btrim(item)), 'nome', btrim(item))
-           ORDER BY btrim(item)))
-  FROM unnest(string_to_array(csv, ',')) AS item
-  WHERE btrim(item) <> ''
-  INTO resultado;
-
-  RETURN COALESCE(resultado, '[]'::jsonb);
-END;
-$$;
-
--- Converte a coluna (somente se ainda for text — idempotente). A conversão usa
--- a função acima para que os UUIDs sejam estáveis e idênticos aos do frontend.
--- Usamos um bloco DO em vez de ALTER direto, pois o SQL Editor do Supabase reverte
--- o script em transação quando algum statement falha — e o tipo só deve ser trocado
--- caso a coluna realmente ainda seja 'text' (não é seguro reaplicar ALTER em jsonb).
-DO $$
-BEGIN
-  IF EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_name = 'config_geral'
-      AND column_name = 'comodidades_globais'
-      AND data_type <> 'jsonb'
-  ) THEN
-    EXECUTE 'ALTER TABLE config_geral
-             ALTER COLUMN comodidades_globais TYPE jsonb
-             USING (csv_comodidades_para_jsonb(comodidades_globais))';
-  END IF;
-END $$;
+-- INSERT INTO config_geral (festividade, total_uhs, precos, temporada, horarios, promocao, seguranca, orcamento, empresa)
+-- VALUES (
+--   '🎊 Evento Especial',
+--   50,
+--   '{"refeicoes": {"almoco": 45, "janta": 55, "lanche": 25}, "kwh": 0.89}',
+--   '{"altaInicio": "2026-01-01", "altaFim": "2026-12-31"}',
+--   '{"cafe": {"inicio": "07:00", "fim": "10:00", "ativo": true}, "almoco": {"inicio": "12:00", "fim": "14:00", "ativo": true}, "lanche": {"inicio": "15:00", "fim": "17:00", "ativo": true}, "jantar": {"inicio": "19:00", "fim": "21:00", "ativo": true}}',
+--   '{"ativa": false, "desconto": 15, "minDiarias": 3, "texto": "Pagamento integral via Pix ou Dinheiro", "somenteAlta": true, "msgBaixa": false}',
+--   '{"senhaHash": "", "senhaSalt": ""}',
+--   '{"textos": {"titulo": "Orçamento de Hospedagem", "configTitulo": "1. Configuração de Acomodação e Valores", "configDescricao": "A proposta contempla a estadia com café da manhã incluso...", "notaRefeicoes": "Obs.: As quantidades de refeições descritas na tabela referem-se ao consumo...", "cronograma": "Check-in: {checkinHora} do dia {checkinDataBr}.\nCheck-out: {checkoutHora} do dia {checkoutDataBr}.\n{mensagemHorasExtras}", "pagamento": "Forma de Pagamento: Sinal de {sinalPercentual}% do valor total ({totalGeral})...", "observacoes": "Refeições: O café da manhã é cortesia da casa e já está incluso...", "rodape": "Setor de Reservas - Meu Hotel"}, "sinalPercentual": 50}',
+--   '{"nomeFantasia": "Meu Hotel", "razaoSocial": "Meu Hotel LTDA", "cnpj": "00.000.000/0000-00", "telefone": "(00) 00000-0000", "email": "contato@meuhotel.com.br", "endereco": "Rua Exemplo", "numero": "123", "bairro": "Centro", "cidade": "Cidade Exemplo", "uf": "XX", "cep": "00000-000", "logo": ""}'
+-- );
 
 -- =====================================================
--- PASSO 2 — Normalizar categorias.comodidades_selecionadas (nome → id)
--- =====================================================
--- Configura FK-style link: não há FK real, a resolução é por JSONB. Aqui
--- substituímos cada NOME legado pelo ID estável correspondente, olhando
--- para comodidades_globais. Nomes sem correspondência são preservados
--- (o frontend os ignora), evitando perda silenciosa de dados.
---
-UPDATE categorias c
-SET comodidades_selecionadas = (
-  SELECT array_agg(
-           COALESCE(
-             (SELECT g.value ->> 'id'
-              FROM config_geral cg
-              CROSS JOIN LATERAL jsonb_array_elements(cg.comodidades_globais) AS g
-              WHERE lower(btrim(g.value ->> 'nome')) = lower(btrim(nome_item))
-              LIMIT 1),
-             nome_item
-           )
-         )
-  FROM unnest(c.comodidades_selecionadas) AS nome_item
-)
-WHERE c.comodidades_selecionadas IS NOT NULL
-  AND EXISTS (
-    SELECT 1 FROM config_geral
-    WHERE jsonb_typeof(comodidades_globais) = 'array'
-      AND jsonb_array_length(comodidades_globais) > 0
-  );
-
--- =====================================================
--- PASSO 3 — Aplicar NOT NULL (com DEFAULT) em config_geral
--- =====================================================
--- ATENÇÃO: antes de rodar, backfill os NULLs existentes:
-UPDATE config_geral
-  SET festividade = COALESCE(festividade, ''),
-      total_uhs   = COALESCE(total_uhs, 0);
-
-ALTER TABLE config_geral
-  ALTER COLUMN festividade SET NOT NULL,
-  ALTER COLUMN festividade SET DEFAULT '',
-  ALTER COLUMN total_uhs SET NOT NULL,
-  ALTER COLUMN total_uhs SET DEFAULT 0;
--- `comodidades_globais` permanece nullable (decisão do usuário).
---
--- Os demais campos jsonb (precos, temporada, horarios, promocao,
--- seguranca, orcamento) JÁ são NOT NULL no banco real — nada a fazer.
---
--- O código do frontend DEVE suportar ambos os formatos (nome legado e
--- id novo) até que a migração esteja completa.
+-- FIM DO SCHEMA INICIAL
 -- =====================================================

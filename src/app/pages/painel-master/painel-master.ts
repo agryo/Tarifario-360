@@ -27,6 +27,7 @@ import { DividerModule } from 'primeng/divider';
 import { FieldsetModule } from 'primeng/fieldset';
 import { DatePickerModule } from 'primeng/datepicker';
 import { TextareaModule } from 'primeng/textarea';
+import { FileUploadModule } from 'primeng/fileupload';
 
 // Services
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -63,6 +64,7 @@ import { DateUtils } from '../../utils/date-utils';
     FieldsetModule,
     DatePickerModule,
     TextareaModule,
+    FileUploadModule,
   ],
   providers: [ConfirmationService],
   templateUrl: './painel-master.html',
@@ -133,6 +135,20 @@ export class PainelMasterComponent implements OnInit, OnChanges {
         },
         sinalPercentual: 50,
       },
+      empresa: {
+        nomeFantasia: 'Hotel Plaza',
+        razaoSocial: 'A. M. da Silva Hotel Plaza LTDA',
+        cnpj: '62.546.482/0001-37',
+        telefone: '(84) 99180-1306',
+        email: 'reservas@hotelplaza.com.br',
+        endereco: 'Rodovia RN 288',
+        numero: '91',
+        bairro: 'Centro',
+        cidade: 'Cruzeta',
+        uf: 'RN',
+        cep: '59395-000',
+        logo: '',
+      },
     };
   }
 
@@ -176,6 +192,53 @@ export class PainelMasterComponent implements OnInit, OnChanges {
     private progressService: ProgressService,
     private comodidadeService: ComodidadeService,
   ) {}
+
+  logoUploading = false;
+
+  onLogoSelect(event: any) {
+    const file = event.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erro',
+        detail: 'Apenas arquivos de imagem são permitidos (SVG, PNG, JPG)',
+      });
+      return;
+    }
+
+    if (file.size > 1000000) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erro',
+        detail: 'Arquivo muito grande. Máximo 1MB.',
+      });
+      return;
+    }
+
+    this.logoUploading = true;
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.config.empresa.logo = e.target.result;
+      this.logoUploading = false;
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Logo atualizada',
+        detail: 'A logo será salva ao clicar em "Salvar Configurações"',
+      });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removerLogo() {
+    this.config.empresa.logo = '';
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Logo removida',
+      detail: 'A logo será removida ao clicar em "Salvar Configurações"',
+    });
+  }
 
   async ngOnInit() {
     await this.carregarDados();
@@ -243,6 +306,7 @@ export class PainelMasterComponent implements OnInit, OnChanges {
         ...loadedConfig.orcamento,
         textos: { ...defaults.orcamento.textos, ...(loadedConfig.orcamento?.textos || {}) },
       },
+      empresa: { ...defaults.empresa, ...loadedConfig.empresa },
     };
     this.categorias = await this.tarifaService.getCategorias();
 
@@ -795,6 +859,20 @@ export class PainelMasterComponent implements OnInit, OnChanges {
           rodape: 'Setor de Reservas - Hotel Plaza',
         },
         sinalPercentual: 50,
+      },
+      empresa: {
+        nomeFantasia: 'Hotel Plaza',
+        razaoSocial: 'A. M. da Silva Hotel Plaza LTDA',
+        cnpj: '62.546.482/0001-37',
+        telefone: '(84) 99180-1306',
+        email: 'reservas@hotelplaza.com.br',
+        endereco: 'Rodovia RN 288',
+        numero: '91',
+        bairro: 'Centro',
+        cidade: 'Cruzeta',
+        uf: 'RN',
+        cep: '59395-000',
+        logo: '',
       },
     };
   }

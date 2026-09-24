@@ -21,6 +21,9 @@ export class ImpressaoService {
 
     const tituloJanela = titulo || 'Imprimir';
 
+    // Estilos base mínimos APENAS para tela (não impressão).
+    // As regras @media print e @page vêm do estilosAdicionais (print-styles.ts)
+    // para evitar conflitos de especificidade e duplicação de @page.
     const estilosBase = `
       * {
         box-sizing: border-box;
@@ -36,18 +39,9 @@ export class ImpressaoService {
       .no-print, .no-print * {
         display: none !important;
       }
-      @media print {
-        @page {
-          size: A4;
-          margin: 1cm;
-        }
-        body {
-          padding: 0;
-          background: white;
-        }
-        .no-print {
-          display: none !important;
-        }
+      @media screen {
+        /* Garante que .no-print suma na tela da janela de impressão também */
+        .no-print { display: none !important; }
       }
     `;
 

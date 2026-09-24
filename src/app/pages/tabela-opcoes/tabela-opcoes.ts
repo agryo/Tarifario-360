@@ -233,8 +233,10 @@ export class TabelaOpcoesComponent implements OnInit {
       this.config.temporada.altaFim,
     );
 
+    const empresa = this.config!.empresa;
+    const hotelLocal = `${empresa.nomeFantasia} - ${empresa.cidade}/${empresa.uf}`;
     let texto = `*ORÇAMENTO DE HOSPEDAGEM*\n\n`;
-    texto += `🏨 *Hotel Plaza - Cruzeta/RN*\n`;
+    texto += `🏨 *${hotelLocal}*\n`;
     texto += `📅 *Período:* ${d1.toLocaleDateString('pt-BR')} a ${d2.toLocaleDateString('pt-BR')}\n`;
     texto += `🌙 *Duração:* ${isDayUse ? 'Day Use' : noites + ' diária(s)'}\n\n------ *OPÇÕES DE ACOMODAÇÃO* ------\n`;
 

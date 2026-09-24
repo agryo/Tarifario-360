@@ -457,6 +457,28 @@ export class OrcamentoOficialComponent implements OnInit {
     const comodidades = this.comodidadesComunsNosItens();
     const orcamentoConfig = cfg?.orcamento || {};
     const promocaoConfig = cfg?.promocao || {};
+    const empresa = cfg?.empresa || {
+      nomeFantasia: '',
+      razaoSocial: '',
+      cnpj: '',
+      telefone: '',
+      email: '',
+      endereco: '',
+      numero: '',
+      bairro: '',
+      cidade: '',
+      uf: '',
+      cep: '',
+      logo: '',
+    };
+
+    const enderecoCompleto = [
+      empresa.endereco,
+      empresa.numero,
+      empresa.bairro,
+      `${empresa.cidade}/${empresa.uf}`,
+      empresa.cep
+    ].filter(Boolean).join(', ');
 
     return {
       cliente: this.cliente || '',
@@ -484,6 +506,15 @@ export class OrcamentoOficialComponent implements OnInit {
       alimentos: refeicoes.length > 0 ? `com ${refeicoes.join(', ')}` : '',
       comodidades:
         comodidades.length > 0 ? `têm ${comodidades.join(', ')}` : '',
+      // Empresa
+      empresaNome: empresa.nomeFantasia || '',
+      empresaRazaoSocial: empresa.razaoSocial || '',
+      empresaCnpj: empresa.cnpj || '',
+      empresaTelefone: empresa.telefone || '',
+      empresaEmail: empresa.email || '',
+      empresaEndereco: enderecoCompleto,
+      empresaCidadeUf: `${empresa.cidade}/${empresa.uf}`,
+      empresaLogo: (empresa as any).logo || '',
       horasExtras: this.horasExtras.toFixed(0),
       mensagemHorasExtras:
         this.horasExtras > 0

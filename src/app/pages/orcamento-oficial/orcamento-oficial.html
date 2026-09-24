@@ -269,12 +269,13 @@
     <!-- Cabeçalho -->
     <div class="header-doc">
       <div class="logo-container">
-        <img src="assets/img/logo_plaza.png" alt="Logo" />
+        <img *ngIf="getPlaceholderVars()['empresaLogo']" [src]="getPlaceholderVars()['empresaLogo']" alt="Logo" />
+        <img *ngIf="!getPlaceholderVars()['empresaLogo']" src="assets/img/logo_plaza.png" alt="Logo" />
       </div>
       <div class="hotel-info-doc">
-        <h1>A. M. da Silva Hotel Plaza</h1>
-        <p>CNPJ: 62.546.482/0001-37 | (84) 99180-1306</p>
-        <p>Rodovia RN 288, 91, Cruzeta - RN</p>
+        <h1 [innerHTML]="'{empresaNome}' | placeholders: getPlaceholderVars()"></h1>
+        <p [innerHTML]="'CNPJ: {empresaCnpj} | {empresaTelefone}' | placeholders: getPlaceholderVars()"></p>
+        <p [innerHTML]="'{empresaEndereco}' | placeholders: getPlaceholderVars()"></p>
       </div>
     </div>
 

@@ -172,8 +172,10 @@ export class OrcamentoRapidoService {
       valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
     // ===== TEXTO IGUAL AO JS ORIGINAL =====
+    const empresa = config.empresa;
+    const hotelLocal = `${empresa.nomeFantasia} - ${empresa.cidade}/${empresa.uf}`;
     let texto = `Olá! Segue o orçamento para *${config.festividade}*:\n\n`;
-    texto += `🏨 *Hotel Plaza - Cruzeta/RN*\n\n`;
+    texto += `🏨 *${hotelLocal}*\n\n`;
     texto += `🛌 *Acomodação:* ${categoria.nome}\n`;
     if (categoria.descricao) texto += `✨ _${categoria.descricao}_\n`;
 
